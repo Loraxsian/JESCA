@@ -1,0 +1,398 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard Statistik - JESCA{% endblock %}
+{% block page_heading %}Dashboard Statistik{% endblock %}
+
+{% block head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<!-- Maintenance Urgent Alert Banner (If Any within 7 Days) -->
+{% if maintenance_alerts and maintenance_alerts|length > 0 %}
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
+            <div class="card-body p-3 p-md-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 48px; height: 48px; flex-shrink: 0;">
+                        <i class="bi bi-tools fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark fs-6">Pemberitahuan Jadwal Pemeliharaan (Maintenance)</div>
+                        <p class="text-secondary small mb-0">
+                            Terdapat <strong>{{ maintenance_alerts|length }} perangkat/aset</strong> yang mendekati jadwal servis berkala dalam 7 hari ke depan atau sudah lewat jatuh tempo.
+                        </p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                    <a href="{{ url_for('assets', maintenance='due') }}" class="btn btn-warning text-dark btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                        <i class="bi bi-list-check me-1"></i> Periksa Aset Servis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Top Metrics Row -->
+<div class="row g-3 mb-4">
+    <!-- Total Assets -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Total Aset</span>
+                    <div class="stat-icon bg-primary-subtle text-primary rounded-3">
+                        <i class="bi bi-boxes fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">{{ total_assets }} <span class="fs-6 fw-normal text-muted">Item</span></h3>
+                <div class="text-muted small">
+                    <i class="bi bi-tag text-primary me-1"></i>
+                    <span>{{ category_labels|length }} Kategori terdaftar</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Asset Valuation -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Total Valuasi</span>
+                    <div class="stat-icon bg-success-subtle text-success rounded-3">
+                        <i class="bi bi-cash-stack fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1 text-success">{{ total_value|rupiah }}</h3>
+                <div class="text-muted small">
+                    <i class="bi bi-graph-up text-success me-1"></i>
+                    <span>Akumulasi nilai perolehan</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active & Borrowed Assets -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Aset Aktif / Dipinjam</span>
+                    <div class="stat-icon bg-info-subtle text-info rounded-3">
+                        <i class="bi bi-check-circle fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1 text-dark">
+                    {{ active_count }} <span class="fs-6 text-muted fw-normal">Aktif</span>
+                    {% if borrowed_count %}
+                        <span class="badge bg-info-subtle text-info fs-6 fw-normal">{{ borrowed_count }} Dipinjam</span>
+                    {% endif %}
+                </h3>
+                <div class="text-muted small">
+                    <i class="bi bi-pie-chart text-info me-1"></i>
+                    <span>{{ active_percentage }}% siap digunakan</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Due in 7 Days -->
+    <div class="col-sm-6 col-xl-3">
+        <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3 p-md-4">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Jadwal Servis (7 Hari)</span>
+                    <div class="stat-icon {% if maintenance_alerts|length > 0 %}bg-warning text-white{% else %}bg-warning-subtle text-warning{% endif %} rounded-3">
+                        <i class="bi bi-tools fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-1 {% if maintenance_alerts|length > 0 %}text-warning{% else %}text-dark{% endif %}">
+                    {{ maintenance_alerts|length }} <span class="fs-6 text-muted fw-normal">Unit</span>
+                </h3>
+                <div class="text-muted small">
+                    {% if maintenance_alerts|length > 0 %}
+                        <span class="text-warning fw-semibold"><i class="bi bi-exclamation-circle me-1"></i>Perlu tindakan segera</span>
+                    {% else %}
+                        <i class="bi bi-check2 text-success me-1"></i>Semua jadwal aman
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-3 mb-4">
+    <!-- Category Doughnut Chart -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0">Distribusi per Kategori</h6>
+                    <small class="text-muted">Persebaran jumlah inventaris</small>
+                </div>
+                <span class="badge bg-light text-secondary border font-monospace">Kategori</span>
+            </div>
+            <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                {% if category_counts and (category_counts|sum > 0) %}
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted small">
+                    <i class="bi bi-pie-chart fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                    Belum ada data aset untuk grafik kategori.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Bar Chart -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0">Status & Kondisi Operasional</h6>
+                    <small class="text-muted">Unit per status pemakaian</small>
+                </div>
+                <span class="badge bg-light text-secondary border font-monospace">Status</span>
+            </div>
+            <div class="card-body p-4 d-flex align-items-center justify-content-center">
+                {% if status_counts and (status_counts|sum > 0) %}
+                <div style="position: relative; height: 250px; width: 100%;">
+                    <canvas id="statusChart"></canvas>
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted small">
+                    <i class="bi bi-bar-chart fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                    Belum ada data aset untuk grafik status.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Split Row: Recent Assets & Recent Activity Log -->
+<div class="row g-3">
+    <!-- Recent Assets Table -->
+    <div class="col-xl-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0">Aset Terbaru</h6>
+                    <small class="text-muted">5 data aset terakhir didaftarkan</small>
+                </div>
+                <a href="{{ url_for('assets') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3" style="font-size: 0.78rem;">
+                    Kelola Semua <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small">
+                            <tr>
+                                <th class="ps-4">Aset</th>
+                                <th>Kategori</th>
+                                <th>Maintenance</th>
+                                <th>Status</th>
+                                <th class="text-center pe-3">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for asset in recent_assets %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        {% if asset.image %}
+                                            <img src="{{ url_for('static', filename='uploads/' ~ asset.image) }}" alt="Foto" class="rounded-2 border object-fit-cover" style="width: 36px; height: 36px;">
+                                        {% else %}
+                                            <div class="bg-light rounded-2 border d-flex align-items-center justify-content-center text-muted" style="width: 36px; height: 36px;">
+                                                <i class="bi bi-box-seam"></i>
+                                            </div>
+                                        {% endif %}
+                                        <div>
+                                            <div class="fw-semibold text-dark text-truncate" style="max-width: 170px;">{{ asset.name }}</div>
+                                            <span class="badge bg-light text-primary font-monospace border" style="font-size: 0.7rem;">{{ asset.asset_code }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="small text-secondary">{{ asset.category }}</span></td>
+                                <td>
+                                    {% if asset.needs_maintenance and asset.next_maintenance_date %}
+                                        <small class="text-secondary font-monospace d-block">
+                                            {{ asset.next_maintenance_date|format_date }}
+                                        </small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if asset.status == 'Aktif' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 0.72rem;">Aktif</span>
+                                    {% elif asset.status == 'Dipinjam' %}
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 0.72rem;">Dipinjam</span>
+                                    {% elif asset.status == 'Dalam Perbaikan' %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle" style="font-size: 0.72rem;">Perbaikan</span>
+                                    {% elif asset.status == 'Rusak' %}
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 0.72rem;">Rusak</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary border" style="font-size: 0.72rem;">{{ asset.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-3">
+                                    <a href="{{ url_for('assets', search=asset.asset_code) }}" class="btn btn-sm btn-light border text-primary" title="Lihat">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted small">
+                                    Belum ada data aset yang tersimpan.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity Log Widget -->
+    <div class="col-xl-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="fw-bold mb-0">Log Aktivitas Terbaru</h6>
+                    <small class="text-muted">Aktivitas sistem real-time</small>
+                </div>
+                <a href="{{ url_for('history') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" style="font-size: 0.78rem;">
+                    Buka Log <i class="bi bi-clock-history"></i>
+                </a>
+            </div>
+            <div class="card-body p-3">
+                <div class="d-flex flex-column gap-2">
+                    {% for log in recent_logs %}
+                    <div class="p-2 px-3 rounded-3 border bg-light bg-opacity-50">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge 
+                                {% if 'TAMBAH' in log.action %}bg-success-subtle text-success border border-success-subtle
+                                {% elif 'EDIT' in log.action or 'CHECK' in log.action or 'MAINTENANCE' in log.action %}bg-primary-subtle text-primary border border-primary-subtle
+                                {% elif 'HAPUS' in log.action %}bg-danger-subtle text-danger border border-danger-subtle
+                                {% else %}bg-secondary-subtle text-secondary border{% endif %}" style="font-size: 0.68rem;">
+                                {{ log.action }}
+                            </span>
+                            <small class="text-muted" style="font-size: 0.72rem;">{{ log.created_at|format_datetime }}</small>
+                        </div>
+                        <div class="text-dark small text-truncate fw-medium" title="{{ log.details }}">
+                            {{ log.details or '-' }}
+                        </div>
+                        <div class="text-muted" style="font-size: 0.72rem;">
+                            Oleh: <strong>{{ log.username }}</strong>
+                            {% if log.asset_code %}&bull; Aset: <code>{{ log.asset_code }}</code>{% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted small">
+                        Belum ada aktivitas yang tercatat.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const categoryLabels = {{ category_labels | tojson }};
+    const categoryCounts = {{ category_counts | tojson }};
+    const statusLabels = {{ status_labels | tojson }};
+    const statusCounts = {{ status_counts | tojson }};
+
+    // Category Doughnut Chart
+    const ctxCategory = document.getElementById('categoryChart');
+    if (ctxCategory && categoryCounts.length > 0 && categoryCounts.reduce((a, b) => a + b, 0) > 0) {
+        new Chart(ctxCategory, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryCounts,
+                    backgroundColor: [
+                        '#4361ee', '#f72585', '#4cc9f0', '#7209b7', '#ffb703', '#06d6a0'
+                    ],
+                    borderWidth: 2,
+                    borderColor: '#ffffff',
+                    hoverOffset: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            padding: 12,
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 11 }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+
+    // Status Bar Chart
+    const ctxStatus = document.getElementById('statusChart');
+    if (ctxStatus && statusCounts.length > 0 && statusCounts.reduce((a, b) => a + b, 0) > 0) {
+        new Chart(ctxStatus, {
+            type: 'bar',
+            data: {
+                labels: statusLabels,
+                datasets: [{
+                    label: 'Unit',
+                    data: statusCounts,
+                    backgroundColor: [
+                        'rgba(25, 135, 84, 0.8)',   // Aktif
+                        'rgba(13, 202, 240, 0.8)',  // Dipinjam
+                        'rgba(255, 193, 7, 0.8)',   // Perbaikan
+                        'rgba(220, 53, 69, 0.8)',   // Rusak
+                        'rgba(108, 117, 125, 0.8)', // Afkir
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1, font: { family: "'Plus Jakarta Sans', sans-serif" } },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        ticks: { font: { family: "'Plus Jakarta Sans', sans-serif", size: 10 } },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

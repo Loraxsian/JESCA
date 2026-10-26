@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dashboard{% endblock %} - JESCA (Jessica Assets)</title>
+
+    <!-- Google Fonts: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons 1.11.3 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Custom Style -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+    {% if current_user.is_authenticated %}
+    <div class="d-flex" id="wrapper">
+        <!-- Clean Sidebar Navigation -->
+        <aside class="sidebar bg-white border-end" id="sidebar-wrapper">
+            <!-- Brand Logo -->
+            <div class="sidebar-heading px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-decoration-none text-dark gap-2">
+                    <div class="brand-icon rounded-3 d-flex align-items-center justify-content-center text-white shadow-sm">
+                        <i class="bi bi-box-seam-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <span class="fs-5 fw-extrabold tracking-tight text-primary d-block lh-1">JESCA</span>
+                        <small class="text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">ASSET MANAGEMENT</small>
+                    </div>
+                </a>
+                <button class="btn btn-sm btn-light border-0 d-md-none" id="sidebar-close" aria-label="Close Sidebar">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <div class="sidebar-menu p-3">
+                
+                <!-- Section: UTAMA -->
+                <div class="menu-label">Menu Utama</div>
+                <ul class="nav nav-pills flex-column gap-1 mb-3">
+                    <li class="nav-item">
+                        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-grid-1x2"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('assets') }}" class="nav-link {% if request.endpoint == 'assets' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-boxes"></i>
+                            <span>Kelola Data Aset</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Section: AKTIVITAS & LAPORAN -->
+                <div class="menu-label">Aktivitas & Laporan</div>
+                <ul class="nav nav-pills flex-column gap-1 mb-3">
+                    <li class="nav-item">
+                        <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Log & Riwayat</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('export_assets_csv') }}" class="nav-link d-flex align-items-center gap-3">
+                            <i class="bi bi-file-earmark-arrow-down text-success"></i>
+                            <span>Export Laporan (CSV)</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Section: PENGATURAN & ACCOUNTS -->
+                <div class="menu-label">Sistem & Pengguna</div>
+                <ul class="nav nav-pills flex-column gap-1 mb-4">
+                    {% if current_user.role == 'Admin' %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('accounts') }}" class="nav-link {% if request.endpoint in ['accounts', 'users_redirect'] %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-person-badge-fill"></i>
+                            <span>Accounts</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                            <i class="bi bi-key"></i>
+                            <span>Ganti Password</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Category Quick Links -->
+                <div class="menu-label">Kategori Aset</div>
+                <div class="d-flex flex-column gap-1">
+                    <a href="{{ url_for('assets', category='Tech') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-laptop text-primary"></i> Tech / IT</span>
+                        <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.72rem;">Tech/00x</span>
+                    </a>
+                    <a href="{{ url_for('assets', category='Tools') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-tools text-warning"></i> Tools</span>
+                        <span class="badge bg-light text-warning border font-monospace" style="font-size: 0.72rem;">Tools/00x</span>
+                    </a>
+                    <a href="{{ url_for('assets', category='Furniture') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-lamp text-info"></i> Furnitur</span>
+                        <span class="badge bg-light text-info border font-monospace" style="font-size: 0.72rem;">Furn/00x</span>
+                    </a>
+                    <a href="{{ url_for('assets', category='Vehicle') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-car-front text-danger"></i> Kendaraan</span>
+                        <span class="badge bg-light text-danger border font-monospace" style="font-size: 0.72rem;">Vehicle/00x</span>
+                    </a>
+                    <a href="{{ url_for('assets', category='Office') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-printer text-success"></i> Kantor</span>
+                        <span class="badge bg-light text-success border font-monospace" style="font-size: 0.72rem;">Office/00x</span>
+                    </a>
+                </div>
+
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div id="page-content-wrapper" class="w-100 d-flex flex-column min-vh-100">
+            <!-- Clean Top Navbar -->
+            <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top px-3 py-2">
+                <div class="container-fluid px-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <button class="btn btn-sm btn-light border-0 d-md-none me-1" id="sidebar-toggle" aria-label="Toggle Sidebar">
+                            <i class="bi bi-list fs-5"></i>
+                        </button>
+                        <span class="fw-bold fs-6 text-dark">{% block page_heading %}JESCA{% endblock %}</span>
+                    </div>
+
+                    <div class="d-flex align-items-center gap-2 ms-auto">
+                        <!-- Maintenance Bell Notification -->
+                        <div class="dropdown me-1">
+                            <button class="btn btn-light position-relative border-0 rounded-circle p-2 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan Maintenance">
+                                <i class="bi bi-bell fs-5 text-secondary"></i>
+                                {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
+                                        {{ maintenance_alerts|length }}
+                                        <span class="visually-hidden">peringatan maintenance</span>
+                                    </span>
+                                {% endif %}
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 310px; max-height: 400px; overflow-y: auto;">
+                                <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold small text-dark"><i class="bi bi-tools text-warning me-1"></i> Jadwal Maintenance (7 Hari)</span>
+                                    <span class="badge bg-light text-secondary border font-monospace">{{ maintenance_alerts|length }} Aset</span>
+                                </li>
+                                {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                                    {% for item in maintenance_alerts %}
+                                    <li>
+                                        <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('assets', search=item.asset.asset_code) }}">
+                                            <div class="mt-1">
+                                                <i class="bi bi-exclamation-triangle-fill text-{{ item.badge_class }}"></i>
+                                            </div>
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <span class="badge bg-light text-primary font-monospace border" style="font-size: 0.7rem;">{{ item.asset.asset_code }}</span>
+                                                    <span class="badge bg-{{ item.badge_class }}-subtle text-{{ item.badge_class }}" style="font-size: 0.68rem;">{{ item.status_text }}</span>
+                                                </div>
+                                                <div class="fw-semibold small text-dark text-truncate mt-1" style="max-width: 220px;">{{ item.asset.name }}</div>
+                                                <small class="text-muted d-block" style="font-size: 0.72rem;">Jadwal: {{ item.asset.next_maintenance_date|format_date }}</small>
+                                            </div>
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                    <li class="pt-2 text-center">
+                                        <a href="{{ url_for('assets', maintenance='due') }}" class="small text-primary fw-semibold text-decoration-none">
+                                            Lihat Semua Aset Jatuh Tempo &rarr;
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="p-3 text-center text-muted small">
+                                        <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
+                                        Tidak ada jadwal maintenance dalam 7 hari ke depan. Semua perangkat beroperasi normal!
+                                    </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+
+                        <!-- Quick Add Asset Button -->
+                        <a href="{{ url_for('assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
+                            <i class="bi bi-plus-lg"></i>
+                            <span class="d-none d-sm-inline">Tambah Aset</span>
+                        </a>
+
+                        <div class="vr mx-1"></div>
+
+                        <!-- User Profile Menu -->
+                        <div class="dropdown">
+                            <button class="btn btn-light border-0 d-flex align-items-center gap-2 py-1 px-2 rounded-pill dropdown-toggle shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="avatar-circle bg-primary-subtle text-primary fw-bold">
+                                    {{ current_user.username[0]|upper }}
+                                </div>
+                                <div class="text-start d-none d-md-block">
+                                    <div class="fw-semibold lh-1" style="font-size: 0.85rem;">{{ current_user.full_name }}</div>
+                                    <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">{{ current_user.role }}</span>
+                                </div>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 200px;">
+                                <li class="px-3 py-2 border-bottom">
+                                    <div class="fw-bold text-dark">{{ current_user.full_name }}</div>
+                                    <small class="text-muted">@{{ current_user.username }} &bull; {{ current_user.role }}</small>
+                                </li>
+                                {% if current_user.role == 'Admin' %}
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('accounts') }}">
+                                        <i class="bi bi-person-badge text-muted"></i>
+                                        <span>Accounts</span>
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                        <i class="bi bi-key text-muted"></i>
+                                        <span>Ganti Password</span>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider my-1"></li>
+                                <li>
+                                    <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2" href="{{ url_for('logout') }}">
+                                        <i class="bi bi-box-arrow-right"></i>
+                                        <span>Keluar (Logout)</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Dismissible Flash Alerts -->
+            <div class="container-fluid px-3 px-md-4 pt-3">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2" role="alert">
+                                {% if category == 'success' %}
+                                    <i class="bi bi-check-circle-fill fs-5"></i>
+                                {% elif category == 'danger' %}
+                                    <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+                                {% elif category == 'warning' %}
+                                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                                {% else %}
+                                    <i class="bi bi-info-circle-fill fs-5"></i>
+                                {% endif %}
+                                <div class="flex-grow-1 small">{{ message }}</div>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+            </div>
+
+            <!-- Page Main Body -->
+            <main class="flex-grow-1 container-fluid px-3 px-md-4 pb-4">
+                {% block content %}{% endblock %}
+            </main>
+
+            <!-- Clean Footer -->
+            <footer class="bg-white border-top py-3 px-4 text-center text-muted small">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
+                    <div>
+                        <strong>JESCA</strong> &copy; 2024 &bull; Jessica Assets Management System
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-light text-secondary border font-monospace">Auto-Coding &bull; QR &bull; Maintenance</span>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL MODAL: GANTI PASSWORD MANDIRI
+         ========================================== -->
+    <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom py-3 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-shield-lock-fill fs-5"></i>
+                        </div>
+                        <h6 class="modal-title fw-bold" id="changePasswordModalLabel">Ganti Password Saya</h6>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('change_password') }}">
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="oldPassword" class="form-label small fw-bold text-secondary">Password Lama</label>
+                            <input type="password" class="form-control" id="oldPassword" name="old_password" required placeholder="Masukkan password saat ini">
+                        </div>
+                        <div class="mb-3">
+                            <label for="newPassword" class="form-label small fw-bold text-secondary">Password Baru</label>
+                            <input type="password" class="form-control" id="newPassword" name="new_password" required minlength="6" placeholder="Minimal 6 karakter">
+                        </div>
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label small fw-bold text-secondary">Konfirmasi Password</label>
+                            <input type="password" class="form-control" id="confirmPassword" name="confirm_password" required minlength="6" placeholder="Ulangi password baru">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                        <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Password Baru</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+        <!-- Unauthenticated View (Login / Scan View) -->
+        <main class="min-vh-100 d-flex flex-column justify-content-center py-4 bg-light">
+            {% block auth_content %}{% endblock %}
+        </main>
+    {% endif %}
+
+    <!-- Bootstrap 5 Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Global App JS -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

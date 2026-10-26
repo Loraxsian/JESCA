@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block title %}Accounts - JESCA{% endblock %}
+{% block page_heading %}Accounts{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="row g-3 align-items-center mb-4">
+    <div class="col-md-6">
+        <h5 class="fw-bold mb-1">Manajemen Akun (Accounts)</h5>
+        <p class="text-muted small mb-0">
+            Tambah user baru, tentukan hak akses peran (Role), dan kelola atau ganti password tiap akun pengguna.
+        </p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+            <i class="bi bi-person-plus-fill me-1"></i> Tambah Akun Baru
+        </button>
+    </div>
+</div>
+
+<!-- Accounts Table Card -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light text-muted small text-uppercase">
+                    <tr>
+                        <th class="ps-4">Pengguna</th>
+                        <th>Username</th>
+                        <th>Peran (Role)</th>
+                        <th>Status</th>
+                        <th>Terdaftar Sejak</th>
+                        <th class="text-center pe-4" style="width: 170px;">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                    <tr>
+                        <!-- Avatar & Full Name -->
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="avatar-circle-sm bg-primary-subtle text-primary fw-bold">
+                                    {{ user.username[0]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-semibold text-dark">{{ user.full_name }}</div>
+                                    {% if user.id == current_user.id %}
+                                        <span class="badge bg-light text-primary border" style="font-size: 0.68rem;">(Akun Anda Saat Ini)</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Username -->
+                        <td>
+                            <code class="fw-semibold text-dark">@{{ user.username }}</code>
+                        </td>
+
+                        <!-- Role Badge -->
+                        <td>
+                            {% if user.role == 'Admin' %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
+                                    <i class="bi bi-shield-lock-fill me-1"></i> Admin
+                                </span>
+                            {% elif user.role == 'Staff' %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
+                                    <i class="bi bi-person-workspace me-1"></i> Staff
+                                </span>
+                            {% elif user.role == 'Teknisi' %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
+                                    <i class="bi bi-tools me-1"></i> Teknisi
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">
+                                    <i class="bi bi-search me-1"></i> Auditor
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Status -->
+                        <td>
+                            {% if user.is_active %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.72rem;">
+                                    <i class="bi bi-check-circle-fill me-1"></i> Aktif
+                                </span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" style="font-size: 0.72rem;">
+                                    <i class="bi bi-slash-circle-fill me-1"></i> Nonaktif
+                                </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Tanggal Terdaftar -->
+                        <td>
+                            <small class="text-secondary">{{ user.created_at|format_date }}</small>
+                        </td>
+
+                        <!-- Aksi -->
+                        <td class="text-center pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <!-- Edit Akun Info -->
+                                <button type="button" class="btn btn-light border text-primary" title="Edit Data Akun"
+                                        onclick="openEditAccountModal({{ user.id }}, '{{ user.username }}', '{{ user.full_name|replace('\'', '\\\'') }}', '{{ user.role }}', {{ 'true' if user.is_active else 'false' }})">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+
+                                <!-- Ganti Password Akun ini -->
+                                <button type="button" class="btn btn-light border text-warning" title="Ganti Password Akun Ini"
+                                        onclick="openChangeUserPasswordModal({{ user.id }}, '{{ user.username }}')">
+                                    <i class="bi bi-key-fill"></i>
+                                </button>
+
+                                <!-- Hapus Akun (disabled for self) -->
+                                {% if user.id != current_user.id %}
+                                <button type="button" class="btn btn-light border text-danger" title="Hapus Akun"
+                                        onclick="confirmDeleteAccount({{ user.id }}, '{{ user.username }}')">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                                {% else %}
+                                <button type="button" class="btn btn-light border text-muted" disabled title="Tidak dapat menghapus akun sendiri">
+                                    <i class="bi bi-lock"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: TAMBAH AKUN BARU
+     ========================================== -->
+<div class="modal fade" id="addAccountModal" tabindex="-1" aria-labelledby="addAccountModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-person-plus-fill fs-5"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold" id="addAccountModalLabel">Tambah Akun Baru</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="{{ url_for('create_account') }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label for="newUsername" class="form-label small fw-bold text-secondary">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" id="newUsername" name="username" required placeholder="Contoh: staff_gudang">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newFullName" class="form-label small fw-bold text-secondary">Nama Lengkap</label>
+                        <input type="text" class="form-control form-control-sm" id="newFullName" name="full_name" placeholder="Nama personel">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newRole" class="form-label small fw-bold text-secondary">Peran Akses (Role) <span class="text-danger">*</span></label>
+                        <select class="form-select form-select-sm" id="newRole" name="role" required>
+                            {% for r in roles %}
+                                <option value="{{ r }}">{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                        <small class="text-muted" style="font-size: 0.7rem;">Admin memiliki akses penuh terhadap seluruh menu & Accounts.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label small fw-bold text-secondary">Password Awal <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control form-control-sm" id="newPassword" name="password" required minlength="6" placeholder="Minimal 6 karakter">
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Buat Akun</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: EDIT DATA AKUN
+     ========================================== -->
+<div class="modal fade" id="editAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-person-gear fs-5"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold">Edit Akun</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="" id="editAccountForm">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Username</label>
+                        <input type="text" class="form-control form-control-sm bg-light" id="editAccountUsername" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAccountFullName" class="form-label small fw-bold text-secondary">Nama Lengkap</label>
+                        <input type="text" class="form-control form-control-sm" id="editAccountFullName" name="full_name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editAccountRole" class="form-label small fw-bold text-secondary">Peran (Role)</label>
+                        <select class="form-select form-select-sm" id="editAccountRole" name="role">
+                            {% for r in roles %}
+                                <option value="{{ r }}">{{ r }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-1">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="editAccountIsActive" name="is_active" value="1">
+                            <label class="form-check-label small fw-bold" for="editAccountIsActive">Akun Aktif</label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: GANTI PASSWORD AKUN (ADMIN RESET)
+     ========================================== -->
+<div class="modal fade" id="changeUserPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-warning-subtle text-warning rounded-3 p-2 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-key-fill fs-5"></i>
+                    </div>
+                    <h6 class="modal-title fw-bold">Ganti Password Akun</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="" id="changeUserPasswordForm">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Target Akun</label>
+                        <div class="fw-bold text-dark fs-6" id="changePasswordTargetUser">-</div>
+                        <small class="text-muted" style="font-size: 0.72rem;">Sebagai Admin, Anda dapat mengganti password akun ini tanpa perlu mengetahui password lama.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="adminNewPassword" class="form-label small fw-bold text-secondary">Password Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control form-control-sm" id="adminNewPassword" name="new_password" required minlength="6" placeholder="Minimal 6 karakter">
+                    </div>
+                    <div class="mb-2">
+                        <label for="adminConfirmPassword" class="form-label small fw-bold text-secondary">Konfirmasi Password Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control form-control-sm" id="adminConfirmPassword" name="confirm_password" required minlength="6" placeholder="Ulangi password baru">
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning btn-sm text-dark fw-bold">Setel Password Baru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: KONFIRMASI HAPUS AKUN
+     ========================================== -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-body p-4 text-center">
+                <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-person-x fs-4"></i>
+                </div>
+                <h6 class="fw-bold mb-2">Hapus Akun Pengguna?</h6>
+                <p class="text-muted small mb-3">Akun <strong id="deleteTargetAccountUser" class="text-dark"></strong> akan dihapus permanen dan tidak bisa masuk ke sistem.</p>
+                <form method="POST" action="" id="deleteAccountForm">
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light border btn-sm w-50" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger btn-sm w-50 fw-semibold">Ya, Hapus</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function openEditAccountModal(userId, username, fullName, role, isActive) {
+        document.getElementById('editAccountForm').action = `/accounts/${userId}/edit`;
+        document.getElementById('editAccountUsername').value = `@${username}`;
+        document.getElementById('editAccountFullName').value = fullName;
+        document.getElementById('editAccountRole').value = role;
+        document.getElementById('editAccountIsActive').checked = isActive;
+        new bootstrap.Modal(document.getElementById('editAccountModal')).show();
+    }
+
+    function openChangeUserPasswordModal(userId, username) {
+        document.getElementById('changeUserPasswordForm').action = `/accounts/${userId}/change-password`;
+        document.getElementById('changePasswordTargetUser').textContent = `@${username}`;
+        document.getElementById('adminNewPassword').value = '';
+        document.getElementById('adminConfirmPassword').value = '';
+        new bootstrap.Modal(document.getElementById('changeUserPasswordModal')).show();
+    }
+
+    function confirmDeleteAccount(userId, username) {
+        document.getElementById('deleteTargetAccountUser').textContent = `@${username}`;
+        document.getElementById('deleteAccountForm').action = `/accounts/${userId}/delete`;
+        new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Login - JESCA Asset Management{% endblock %}
+
+{% block auth_content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
+            
+            <!-- Clean Brand Header -->
+            <div class="text-center mb-4">
+                <div class="login-brand-icon mx-auto mb-3 shadow d-flex align-items-center justify-content-center text-white">
+                    <i class="bi bi-box-seam-fill fs-2"></i>
+                </div>
+                <h3 class="fw-extrabold text-dark mb-1 tracking-tight">JESCA</h3>
+                <p class="text-muted small">Jessica Assets Management System</p>
+            </div>
+
+            <!-- Login Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 p-sm-4">
+                    
+                    <div class="mb-3">
+                        <h5 class="fw-bold text-dark mb-1">Masuk ke Sistem</h5>
+                        <p class="text-muted small">Masukkan kredensial akun Anda untuk melanjutkan.</p>
+                    </div>
+
+                    <!-- Flash messages in login -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} alert-dismissible fade show small py-2 px-3 border-0 rounded-3 mb-3" role="alert">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-info-circle-fill"></i>
+                                        <span>{{ message }}</span>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.8rem;"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+                        <!-- Username -->
+                        <div class="mb-3">
+                            <label for="username" class="form-label small fw-semibold text-secondary">Username</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted">
+                                    <i class="bi bi-person"></i>
+                                </span>
+                                <input type="text" class="form-control bg-light border-start-0" id="username" name="username" placeholder="Masukkan username" required autofocus autocomplete="username">
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0 text-muted">
+                                    <i class="bi bi-key"></i>
+                                </span>
+                                <input type="password" class="form-control bg-light border-start-0 border-end-0" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password">
+                                <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePasswordBtn">
+                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Remember Me -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="remember" name="remember" checked>
+                                <label class="form-check-label small text-muted user-select-none" for="remember">
+                                    Ingat saya
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
+                            <span>Masuk</span>
+                            <i class="bi bi-arrow-right"></i>
+                        </button>
+                    </form>
+
+                    <!-- Demo Credentials Card -->
+                    <div class="mt-4 pt-3 border-top text-center">
+                        <div class="p-2 px-3 bg-light border rounded-3 small text-start">
+                            <div class="d-flex align-items-center justify-content-between mb-1">
+                                <span class="fw-bold text-dark"><i class="bi bi-info-circle text-primary me-1"></i> Akun Bawaan:</span>
+                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 fw-semibold rounded-pill" id="fillDemoCredentialsBtn" style="font-size: 0.72rem;">
+                                    Auto-Fill
+                                </button>
+                            </div>
+                            <div class="font-monospace text-secondary" style="font-size: 0.78rem;">
+                                User: <strong>Admin</strong> &bull; Pass: <strong>Admin123</strong>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Footer -->
+            <div class="text-center mt-3">
+                <small class="text-muted" style="font-size: 0.75rem;">
+                    JESCA &copy; 2024 &bull; Flask & SQLAlchemy
+                </small>
+            </div>
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Toggle show/hide password
+    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
+    const passwordInput = document.getElementById('password');
+    const toggleIcon = document.getElementById('togglePasswordIcon');
+
+    if (togglePasswordBtn && passwordInput && toggleIcon) {
+        togglePasswordBtn.addEventListener('click', () => {
+            const isPassword = passwordInput.getAttribute('type') === 'password';
+            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+            toggleIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+        });
+    }
+
+    // Auto-fill demo credentials
+    const fillDemoBtn = document.getElementById('fillDemoCredentialsBtn');
+    if (fillDemoBtn) {
+        fillDemoBtn.addEventListener('click', () => {
+            document.getElementById('username').value = 'Admin';
+            document.getElementById('password').value = 'Admin123';
+            document.getElementById('username').focus();
+        });
+    }
+</script>
+{% endblock %}

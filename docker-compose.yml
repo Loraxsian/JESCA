@@ -1,0 +1,25 @@
+services:
+  jesca-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jesca-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=jesca-super-secret-key-production-2024
+      - DATABASE_URL=sqlite:////app/data/jesca.db
+      - ADMIN_USERNAME=Admin
+      - ADMIN_PASSWORD=Admin123
+    volumes:
+      - .:/app
+      - ./data:/app/data
+      - ./static/uploads:/app/static/uploads
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/login"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

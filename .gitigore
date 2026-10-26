@@ -1,0 +1,15 @@
+# Abaikan database SQLite
+*.db
+*.sqlite
+*.sqlite3
+
+# Abaikan folder upload foto asset
+static/uploads/*
+!static/uploads/.gitkeep
+
+# Abaikan cache Python & Environment
+__pycache__/
+*.pyc
+venv/
+.env
+.DS_Store

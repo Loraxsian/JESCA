@@ -1,0 +1,449 @@
+/* ==========================================
+   JESCA (Jessica Assets) Custom Stylesheet
+   Version: 2026.1 - Multi-Theme & Clean UI
+   ========================================== */
+
+/* ==========================================
+   THEME PALETTES & VARIABLES
+   ========================================== */
+
+/* 1. Default Light Theme */
+:root, [data-theme="light"] {
+    --bg-body: #f8fafc;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-hover: #f1f5f9;
+    --bg-input: #f8fafc;
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    --border-color: #e2e8f0;
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --primary-subtle: #eff6ff;
+    --primary-text: #1d4ed8;
+    --brand-grad: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* 2. Dark Mode Theme */
+[data-theme="dark"] {
+    --bg-body: #0b1120;
+    --bg-card: #1e293b;
+    --bg-sidebar: #0f172a;
+    --bg-hover: #334155;
+    --bg-input: #0f172a;
+    --text-main: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border-color: #334155;
+    --primary-color: #3b82f6;
+    --primary-hover: #60a5fa;
+    --primary-subtle: rgba(59, 130, 246, 0.15);
+    --primary-text: #93c5fd;
+    --brand-grad: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    --shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* 3. Sakura Pink Theme */
+[data-theme="pink"] {
+    --bg-body: #fdf2f8;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-hover: #fce7f3;
+    --bg-input: #fdf2f8;
+    --text-main: #701a75;
+    --text-muted: #a21caf;
+    --border-color: #fbcfe8;
+    --primary-color: #ec4899;
+    --primary-hover: #db2777;
+    --primary-subtle: #fdf2f8;
+    --primary-text: #db2777;
+    --brand-grad: linear-gradient(135deg, #ec4899 0%, #be185d 100%);
+    --shadow-sm: 0 1px 4px rgba(236, 72, 153, 0.1);
+}
+
+/* 4. Emerald Green Theme */
+[data-theme="emerald"] {
+    --bg-body: #f0fdf4;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-hover: #dcfce7;
+    --bg-input: #f0fdf4;
+    --text-main: #064e3b;
+    --text-muted: #047857;
+    --border-color: #bbf7d0;
+    --primary-color: #059669;
+    --primary-hover: #047857;
+    --primary-subtle: #ecfdf5;
+    --primary-text: #059669;
+    --brand-grad: linear-gradient(135deg, #10b981 0%, #047857 100%);
+    --shadow-sm: 0 1px 4px rgba(16, 185, 129, 0.1);
+}
+
+/* 5. Cyber Indigo Theme */
+[data-theme="indigo"] {
+    --bg-body: #f5f3ff;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff;
+    --bg-hover: #ede9fe;
+    --bg-input: #f5f3ff;
+    --text-main: #312e81;
+    --text-muted: #6366f1;
+    --border-color: #ddd6fe;
+    --primary-color: #6366f1;
+    --primary-hover: #4f46e5;
+    --primary-subtle: #eef2ff;
+    --primary-text: #4f46e5;
+    --brand-grad: linear-gradient(135deg, #6366f1 0%, #4338ca 100%);
+    --shadow-sm: 0 1px 4px rgba(99, 102, 241, 0.1);
+}
+
+/* Global Variables */
+:root {
+    --sidebar-width: 250px;
+    --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+    font-family: var(--font-sans);
+    background-color: var(--bg-body) !important;
+    color: var(--text-main) !important;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.font-monospace {
+    font-family: var(--font-mono) !important;
+}
+
+/* Structural Components with Theme Variables */
+.card {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-main) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sidebar {
+    background-color: var(--bg-sidebar) !important;
+    border-color: var(--border-color) !important;
+}
+
+.navbar {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+footer {
+    background-color: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Button & Badge Primaries */
+.btn-primary {
+    background-color: var(--primary-color) !important;
+    border-color: var(--primary-color) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+    background-color: var(--primary-hover) !important;
+    border-color: var(--primary-hover) !important;
+}
+
+.text-primary {
+    color: var(--primary-color) !important;
+}
+
+.bg-primary-subtle {
+    background-color: var(--primary-subtle) !important;
+    color: var(--primary-text) !important;
+}
+
+/* Sidebar Styling */
+#wrapper {
+    overflow-x: hidden;
+}
+
+#sidebar-wrapper {
+    min-height: 100vh;
+    width: var(--sidebar-width);
+    margin-left: -var(--sidebar-width);
+    transition: margin 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    height: 65px;
+    border-color: var(--border-color) !important;
+}
+
+.brand-icon {
+    width: 38px;
+    height: 38px;
+    background: var(--brand-grad);
+}
+
+.menu-label {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-muted);
+    padding: 0.5rem 0.75rem 0.25rem 0.75rem;
+}
+
+.sidebar .nav-link {
+    color: var(--text-main);
+    font-weight: 500;
+    font-size: 0.88rem;
+    padding: 0.6rem 0.85rem;
+    border-radius: 0.5rem;
+    transition: all 0.15s ease-in-out;
+}
+
+.sidebar .nav-link:hover {
+    color: var(--primary-color);
+    background-color: var(--bg-hover);
+}
+
+.sidebar .nav-link.active {
+    color: #ffffff !important;
+    background-color: var(--primary-color) !important;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar .nav-link i {
+    font-size: 1.05rem;
+}
+
+.category-pill {
+    transition: all 0.15s ease;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+.category-pill:hover {
+    background-color: var(--bg-hover);
+    color: var(--primary-color) !important;
+}
+
+/* Mobile Sidebar */
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+    #page-content-wrapper {
+        min-width: 0;
+        width: calc(100% - var(--sidebar-width));
+    }
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -var(--sidebar-width);
+    }
+}
+
+@media (max-width: 767.98px) {
+    #sidebar-wrapper {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+    }
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: 0;
+    }
+}
+
+/* User Avatars */
+.avatar-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.88rem;
+}
+
+.avatar-circle-sm {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+}
+
+/* Login Page Styling */
+.login-brand-icon {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    background: var(--brand-grad);
+}
+
+.stat-icon {
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Table Thumbnail */
+.table-asset-thumb {
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+}
+
+.table-asset-thumb:hover {
+    transform: scale(1.08);
+}
+
+/* Spin animation for refresh icon */
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spin-animation {
+    display: inline-block;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Pulse animation for urgent alerts */
+@keyframes pulse-warning {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.55; }
+}
+
+.pulse-warning {
+    animation: pulse-warning 1.8s infinite;
+}
+
+/* Printable QR Tag */
+.asset-printable-tag {
+    max-width: 220px;
+    border: 2px dashed #0f172a;
+}
+
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    #printableTagArea, #printableTagArea * {
+        visibility: visible;
+    }
+    #printableTagArea {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        border: 2px solid #000000 !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Dark Theme Specific Overrides */
+[data-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: #f1f5f9;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .table-light {
+    --bs-table-bg: #1e293b;
+    --bs-table-color: #94a3b8;
+    border-color: #334155;
+}
+
+[data-theme="dark"] .form-control,
+[data-theme="dark"] .form-select {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+    border-color: #3b82f6 !important;
+}
+
+[data-theme="dark"] .input-group-text {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .modal-content {
+    background-color: #1e293b !important;
+    color: #f1f5f9 !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer {
+    background-color: #0f172a !important;
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .dropdown-menu {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .dropdown-item {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .dropdown-item:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+[data-theme="dark"] .dropdown-divider {
+    border-color: #334155 !important;
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background-color: #0f172a !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .text-dark {
+    color: #f8fafc !important;
+}
+
+[data-theme="dark"] .btn-light {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .btn-light:hover {
+    background-color: #334155 !important;
+    color: #ffffff !important;
+}
+
+/* Theme Picker Color Dots */
+.theme-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}

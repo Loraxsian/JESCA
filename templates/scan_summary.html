@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% if asset %}{{ asset.asset_code }} - {{ asset.name }}{% else %}Aset Tidak Ditemukan{% endif %} | JESCA Asset Tag</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background-color: #f1f5f9;
+            color: #0f172a;
+        }
+        .scan-card {
+            max-width: 460px;
+            margin: 0 auto;
+        }
+        .font-monospace {
+            font-family: 'JetBrains Mono', monospace !important;
+        }
+        .brand-header-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+        }
+    </style>
+</head>
+<body class="py-3 py-md-4">
+
+<div class="container scan-card px-3">
+    <!-- Brand Top Bar -->
+    <div class="text-center mb-3">
+        <div class="d-inline-flex align-items-center gap-2">
+            <div class="brand-header-icon rounded-3 d-flex align-items-center justify-content-center text-white shadow-sm">
+                <i class="bi bi-box-seam-fill fs-5"></i>
+            </div>
+            <div class="text-start">
+                <span class="fs-5 fw-extrabold tracking-tight text-primary d-block lh-1">JESCA</span>
+                <small class="text-muted fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.5px;">ASSET VERIFICATION & SCANNER</small>
+            </div>
+        </div>
+    </div>
+
+    {% if asset %}
+    <!-- Asset Summary Card -->
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
+        <!-- Asset Photo or Icon -->
+        {% if asset.image %}
+        <div class="position-relative bg-dark" style="max-height: 240px; overflow: hidden;">
+            <img src="{{ url_for('static', filename='uploads/' ~ asset.image) }}" alt="{{ asset.name }}" class="w-100 object-fit-cover" style="height: 220px;">
+            <span class="badge bg-primary font-monospace position-absolute top-0 start-0 m-3 fs-6 px-3 py-1 shadow">
+                {{ asset.asset_code }}
+            </span>
+        </div>
+        {% else %}
+        <div class="bg-light text-center py-4 border-bottom position-relative">
+            <span class="badge bg-primary font-monospace position-absolute top-0 start-0 m-3 fs-6 px-3 py-1 shadow-sm">
+                {{ asset.asset_code }}
+            </span>
+            <div class="rounded-circle bg-white border mx-auto d-flex align-items-center justify-content-center shadow-sm" style="width: 72px; height: 72px;">
+                <i class="bi bi-box-seam fs-2 text-primary"></i>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card-body p-4">
+            <!-- Title & Status -->
+            <div class="mb-3">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-light text-secondary border">{{ asset.category }}</span>
+                    {% if asset.status == 'Aktif' %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i> Aktif</span>
+                    {% elif asset.status == 'Dipinjam' %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-arrow-left-right me-1"></i> Dipinjam</span>
+                    {% elif asset.status == 'Dalam Perbaikan' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-tools me-1"></i> Perlu Perbaikan</span>
+                    {% elif asset.status == 'Rusak' %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i> Rusak</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border">{{ asset.status }}</span>
+                    {% endif %}
+                </div>
+                <h5 class="fw-bold text-dark mb-0">{{ asset.name }}</h5>
+            </div>
+
+            <!-- Maintenance Status Box -->
+            <div class="p-3 rounded-3 border mb-3 {% if asset.needs_maintenance and is_overdue %}bg-danger-subtle border-danger-subtle{% elif asset.needs_maintenance and days_to_maint is not none and days_to_maint <= 7 %}bg-warning-subtle border-warning-subtle{% else %}bg-light{% endif %}">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-tools {% if asset.needs_maintenance and is_overdue %}text-danger{% elif asset.needs_maintenance and days_to_maint is not none and days_to_maint <= 7 %}text-warning{% else %}text-primary{% endif %}"></i>
+                    <strong class="small text-dark">Status Pemeliharaan (Maintenance)</strong>
+                </div>
+                {% if asset.needs_maintenance and asset.next_maintenance_date %}
+                    <div class="small text-secondary">
+                        Jadwal Berikutnya: <strong>{{ asset.next_maintenance_date|format_date }}</strong> (Tiap {{ asset.maintenance_interval_days }} hari)
+                    </div>
+                    {% if is_overdue %}
+                        <span class="badge bg-danger text-white mt-1">
+                            <i class="bi bi-exclamation-octagon-fill me-1"></i> Terlewat {{-days_to_maint}} hari dari jadwal servis!
+                        </span>
+                    {% elif days_to_maint is not none and days_to_maint <= 7 %}
+                        <span class="badge bg-warning text-dark mt-1">
+                            <i class="bi bi-bell-fill me-1"></i> Mendekati jadwal (Sisa {{ days_to_maint }} hari)
+                        </span>
+                    {% else %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle mt-1">
+                            <i class="bi bi-check2-circle me-1"></i> Masih berlaku ({{ days_to_maint }} hari lagi)
+                        </span>
+                    {% endif %}
+                {% else %}
+                    <div class="small text-muted">
+                        Perangkat ini tidak memerlukan pemeliharaan berkala (-).
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Peminjaman Status (If Borrowed) -->
+            {% if asset.status == 'Dipinjam' and asset.borrower %}
+            <div class="p-3 rounded-3 border bg-info-subtle border-info-subtle mb-3">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <i class="bi bi-person-fill text-info"></i>
+                    <strong class="small text-dark">Informasi Peminjaman Saat Ini</strong>
+                </div>
+                <div class="small text-secondary">
+                    Peminjam: <strong class="text-dark">{{ asset.borrower }}</strong>
+                </div>
+                {% if asset.borrow_date %}
+                <div class="small text-muted" style="font-size: 0.75rem;">
+                    Tanggal Pinjam: {{ asset.borrow_date|format_datetime }}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Metadata List -->
+            <ul class="list-group list-group-flush rounded-3 border">
+                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                    <span class="text-muted small">Lokasi Penempatan</span>
+                    <span class="fw-semibold small text-dark d-flex align-items-center gap-1">
+                        <i class="bi bi-geo-alt text-danger"></i> {{ asset.location }}
+                    </span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                    <span class="text-muted small">Nilai Perolehan</span>
+                    <span class="fw-bold small text-success">{{ asset.purchase_price|rupiah }}</span>
+                </li>
+                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
+                    <span class="text-muted small">Tanggal Perolehan</span>
+                    <span class="small text-dark">{{ asset.purchase_date|format_date }}</span>
+                </li>
+                {% if asset.description %}
+                <li class="list-group-item py-2 px-3">
+                    <span class="text-muted small d-block mb-1">Deskripsi / Spesifikasi</span>
+                    <div class="small text-secondary bg-light p-2 rounded">{{ asset.description }}</div>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 text-center">
+                <a href="{{ url_for('login') }}" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Masuk ke Sistem JESCA
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <!-- Asset Not Found Card -->
+    <div class="card border-0 shadow-sm rounded-4 text-center p-4">
+        <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+            <i class="bi bi-exclamation-triangle fs-3"></i>
+        </div>
+        <h5 class="fw-bold text-dark">Data Aset Tidak Ditemukan</h5>
+        <p class="text-muted small mb-3">
+            Kode aset <strong>{{ asset_code }}</strong> tidak terdaftar dalam basis data JESCA.
+        </p>
+        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">
+            Ke Halaman Utama
+        </a>
+    </div>
+    {% endif %}
+
+    <!-- Footer -->
+    <div class="text-center mt-3">
+        <small class="text-muted" style="font-size: 0.72rem;">
+            JESCA &copy; 2024 &bull; Verified Asset Tag System
+        </small>
+    </div>
+</div>
+
+</body>
+</html>
