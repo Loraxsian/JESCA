@@ -2,7 +2,7 @@
 
 **JESCA (Jessica Assets)** adalah aplikasi web manajemen inventaris dan aset modern berbasis **Python Flask**, **SQLite (Flask-SQLAlchemy)**, dan **Bootstrap 5**.
 
-Aplikasi ini dilengkapi dengan fitur login administrator, sistem auto-coding kode aset otomatis berbasis kategori (seperti `Tech/001`, `Tools/001`, `Furn/001`, dll.), dashboard visualisasi statistik real-time, serta manajemen CRUD data aset lengkap.
+Aplikasi ini dilengkapi dengan fitur login administrator, sistem auto-generate kode aset otomatis berbasis kategori (seperti `Tech/001`, `Tools/001`, `Furn/001`, dll.), dashboard visualisasi statistik real-time, serta manajemen CRUD data aset lengkap.
 
 ---
 
