@@ -12,6 +12,7 @@ ENV/
 # Database & Uploads
 data/*.db
 data/*.sqlite
+backups/*.db
 instance/
 *.sqlite3
 

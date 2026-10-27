@@ -61,40 +61,40 @@
     --shadow-sm: 0 1px 4px rgba(236, 72, 153, 0.1);
 }
 
-/* 4. Forest Green Theme — Aura Hutan Alami & Segar */
+/* 4. Forest Green Theme — Nuansa Hutan Segar & Daun Alami */
 [data-theme="forest"] {
-    --bg-body: #061910;
-    --bg-card: #0c2b1c;
-    --bg-sidebar: #05140d;
-    --bg-hover: #16422c;
-    --bg-input: #092015;
-    --text-main: #e8fdf0;
-    --text-muted: #86efac;
-    --border-color: #1b5336;
-    --primary-color: #10b981;
-    --primary-hover: #34d399;
-    --primary-subtle: rgba(16, 185, 129, 0.25);
-    --primary-text: #6ee7b7;
-    --brand-grad: linear-gradient(135deg, #044728 0%, #10b981 60%, #4ade80 100%);
-    --shadow-sm: 0 2px 10px rgba(4, 71, 40, 0.4);
+    --bg-body: #eef9f2;
+    --bg-card: #ffffff;
+    --bg-sidebar: #f5fbf7;
+    --bg-hover: #dcf4e4;
+    --bg-input: #f2faf5;
+    --text-main: #0f4a28;
+    --text-muted: #16a34a;
+    --border-color: #bbf7d0;
+    --primary-color: #16a34a;
+    --primary-hover: #15803d;
+    --primary-subtle: #dcfce7;
+    --primary-text: #15803d;
+    --brand-grad: linear-gradient(135deg, #15803d 0%, #22c55e 50%, #4ade80 100%);
+    --shadow-sm: 0 2px 8px rgba(22, 163, 74, 0.12);
 }
 
-/* 5. Ocean Blue Theme — Nuansa Laut Samudra & Cyan Aqua */
+/* 5. Ocean Blue Theme — Nuansa Laut Pantai & Air Jernih */
 [data-theme="ocean"] {
-    --bg-body: #041824;
-    --bg-card: #08283d;
-    --bg-sidebar: #03121b;
-    --bg-hover: #0e3d5c;
-    --bg-input: #062031;
-    --text-main: #e0f7fa;
-    --text-muted: #7dd3fc;
-    --border-color: #124d73;
-    --primary-color: #00b4d8;
-    --primary-hover: #38bdf8;
-    --primary-subtle: rgba(0, 180, 216, 0.25);
-    --primary-text: #90e0ef;
-    --brand-grad: linear-gradient(135deg, #023e8a 0%, #0077b6 40%, #00b4d8 80%, #90e0ef 100%);
-    --shadow-sm: 0 2px 10px rgba(0, 119, 182, 0.4);
+    --bg-body: #e6f6fd;
+    --bg-card: #ffffff;
+    --bg-sidebar: #f2faff;
+    --bg-hover: #dcf2fb;
+    --bg-input: #f0faff;
+    --text-main: #07476e;
+    --text-muted: #0284c7;
+    --border-color: #bae6fd;
+    --primary-color: #0284c7;
+    --primary-hover: #0369a1;
+    --primary-subtle: #e0f2fe;
+    --primary-text: #0284c7;
+    --brand-grad: linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #38bdf8 100%);
+    --shadow-sm: 0 2px 8px rgba(2, 132, 199, 0.12);
 }
 
 /* Global Variables */
@@ -473,64 +473,154 @@ footer {
 [data-theme="pink"] .badge.bg-primary { background-color: #e91e8c !important; }
 
 /* ==========================================
-   THEME: OCEAN BLUE — Nuansa Laut Tropis & Samudra Aqua
+   THEME: OCEAN BLUE — Pantai & Laut Tropis Jernih
    ========================================== */
-[data-theme="ocean"] body { background-color: #041824 !important; color: #e0f7fa !important; }
-[data-theme="ocean"] .bg-white { background-color: #08283d !important; color: #e0f7fa !important; }
-[data-theme="ocean"] .bg-light { background-color: #051d2c !important; color: #7dd3fc !important; border-color: #124d73 !important; }
-[data-theme="ocean"] .card { background-color: #08283d !important; border-color: #124d73 !important; color: #e0f7fa !important; box-shadow: 0 4px 14px rgba(0, 119, 182, 0.15) !important; }
-[data-theme="ocean"] .nav-link { color: #7dd3fc !important; }
-[data-theme="ocean"] .nav-link:hover { background-color: rgba(0, 180, 216, 0.18) !important; color: #38bdf8 !important; }
-[data-theme="ocean"] .nav-link.active { background: linear-gradient(90deg, rgba(0, 180, 216, 0.25) 0%, rgba(2, 62, 138, 0.25) 100%) !important; color: #38bdf8 !important; border-left: 3px solid #00b4d8 !important; }
-[data-theme="ocean"] .brand-icon { background: linear-gradient(135deg, #023e8a 0%, #0077b6 50%, #00b4d8 100%) !important; box-shadow: 0 0 12px rgba(0, 180, 216, 0.5) !important; }
-[data-theme="ocean"] .sidebar { background-color: #03121b !important; border-color: #124d73 !important; }
-[data-theme="ocean"] .navbar { background-color: #08283d !important; border-bottom: 2px solid #0077b6 !important; }
-[data-theme="ocean"] footer { background-color: #08283d !important; border-top: 1px solid #124d73 !important; }
-[data-theme="ocean"] .table { color: #e0f7fa !important; }
-[data-theme="ocean"] .table thead th { background-color: #051d2c !important; color: #38bdf8 !important; border-bottom-color: #124d73 !important; }
-[data-theme="ocean"] .table-hover tbody tr:hover { background-color: #0e3d5c !important; }
-[data-theme="ocean"] .dropdown-menu { background-color: #08283d !important; border-color: #124d73 !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important; }
-[data-theme="ocean"] .dropdown-item { color: #e0f7fa !important; }
-[data-theme="ocean"] .dropdown-item:hover { background-color: #0e3d5c !important; color: #38bdf8 !important; }
-[data-theme="ocean"] .modal-content { background-color: #08283d !important; color: #e0f7fa !important; border-color: #124d73 !important; box-shadow: 0 12px 32px rgba(0, 119, 182, 0.35) !important; }
-[data-theme="ocean"] .form-control, [data-theme="ocean"] .form-select { background-color: #062031 !important; color: #e0f7fa !important; border-color: #124d73 !important; }
-[data-theme="ocean"] .form-control:focus, [data-theme="ocean"] .form-select:focus { border-color: #00b4d8 !important; box-shadow: 0 0 0 0.25rem rgba(0, 180, 216, 0.3) !important; }
-[data-theme="ocean"] .btn-primary { background: linear-gradient(135deg, #0077b6, #00b4d8) !important; border-color: #0077b6 !important; color: #ffffff !important; }
-[data-theme="ocean"] .btn-primary:hover { background: linear-gradient(135deg, #023e8a, #0077b6) !important; border-color: #023e8a !important; }
-[data-theme="ocean"] .bg-primary-subtle { background-color: rgba(0, 180, 216, 0.18) !important; color: #90e0ef !important; }
-[data-theme="ocean"] .badge.bg-primary { background-color: #0077b6 !important; }
-[data-theme="ocean"] .text-primary { color: #00b4d8 !important; }
-[data-theme="ocean"] .dashboard-scrollable-container { scrollbar-color: #124d73 transparent; }
+[data-theme="ocean"] body {
+    background-color: #e6f6fd !important;
+    color: #07476e !important;
+}
+[data-theme="ocean"] .bg-primary,
+[data-theme="ocean"] .btn-primary {
+    background: linear-gradient(135deg, #0284c7 0%, #00b4d8 100%) !important;
+    border-color: #0284c7 !important;
+    color: #ffffff !important;
+}
+[data-theme="ocean"] .btn-primary:hover {
+    background: linear-gradient(135deg, #0369a1 0%, #0284c7 100%) !important;
+    border-color: #0369a1 !important;
+}
+[data-theme="ocean"] .text-primary { color: #0284c7 !important; }
+[data-theme="ocean"] .nav-link { color: #075985 !important; }
+[data-theme="ocean"] .nav-link:hover { background-color: #dcf2fb !important; color: #0284c7 !important; }
+[data-theme="ocean"] .nav-link.active {
+    background-color: #bae6fd !important;
+    color: #0369a1 !important;
+    font-weight: 600;
+}
+[data-theme="ocean"] .brand-icon {
+    background: linear-gradient(135deg, #0077b6 0%, #00b4d8 50%, #38bdf8 100%) !important;
+    box-shadow: 0 2px 8px rgba(0, 180, 216, 0.4) !important;
+}
+[data-theme="ocean"] .sidebar {
+    background-color: #f2faff !important;
+    border-right-color: #bae6fd !important;
+}
+[data-theme="ocean"] .navbar {
+    background-color: #ffffff !important;
+    border-bottom: 2px solid #38bdf8 !important;
+}
+[data-theme="ocean"] footer {
+    background-color: #ffffff !important;
+    border-top-color: #bae6fd !important;
+}
+[data-theme="ocean"] .card {
+    background-color: #ffffff !important;
+    border-color: #bae6fd !important;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.08) !important;
+}
+[data-theme="ocean"] .bg-light {
+    background-color: #f0faff !important;
+    border-color: #bae6fd !important;
+}
+[data-theme="ocean"] .table { color: #07476e !important; }
+[data-theme="ocean"] .table thead th {
+    background-color: #f0faff !important;
+    color: #0369a1 !important;
+    border-bottom-color: #bae6fd !important;
+}
+[data-theme="ocean"] .table-hover tbody tr:hover {
+    background-color: #e6f6fd !important;
+}
+[data-theme="ocean"] .bg-primary-subtle {
+    background-color: #e0f2fe !important;
+    color: #0284c7 !important;
+}
+[data-theme="ocean"] .badge.bg-primary {
+    background-color: #0284c7 !important;
+}
+[data-theme="ocean"] .form-control:focus,
+[data-theme="ocean"] .form-select:focus {
+    border-color: #38bdf8 !important;
+    box-shadow: 0 0 0 0.2rem rgba(2, 132, 199, 0.2) !important;
+}
+[data-theme="ocean"] .dashboard-scrollable-container {
+    scrollbar-color: #bae6fd transparent;
+}
 
 /* ==========================================
-   THEME: FOREST GREEN — Aura Hutan Rimba & Daun Alami
+   THEME: FOREST GREEN — Alam Hutan & Daun Segar
    ========================================== */
-[data-theme="forest"] body { background-color: #061910 !important; color: #e8fdf0 !important; }
-[data-theme="forest"] .bg-white { background-color: #0c2b1c !important; color: #e8fdf0 !important; }
-[data-theme="forest"] .bg-light { background-color: #092015 !important; color: #86efac !important; border-color: #1b5336 !important; }
-[data-theme="forest"] .card { background-color: #0c2b1c !important; border-color: #1b5336 !important; color: #e8fdf0 !important; box-shadow: 0 4px 14px rgba(4, 71, 40, 0.15) !important; }
-[data-theme="forest"] .nav-link { color: #86efac !important; }
-[data-theme="forest"] .nav-link:hover { background-color: rgba(16, 185, 129, 0.18) !important; color: #34d399 !important; }
-[data-theme="forest"] .nav-link.active { background: linear-gradient(90deg, rgba(16, 185, 129, 0.25) 0%, rgba(4, 71, 40, 0.25) 100%) !important; color: #34d399 !important; border-left: 3px solid #10b981 !important; }
-[data-theme="forest"] .brand-icon { background: linear-gradient(135deg, #044728 0%, #10b981 60%, #4ade80 100%) !important; box-shadow: 0 0 12px rgba(16, 185, 129, 0.5) !important; }
-[data-theme="forest"] .sidebar { background-color: #05140d !important; border-color: #1b5336 !important; }
-[data-theme="forest"] .navbar { background-color: #0c2b1c !important; border-bottom: 2px solid #10b981 !important; }
-[data-theme="forest"] footer { background-color: #0c2b1c !important; border-top: 1px solid #1b5336 !important; }
-[data-theme="forest"] .table { color: #e8fdf0 !important; }
-[data-theme="forest"] .table thead th { background-color: #092015 !important; color: #34d399 !important; border-bottom-color: #1b5336 !important; }
-[data-theme="forest"] .table-hover tbody tr:hover { background-color: #16422c !important; }
-[data-theme="forest"] .dropdown-menu { background-color: #0c2b1c !important; border-color: #1b5336 !important; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4) !important; }
-[data-theme="forest"] .dropdown-item { color: #e8fdf0 !important; }
-[data-theme="forest"] .dropdown-item:hover { background-color: #16422c !important; color: #34d399 !important; }
-[data-theme="forest"] .modal-content { background-color: #0c2b1c !important; color: #e8fdf0 !important; border-color: #1b5336 !important; box-shadow: 0 12px 32px rgba(4, 71, 40, 0.35) !important; }
-[data-theme="forest"] .form-control, [data-theme="forest"] .form-select { background-color: #092015 !important; color: #e8fdf0 !important; border-color: #1b5336 !important; }
-[data-theme="forest"] .form-control:focus, [data-theme="forest"] .form-select:focus { border-color: #10b981 !important; box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.3) !important; }
-[data-theme="forest"] .btn-primary { background: linear-gradient(135deg, #044728, #10b981) !important; border-color: #044728 !important; color: #ffffff !important; }
-[data-theme="forest"] .btn-primary:hover { background: linear-gradient(135deg, #022a18, #059669) !important; border-color: #022a18 !important; }
-[data-theme="forest"] .bg-primary-subtle { background-color: rgba(16, 185, 129, 0.18) !important; color: #6ee7b7 !important; }
-[data-theme="forest"] .badge.bg-primary { background-color: #059669 !important; }
-[data-theme="forest"] .text-primary { color: #10b981 !important; }
-[data-theme="forest"] .dashboard-scrollable-container { scrollbar-color: #1b5336 transparent; }
+[data-theme="forest"] body {
+    background-color: #eef9f2 !important;
+    color: #0f4a28 !important;
+}
+[data-theme="forest"] .bg-primary,
+[data-theme="forest"] .btn-primary {
+    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important;
+    border-color: #16a34a !important;
+    color: #ffffff !important;
+}
+[data-theme="forest"] .btn-primary:hover {
+    background: linear-gradient(135deg, #15803d 0%, #16a34a 100%) !important;
+    border-color: #15803d !important;
+}
+[data-theme="forest"] .text-primary { color: #16a34a !important; }
+[data-theme="forest"] .nav-link { color: #166534 !important; }
+[data-theme="forest"] .nav-link:hover { background-color: #dcf4e4 !important; color: #16a34a !important; }
+[data-theme="forest"] .nav-link.active {
+    background-color: #bbf7d0 !important;
+    color: #14532d !important;
+    font-weight: 600;
+}
+[data-theme="forest"] .brand-icon {
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 50%, #4ade80 100%) !important;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4) !important;
+}
+[data-theme="forest"] .sidebar {
+    background-color: #f5fbf7 !important;
+    border-right-color: #bbf7d0 !important;
+}
+[data-theme="forest"] .navbar {
+    background-color: #ffffff !important;
+    border-bottom: 2px solid #22c55e !important;
+}
+[data-theme="forest"] footer {
+    background-color: #ffffff !important;
+    border-top-color: #bbf7d0 !important;
+}
+[data-theme="forest"] .card {
+    background-color: #ffffff !important;
+    border-color: #bbf7d0 !important;
+    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.08) !important;
+}
+[data-theme="forest"] .bg-light {
+    background-color: #f2faf5 !important;
+    border-color: #bbf7d0 !important;
+}
+[data-theme="forest"] .table { color: #0f4a28 !important; }
+[data-theme="forest"] .table thead th {
+    background-color: #f2faf5 !important;
+    color: #15803d !important;
+    border-bottom-color: #bbf7d0 !important;
+}
+[data-theme="forest"] .table-hover tbody tr:hover {
+    background-color: #eef9f2 !important;
+}
+[data-theme="forest"] .bg-primary-subtle {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+}
+[data-theme="forest"] .badge.bg-primary {
+    background-color: #16a34a !important;
+}
+[data-theme="forest"] .form-control:focus,
+[data-theme="forest"] .form-select:focus {
+    border-color: #4ade80 !important;
+    box-shadow: 0 0 0 0.2rem rgba(22, 163, 74, 0.2) !important;
+}
+[data-theme="forest"] .dashboard-scrollable-container {
+    scrollbar-color: #bbf7d0 transparent;
+}
 
 /* ==========================================
    THEME: DARK – Sleek Midnight Slate UI
