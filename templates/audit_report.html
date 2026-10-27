@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Laporan Audit Aktivitas - JESCA v2{% endblock %}
+{% block page_heading %}Laporan Audit & Kepatuhan{% endblock %}
+
+{% block content %}
+<!-- Filter Header -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-body p-4">
+        <form method="GET" action="{{ url_for('audit_report') }}" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-secondary">Dari Tanggal</label>
+                <input type="date" class="form-control form-control-sm" name="from" value="{{ from_date }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-secondary">Sampai Tanggal</label>
+                <input type="date" class="form-control form-control-sm" name="to" value="{{ to_date }}">
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3 flex-grow-1">
+                    <i class="bi bi-funnel me-1"></i>Filter Audit
+                </button>
+                <a href="{{ url_for('audit_report', from=from_date, to=to_date, format='csv') }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i>Ekspor CSV
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Audit Trail Table -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-0 text-dark">Audit Trail Log Terverifikasi</h6>
+            <small class="text-muted">Total {{ logs|length }} rekaman aktivitas tercatat</small>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace px-3 py-2 rounded-pill">
+            <i class="bi bi-shield-check me-1"></i>Audit-Ready
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary small">
+                <tr>
+                    <th class="ps-4" style="width: 170px;">Waktu & Tanggal</th>
+                    <th style="width: 130px;">Pengguna</th>
+                    <th style="width: 140px;">Jenis Aksi</th>
+                    <th style="width: 140px;">Aset Terkait</th>
+                    <th class="pe-4">Rincian Perubahan (Old → New)</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for log in logs %}
+                <tr>
+                    <td class="ps-4 font-monospace text-muted" style="font-size: 0.78rem;">
+                        {{ log.created_at|format_datetime }}
+                    </td>
+                    <td>
+                        <span class="fw-semibold text-dark">{{ log.username }}</span>
+                    </td>
+                    <td>
+                        {% if 'TAMBAH' in log.action %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace">{{ log.action }}</span>
+                        {% elif 'EDIT' in log.action or 'STATUS' in log.action or 'CATEGORY' in log.action %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle font-monospace">{{ log.action }}</span>
+                        {% elif 'HAPUS' in log.action or 'DELETE' in log.action %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle font-monospace">{{ log.action }}</span>
+                        {% elif 'TRANSFER' in log.action %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle font-monospace">{{ log.action }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary font-monospace">{{ log.action }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if log.asset_code %}
+                        <a href="{{ url_for('assets', search=log.asset_code) }}" class="text-decoration-none fw-semibold font-monospace small">
+                            {{ log.asset_code }}
+                        </a>
+                        <div class="text-muted small text-truncate" style="max-width: 130px;">{{ log.asset_name }}</div>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="pe-4">
+                        <span class="text-dark">{{ log.details or '-' }}</span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        <i class="bi bi-file-earmark-x display-6 d-block mb-2"></i>
+                        Tidak ada catatan log pada periode yang dipilih.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

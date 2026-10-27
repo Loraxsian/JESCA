@@ -19,8 +19,18 @@
     <!-- Custom Style -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
+    <!-- Favicon JA -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+
     {% block head %}{% endblock %}
 </head>
+<script>
+    // Apply saved theme ASAP before body renders (prevent flash)
+    (function() {
+        var t = localStorage.getItem('jesca_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+    })();
+</script>
 <body>
 
     {% if current_user.is_authenticated %}
@@ -188,6 +198,48 @@
                             </ul>
                         </div>
 
+                        <!-- Theme Switcher -->
+                        <div class="dropdown me-1">
+                            <button class="btn btn-light border-0 rounded-circle p-2 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Ganti Tema Tampilan" id="themeToggleBtn">
+                                <i class="bi bi-palette fs-5 text-secondary" id="themeIcon"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 170px;">
+                                <li class="px-3 py-1 border-bottom mb-1">
+                                    <span class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;">Pilih Tema</span>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 theme-option" data-theme="light">
+                                        <i class="bi bi-sun text-warning"></i> <span>Terang (Light)</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none theme-check-light"></i>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 theme-option" data-theme="dark">
+                                        <i class="bi bi-moon-stars text-dark"></i> <span>Gelap (Dark)</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none theme-check-dark"></i>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 theme-option" data-theme="pink">
+                                        <i class="bi bi-hearts" style="color: #e91e8c;"></i> <span>Pink</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none theme-check-pink"></i>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 theme-option" data-theme="ocean">
+                                        <i class="bi bi-water text-info"></i> <span>Ocean Blue</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none theme-check-ocean"></i>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 theme-option" data-theme="forest">
+                                        <i class="bi bi-tree text-success"></i> <span>Forest Green</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none theme-check-forest"></i>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
                         <!-- Quick Add Asset Button -->
                         <a href="{{ url_for('assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-plus-lg"></i>
@@ -271,7 +323,7 @@
             <footer class="bg-white border-top py-3 px-4 text-center text-muted small">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
-                        <strong>JESCA</strong> &copy; 2024 &bull; Jessica Assets Management System
+                        <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <span class="badge bg-light text-secondary border font-monospace">Auto-Coding &bull; QR &bull; Maintenance</span>
@@ -332,6 +384,42 @@
 
     <!-- Global App JS -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+
+    <!-- Theme Switcher JS -->
+    <script>
+    (function() {
+        var themeIcons = { light: 'bi-sun', dark: 'bi-moon-stars', pink: 'bi-hearts', ocean: 'bi-water', forest: 'bi-tree' };
+
+        function applyTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('jesca_theme', theme);
+            // Update icon
+            var icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = 'fs-5 text-secondary bi ' + (themeIcons[theme] || 'bi-palette');
+            }
+            // Update checkmarks
+            document.querySelectorAll('[class*="theme-check-"]').forEach(function(el) { el.classList.add('d-none'); });
+            var check = document.querySelector('.theme-check-' + theme);
+            if (check) check.classList.remove('d-none');
+        }
+
+        // Init on page load
+        var saved = localStorage.getItem('jesca_theme') || 'light';
+        applyTheme(saved);
+
+        // Bind buttons after DOM ready
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.theme-option').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    applyTheme(this.getAttribute('data-theme'));
+                });
+            });
+            // Re-apply to set checkmarks after DOM ready
+            applyTheme(localStorage.getItem('jesca_theme') || 'light');
+        });
+    })();
+    </script>
 
     {% block scripts %}{% endblock %}
 </body>

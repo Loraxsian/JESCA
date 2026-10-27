@@ -1,15 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}Accounts - JESCA{% endblock %}
-{% block page_heading %}Accounts{% endblock %}
+{% block title %}Accounts & API - JESCA v2{% endblock %}
+{% block page_heading %}Manajemen Akun & Akses{% endblock %}
 
 {% block content %}
 <!-- Header Bar -->
 <div class="row g-3 align-items-center mb-4">
     <div class="col-md-6">
-        <h5 class="fw-bold mb-1">Manajemen Akun (Accounts)</h5>
+        <h5 class="fw-bold mb-1">Manajemen Pengguna & Kredensial API</h5>
         <p class="text-muted small mb-0">
-            Tambah user baru, tentukan hak akses peran (Role), dan kelola atau ganti password tiap akun pengguna.
+            Kelola peran (Role), keamanan password (min 8 karakter kombinasi huruf & angka), serta REST API Key.
         </p>
     </div>
     <div class="col-md-6 text-md-end">
@@ -30,23 +30,23 @@
                         <th>Username</th>
                         <th>Peran (Role)</th>
                         <th>Status</th>
-                        <th>Terdaftar Sejak</th>
-                        <th class="text-center pe-4" style="width: 170px;">Aksi</th>
+                        <th>REST API Key</th>
+                        <th class="text-center pe-4" style="width: 200px;">Aksi</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="small">
                     {% for user in users %}
                     <tr>
                         <!-- Avatar & Full Name -->
                         <td class="ps-4">
                             <div class="d-flex align-items-center gap-2">
-                                <div class="avatar-circle-sm bg-primary-subtle text-primary fw-bold">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
                                     {{ user.username[0]|upper }}
                                 </div>
                                 <div>
                                     <div class="fw-semibold text-dark">{{ user.full_name }}</div>
                                     {% if user.id == current_user.id %}
-                                        <span class="badge bg-light text-primary border" style="font-size: 0.68rem;">(Akun Anda Saat Ini)</span>
+                                        <span class="badge bg-light text-primary border" style="font-size: 0.68rem;">(Akun Anda)</span>
                                     {% endif %}
                                 </div>
                             </div>
@@ -91,35 +91,36 @@
                             {% endif %}
                         </td>
 
-                        <!-- Tanggal Terdaftar -->
+                        <!-- API Key -->
                         <td>
-                            <small class="text-secondary">{{ user.created_at|format_date }}</small>
+                            {% if user.api_key %}
+                            <div class="d-flex align-items-center gap-1">
+                                <code class="font-monospace text-muted small" style="font-size: 0.75rem;">{{ user.api_key[:12] }}...</code>
+                                <form method="POST" action="{{ url_for('generate_api_key', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Generate ulang API key untuk @{{ user.username }}?');">
+                                    <button type="submit" class="btn btn-sm btn-link text-primary p-0 ms-1" title="Putar / Generate Baru"><i class="bi bi-arrow-repeat"></i></button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <form method="POST" action="{{ url_for('generate_api_key', user_id=user.id) }}">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0" style="font-size: 0.72rem;">
+                                    <i class="bi bi-key me-1"></i>Buat Key
+                                </button>
+                            </form>
+                            {% endif %}
                         </td>
 
-                        <!-- Aksi -->
+                        <!-- Action Buttons -->
                         <td class="text-center pe-4">
                             <div class="btn-group btn-group-sm">
-                                <!-- Edit Akun Info -->
-                                <button type="button" class="btn btn-light border text-primary" title="Edit Data Akun"
-                                        onclick="openEditAccountModal({{ user.id }}, '{{ user.username }}', '{{ user.full_name|replace('\'', '\\\'') }}', '{{ user.role }}', {{ 'true' if user.is_active else 'false' }})">
-                                    <i class="bi bi-pencil-square"></i>
+                                <button type="button" class="btn btn-outline-secondary" onclick="openEditAccountModal('{{ user.id }}', '{{ user.username }}', '{{ user.full_name }}', '{{ user.role }}', {{ 'true' if user.is_active else 'false' }})" title="Edit Profil & Peran">
+                                    <i class="bi bi-pencil"></i>
                                 </button>
-
-                                <!-- Ganti Password Akun ini -->
-                                <button type="button" class="btn btn-light border text-warning" title="Ganti Password Akun Ini"
-                                        onclick="openChangeUserPasswordModal({{ user.id }}, '{{ user.username }}')">
-                                    <i class="bi bi-key-fill"></i>
+                                <button type="button" class="btn btn-outline-warning text-dark" onclick="openChangeUserPasswordModal('{{ user.id }}', '{{ user.username }}')" title="Reset Password">
+                                    <i class="bi bi-key"></i>
                                 </button>
-
-                                <!-- Hapus Akun (disabled for self) -->
                                 {% if user.id != current_user.id %}
-                                <button type="button" class="btn btn-light border text-danger" title="Hapus Akun"
-                                        onclick="confirmDeleteAccount({{ user.id }}, '{{ user.username }}')">
+                                <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteAccount('{{ user.id }}', '{{ user.username }}')" title="Hapus Akun">
                                     <i class="bi bi-trash"></i>
-                                </button>
-                                {% else %}
-                                <button type="button" class="btn btn-light border text-muted" disabled title="Tidak dapat menghapus akun sendiri">
-                                    <i class="bi bi-lock"></i>
                                 </button>
                                 {% endif %}
                             </div>
@@ -132,159 +133,132 @@
     </div>
 </div>
 
-<!-- ==========================================
-     MODAL: TAMBAH AKUN BARU
-     ========================================== -->
-<div class="modal fade" id="addAccountModal" tabindex="-1" aria-labelledby="addAccountModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<!-- Modal Tambah Akun Baru -->
+<div class="modal fade" id="addAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-person-plus-fill fs-5"></i>
-                    </div>
-                    <h6 class="modal-title fw-bold" id="addAccountModalLabel">Tambah Akun Baru</h6>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-person-plus me-2 text-primary"></i>Tambah Akun Pengguna Baru</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('create_account') }}">
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label for="newUsername" class="form-label small fw-bold text-secondary">Username <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-control-sm" id="newUsername" name="username" required placeholder="Contoh: staff_gudang">
+                        <label class="form-label small fw-bold">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="username" required placeholder="Contoh: jessica">
                     </div>
                     <div class="mb-3">
-                        <label for="newFullName" class="form-label small fw-bold text-secondary">Nama Lengkap</label>
-                        <input type="text" class="form-control form-control-sm" id="newFullName" name="full_name" placeholder="Nama personel">
+                        <label class="form-label small fw-bold">Nama Lengkap</label>
+                        <input type="text" class="form-control" name="full_name" placeholder="Contoh: Jessica Angeline">
                     </div>
                     <div class="mb-3">
-                        <label for="newRole" class="form-label small fw-bold text-secondary">Peran Akses (Role) <span class="text-danger">*</span></label>
-                        <select class="form-select form-select-sm" id="newRole" name="role" required>
-                            {% for r in roles %}
-                                <option value="{{ r }}">{{ r }}</option>
+                        <label class="form-label small fw-bold">Peran Akses (Role) <span class="text-danger">*</span></label>
+                        <select class="form-select" name="role" required>
+                            {% for role in roles %}
+                            <option value="{{ role }}">{{ role }}</option>
                             {% endfor %}
                         </select>
-                        <small class="text-muted" style="font-size: 0.7rem;">Admin memiliki akses penuh terhadap seluruh menu & Accounts.</small>
                     </div>
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label small fw-bold text-secondary">Password Awal <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control form-control-sm" id="newPassword" name="password" required minlength="6" placeholder="Minimal 6 karakter">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Password Awal <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" name="password" required minlength="8" placeholder="Minimal 8 karakter (huruf & angka)">
+                        <small class="text-muted" style="font-size: 0.72rem;">Pengguna akan dipaksa mengubah password ini saat pertama kali masuk.</small>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Buat Akun</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Buat Akun</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- ==========================================
-     MODAL: EDIT DATA AKUN
-     ========================================== -->
-<div class="modal fade" id="editAccountModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<!-- Modal Edit Akun -->
+<div class="modal fade" id="editAccountModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-person-gear fs-5"></i>
-                    </div>
-                    <h6 class="modal-title fw-bold">Edit Akun</h6>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Data Akun</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="editAccountForm">
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Username</label>
-                        <input type="text" class="form-control form-control-sm bg-light" id="editAccountUsername" readonly>
+                        <label class="form-label small fw-bold">Username</label>
+                        <input type="text" class="form-control bg-light" id="editAccountUsername" readonly>
                     </div>
                     <div class="mb-3">
-                        <label for="editAccountFullName" class="form-label small fw-bold text-secondary">Nama Lengkap</label>
-                        <input type="text" class="form-control form-control-sm" id="editAccountFullName" name="full_name">
+                        <label class="form-label small fw-bold">Nama Lengkap</label>
+                        <input type="text" class="form-control" name="full_name" id="editAccountFullName" required>
                     </div>
                     <div class="mb-3">
-                        <label for="editAccountRole" class="form-label small fw-bold text-secondary">Peran (Role)</label>
-                        <select class="form-select form-select-sm" id="editAccountRole" name="role">
-                            {% for r in roles %}
-                                <option value="{{ r }}">{{ r }}</option>
+                        <label class="form-label small fw-bold">Peran Akses (Role)</label>
+                        <select class="form-select" name="role" id="editAccountRole" required>
+                            {% for role in roles %}
+                            <option value="{{ role }}">{{ role }}</option>
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="mb-1">
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" id="editAccountIsActive" name="is_active" value="1">
-                            <label class="form-check-label small fw-bold" for="editAccountIsActive">Akun Aktif</label>
-                        </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="is_active" id="editAccountIsActive" value="1">
+                        <label class="form-check-label small fw-semibold" for="editAccountIsActive">Akun Aktif</label>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Perubahan</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- ==========================================
-     MODAL: GANTI PASSWORD AKUN (ADMIN RESET)
-     ========================================== -->
-<div class="modal fade" id="changeUserPasswordModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<!-- Modal Reset Password -->
+<div class="modal fade" id="changeUserPasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-warning-subtle text-warning rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-key-fill fs-5"></i>
-                    </div>
-                    <h6 class="modal-title fw-bold">Ganti Password Akun</h6>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-key me-2 text-warning"></i>Reset Password Pengguna</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="changeUserPasswordForm">
                 <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
+                        Reset password untuk akun <strong id="changePasswordTargetUser" class="text-dark"></strong>:
+                    </p>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Target Akun</label>
-                        <div class="fw-bold text-dark fs-6" id="changePasswordTargetUser">-</div>
-                        <small class="text-muted" style="font-size: 0.72rem;">Sebagai Admin, Anda dapat mengganti password akun ini tanpa perlu mengetahui password lama.</small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="adminNewPassword" class="form-label small fw-bold text-secondary">Password Baru <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control form-control-sm" id="adminNewPassword" name="new_password" required minlength="6" placeholder="Minimal 6 karakter">
+                        <label class="form-label small fw-bold">Password Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" name="new_password" id="adminNewPassword" required minlength="8" placeholder="Minimal 8 karakter (huruf & angka)">
                     </div>
                     <div class="mb-2">
-                        <label for="adminConfirmPassword" class="form-label small fw-bold text-secondary">Konfirmasi Password Baru <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control form-control-sm" id="adminConfirmPassword" name="confirm_password" required minlength="6" placeholder="Ulangi password baru">
+                        <label class="form-label small fw-bold">Konfirmasi Password Baru <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" name="confirm_password" id="adminConfirmPassword" required minlength="8" placeholder="Ulangi password baru">
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning btn-sm text-dark fw-bold">Setel Password Baru</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold btn-sm rounded-pill px-4">Setel Password</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-<!-- ==========================================
-     MODAL: KONFIRMASI HAPUS AKUN
-     ========================================== -->
-<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+<!-- Modal Konfirmasi Hapus Akun -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-4 text-center">
-                <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                    <i class="bi bi-person-x fs-4"></i>
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                    <i class="bi bi-trash fs-4"></i>
                 </div>
-                <h6 class="fw-bold mb-2">Hapus Akun Pengguna?</h6>
-                <p class="text-muted small mb-3">Akun <strong id="deleteTargetAccountUser" class="text-dark"></strong> akan dihapus permanen dan tidak bisa masuk ke sistem.</p>
+                <h6 class="fw-bold mb-2">Hapus Akun?</h6>
+                <p class="text-muted small mb-3">Akun <strong id="deleteTargetAccountUser" class="text-dark"></strong> akan dihapus permanen.</p>
                 <form method="POST" action="" id="deleteAccountForm">
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-light border btn-sm w-50" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger btn-sm w-50 fw-semibold">Ya, Hapus</button>
+                        <button type="button" class="btn btn-light border btn-sm w-50 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger btn-sm w-50 rounded-pill fw-semibold">Ya, Hapus</button>
                     </div>
                 </form>
             </div>
@@ -301,7 +275,7 @@
         document.getElementById('editAccountFullName').value = fullName;
         document.getElementById('editAccountRole').value = role;
         document.getElementById('editAccountIsActive').checked = isActive;
-        new bootstrap.Modal(document.getElementById('editAccountModal')).show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('editAccountModal')).show();
     }
 
     function openChangeUserPasswordModal(userId, username) {
@@ -309,13 +283,13 @@
         document.getElementById('changePasswordTargetUser').textContent = `@${username}`;
         document.getElementById('adminNewPassword').value = '';
         document.getElementById('adminConfirmPassword').value = '';
-        new bootstrap.Modal(document.getElementById('changeUserPasswordModal')).show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('changeUserPasswordModal')).show();
     }
 
     function confirmDeleteAccount(userId, username) {
         document.getElementById('deleteTargetAccountUser').textContent = `@${username}`;
         document.getElementById('deleteAccountForm').action = `/accounts/${userId}/delete`;
-        new bootstrap.Modal(document.getElementById('deleteAccountModal')).show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteAccountModal')).show();
     }
 </script>
 {% endblock %}

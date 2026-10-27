@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+{% block title %}Backup & Restore - JESCA v2{% endblock %}
+{% block page_heading %}Backup & Pemulihan Basis Data{% endblock %}
+
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-cloud-arrow-up fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Cadangkan Basis Data (Backup)</h6>
+                        <small class="text-muted">Buat snapshot instan file SQLite (jesca.db)</small>
+                    </div>
+                </div>
+
+                <p class="small text-muted mb-4">
+                    Sistem secara otomatis menjadwalkan pencadangan setiap hari pukul <strong>02:00 WIB</strong> dengan masa retensi otomatis <strong>30 hari</strong>. Anda juga dapat membuat cadangan manual sewaktu-waktu.
+                </p>
+
+                <form method="POST" action="{{ url_for('manual_backup') }}">
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-hdd me-2"></i>Buat Backup Sekarang
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-shield-exclamation fs-3"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0">Kebijakan Pemulihan (Restore)</h6>
+                        <small class="text-muted">Perlindungan otomatis sebelum restore</small>
+                    </div>
+                </div>
+
+                <div class="alert alert-warning border-0 rounded-3 small mb-0 py-3">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    Saat Anda melakukan <strong>Restore</strong>, sistem JESCA akan secara otomatis membuat backup cadangan darurat (<em>safety snapshot</em>) terhadap kondisi database saat ini sebelum ditimpa dengan cadangan pilihan.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Daftar File Backup -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-0 text-dark">File Arsip Cadangan (Snapshot)</h6>
+            <small class="text-muted">Tersedia {{ backups|length }} arsip cadangan di server</small>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary small">
+                <tr>
+                    <th class="ps-4">Nama File Arsip</th>
+                    <th>Ukuran File</th>
+                    <th>Waktu Dibuat</th>
+                    <th class="text-end pe-4">Aksi Pemulihan</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for b in backups %}
+                <tr>
+                    <td class="ps-4">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-binary text-secondary fs-5"></i>
+                            <div>
+                                <span class="fw-semibold font-monospace text-dark">{{ b.name }}</span>
+                                {% if 'auto_' in b.name %}
+                                <span class="badge bg-info-subtle text-info border font-monospace ms-2" style="font-size: 0.68rem;">Auto-Backup</span>
+                                {% elif 'manual_' in b.name %}
+                                <span class="badge bg-success-subtle text-success border font-monospace ms-2" style="font-size: 0.68rem;">Manual</span>
+                                {% elif 'pre_restore_' in b.name %}
+                                <span class="badge bg-warning-subtle text-warning border font-monospace ms-2" style="font-size: 0.68rem;">Safety Snap</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td class="text-muted font-monospace">
+                        {{ (b.size / 1024)|round(1) }} KB
+                    </td>
+                    <td class="text-muted font-monospace">
+                        {{ b.created|format_datetime }}
+                    </td>
+                    <td class="text-end pe-4">
+                        <form method="POST" action="{{ url_for('restore_backup', filename=b.name) }}" class="d-inline" onsubmit="return confirm('PERINGATAN: Pulihkan database dari {{ b.name }}? Database saat ini akan digantikan oleh cadangan ini.');">
+                            <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>Restore ke Versi Ini
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4" class="text-center py-5 text-muted">
+                        <i class="bi bi-database-slash display-6 d-block mb-2"></i>
+                        Belum ada file arsip cadangan tersimpan.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

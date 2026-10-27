@@ -1,21 +1,24 @@
 {% extends "base.html" %}
 
-{% block title %}Log & Riwayat Aktivitas - JESCA{% endblock %}
-{% block page_heading %}Log & Riwayat Aktivitas{% endblock %}
+{% block title %}Log & Riwayat Aktivitas - JESCA v2{% endblock %}
+{% block page_heading %}Audit Trail & Riwayat Aktivitas{% endblock %}
 
 {% block content %}
 <!-- Header Bar -->
 <div class="row g-3 align-items-center mb-4">
     <div class="col-md-6">
-        <h5 class="fw-bold mb-1">Riwayat & Log Sistem</h5>
+        <h5 class="fw-bold mb-1">Riwayat & Log Sistem Terperinci</h5>
         <p class="text-muted small mb-0">
-            Audit trail lengkap mencatat penambahan aset, perubahan data, peminjaman (Check In/Out), dan akses sistem.
+            Audit trail lengkap mencatat mutasi data, nilai lama & nilai baru (Old → New), peminjaman, transfer, dan akses sistem.
         </p>
     </div>
-    <div class="col-md-6 text-md-end">
+    <div class="col-md-6 text-md-end d-flex justify-content-md-end gap-2">
+        <a href="{{ url_for('audit_report') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm">
+            <i class="bi bi-file-earmark-text me-1"></i> Laporan Audit
+        </a>
         {% if current_user.role == 'Admin' %}
-        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
-            <i class="bi bi-trash3 me-1"></i> Bersihkan Riwayat
+        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#clearLogsModal">
+            <i class="bi bi-trash3 me-1"></i> Bersihkan Log
         </button>
         {% endif %}
     </div>
@@ -32,7 +35,7 @@
                     <span class="input-group-text bg-light border-end-0 text-muted">
                         <i class="bi bi-search"></i>
                     </span>
-                    <input type="text" class="form-control bg-light border-start-0" id="search" name="search" value="{{ search_query }}" placeholder="Cari username, kode aset, atau rincian kegiatan...">
+                    <input type="text" class="form-control bg-light border-start-0" id="search" name="search" value="{{ search_query }}" placeholder="Cari username, kode aset, atau detail perubahan...">
                 </div>
             </div>
 
@@ -49,11 +52,11 @@
 
             <!-- Submit -->
             <div class="col-4 col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold rounded-pill">
                     <i class="bi bi-funnel-fill me-1"></i> Filter
                 </button>
                 {% if search_query or action_filter %}
-                    <a href="{{ url_for('history') }}" class="btn btn-light btn-sm border text-danger" title="Reset Filter">
+                    <a href="{{ url_for('history') }}" class="btn btn-light btn-sm border text-danger rounded-pill" title="Reset Filter">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 {% endif %}
@@ -77,12 +80,12 @@
                     <tr>
                         <th class="ps-4" style="width: 170px;">Waktu Kejadian</th>
                         <th style="width: 140px;">Pengguna</th>
-                        <th style="width: 140px;">Aksi</th>
-                        <th style="width: 130px;">Terkait Aset</th>
-                        <th class="pe-4">Rincian Aktivitas</th>
+                        <th style="width: 150px;">Jenis Aksi</th>
+                        <th style="width: 140px;">Terkait Aset</th>
+                        <th class="pe-4">Rincian Perubahan (Audit Trail)</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="small">
                     {% for log in logs %}
                     <tr>
                         <!-- Waktu -->
@@ -96,7 +99,7 @@
                         <!-- Pengguna -->
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <div class="avatar-circle-sm bg-light border text-primary fw-bold">
+                                <div class="rounded-circle bg-light border text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 28px; height: 28px; font-size: 0.75rem;">
                                     {{ log.username[0]|upper }}
                                 </div>
                                 <span class="fw-semibold text-dark small">{{ log.username }}</span>
@@ -106,39 +109,35 @@
                         <!-- Aksi Badge -->
                         <td>
                             {% if 'TAMBAH' in log.action %}
-                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.72rem;">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 font-monospace" style="font-size: 0.7rem;">
                                     <i class="bi bi-plus-circle me-1"></i> {{ log.action }}
                                 </span>
-                            {% elif 'EDIT' in log.action %}
-                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1" style="font-size: 0.72rem;">
-                                    <i class="bi bi-pencil me-1"></i> {{ log.action }}
+                            {% elif 'EDIT' in log.action or 'STATUS' in log.action or 'CATEGORY' in log.action %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1 font-monospace" style="font-size: 0.7rem;">
+                                    <i class="bi bi-pencil-square me-1"></i> {{ log.action }}
                                 </span>
-                            {% elif 'HAPUS' in log.action or 'CLEAR' in log.action %}
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1" style="font-size: 0.72rem;">
+                            {% elif 'HAPUS' in log.action or 'DELETE' in log.action %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 font-monospace" style="font-size: 0.7rem;">
                                     <i class="bi bi-trash me-1"></i> {{ log.action }}
                                 </span>
+                            {% elif 'TRANSFER' in log.action %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 font-monospace" style="font-size: 0.7rem;">
+                                    <i class="bi bi-geo-alt me-1"></i> TRANSFER
+                                </span>
                             {% elif 'CHECK_OUT' in log.action %}
-                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1" style="font-size: 0.72rem;">
+                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 font-monospace" style="font-size: 0.7rem;">
                                     <i class="bi bi-box-arrow-up-right me-1"></i> PINJAM
                                 </span>
                             {% elif 'CHECK_IN' in log.action %}
-                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1" style="font-size: 0.72rem;">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1 font-monospace" style="font-size: 0.7rem;">
                                     <i class="bi bi-box-arrow-in-down-left me-1"></i> KEMBALI
                                 </span>
-                            {% elif 'MAINTENANCE' in log.action %}
-                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1" style="font-size: 0.72rem;">
-                                    <i class="bi bi-tools me-1"></i> SERVIS
-                                </span>
-                            {% elif 'LOGIN' in log.action %}
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1" style="font-size: 0.72rem;">
-                                    <i class="bi bi-box-arrow-in-right me-1"></i> LOGIN
-                                </span>
-                            {% elif 'PASSWORD' in log.action %}
-                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1" style="font-size: 0.72rem;">
-                                    <i class="bi bi-key me-1"></i> PASSWORD
+                            {% elif 'CLEAR_LOGS' in log.action %}
+                                <span class="badge bg-danger text-white px-2 py-1 font-monospace" style="font-size: 0.7rem;">
+                                    <i class="bi bi-shield-x me-1"></i> CLEAR_LOGS
                                 </span>
                             {% else %}
-                                <span class="badge bg-light text-secondary border px-2 py-1" style="font-size: 0.72rem;">
+                                <span class="badge bg-light text-secondary border px-2 py-1 font-monospace" style="font-size: 0.7rem;">
                                     {{ log.action }}
                                 </span>
                             {% endif %}
@@ -150,6 +149,9 @@
                                 <a href="{{ url_for('assets', search=log.asset_code) }}" class="badge bg-light text-primary border text-decoration-none font-monospace">
                                     {{ log.asset_code }}
                                 </a>
+                                {% if log.asset_name %}
+                                <div class="text-muted small text-truncate" style="max-width: 140px; font-size: 0.72rem;">{{ log.asset_name }}</div>
+                                {% endif %}
                             {% else %}
                                 <span class="text-muted small">-</span>
                             {% endif %}
@@ -157,7 +159,13 @@
 
                         <!-- Rincian -->
                         <td class="pe-4">
+                            {% if '→' in (log.details or '') %}
+                            <div class="p-1 px-2 rounded bg-warning-subtle text-dark border border-warning-subtle d-inline-block small">
+                                <i class="bi bi-arrow-repeat text-warning me-1"></i>{{ log.details }}
+                            </div>
+                            {% else %}
                             <span class="small text-secondary">{{ log.details or '-' }}</span>
+                            {% endif %}
                         </td>
                     </tr>
                     {% else %}
@@ -177,19 +185,19 @@
 
 <!-- Modal Konfirmasi Hapus Logs (Admin Only) -->
 {% if current_user.role == 'Admin' %}
-<div class="modal fade" id="clearLogsModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="clearLogsModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-body p-4 text-center">
-                <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                     <i class="bi bi-exclamation-triangle fs-4"></i>
                 </div>
                 <h6 class="fw-bold mb-2">Bersihkan Semua Log?</h6>
-                <p class="text-muted small mb-3">Seluruh riwayat audit log aktivitas saat ini akan dihapus secara permanen.</p>
+                <p class="text-muted small mb-3">Seluruh riwayat log saat ini akan dibersihkan. Aksi pembersihan ini akan tetap tercatat secara otomatis.</p>
                 <form method="POST" action="{{ url_for('clear_history') }}">
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-light border btn-sm w-50" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger btn-sm w-50 fw-semibold">Ya, Bersihkan</button>
+                        <button type="button" class="btn btn-light border btn-sm w-50 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger btn-sm w-50 rounded-pill fw-semibold">Ya, Bersihkan</button>
                     </div>
                 </form>
             </div>

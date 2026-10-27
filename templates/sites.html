@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Lokasi & Site - JESCA v2{% endblock %}
+{% block page_heading %}Manajemen Lokasi & Site{% endblock %}
+
+{% block content %}
+<div class="row g-3 align-items-center mb-4">
+    <div class="col-md-6">
+        <h5 class="fw-bold mb-1">Daftar Gedung & Site Fisik</h5>
+        <p class="text-muted small mb-0">Kelola multi-lokasi penempatan aset (Kantor Pusat, Gudang, Kantor Cabang, Site Proyek).</p>
+    </div>
+    <div class="col-md-6 text-md-end">
+        {% if current_user.role == 'Admin' %}
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSiteModal">
+            <i class="bi bi-plus-lg me-1"></i> Tambah Site
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for s in sites %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-start justify-content-between mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="bg-success bg-opacity-10 text-success rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 44px; height: 44px;">
+                                <i class="bi bi-geo-alt-fill fs-5"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-0 text-dark">{{ s.name }}</h6>
+                                <span class="badge bg-light text-secondary border font-monospace" style="font-size: 0.72rem;">
+                                    {{ s.assets|length }} Aset di Site Ini
+                                </span>
+                            </div>
+                        </div>
+                        {% if s.is_active %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Aktif</span>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Nonaktif</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-muted small mb-3">
+                        {{ s.description or 'Tidak ada keterangan tambahan.' }}
+                    </p>
+                </div>
+
+                {% if current_user.role == 'Admin' %}
+                <div class="border-top pt-3 d-flex justify-content-end gap-2">
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editSiteModal{{ s.id }}">
+                        <i class="bi bi-pencil me-1"></i>Edit
+                    </button>
+                    {% if s.name != 'Kantor Pusat' %}
+                    <form method="POST" action="{{ url_for('delete_site', site_id=s.id) }}" onsubmit="return confirm('Hapus site {{ s.name }}? Aset yang berada di site ini akan tetap tersimpan.');">
+                        <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Site Modal -->
+    <div class="modal fade" id="editSiteModal{{ s.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <form method="POST" action="{{ url_for('edit_site', site_id=s.id) }}">
+                    <div class="modal-header border-bottom py-3 px-4">
+                        <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Lokasi / Site</h6>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nama Site <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" value="{{ s.name }}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Keterangan Singkat</label>
+                            <textarea class="form-control" name="description" rows="3">{{ s.description or '' }}</textarea>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="activeSite{{ s.id }}" {% if s.is_active %}checked{% endif %}>
+                            <label class="form-check-label small fw-semibold" for="activeSite{{ s.id }}">Status Aktif</label>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top px-4 py-3">
+                        <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Simpan Perubahan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Modal Tambah Site -->
+<div class="modal fade" id="addSiteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="POST" action="{{ url_for('create_site') }}">
+                <div class="modal-header border-bottom py-3 px-4">
+                    <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Site Baru</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nama Site / Lokasi <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" required placeholder="Contoh: Gudang Barat, Cabang Surabaya">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Keterangan Singkat</label>
+                        <textarea class="form-control" name="description" rows="3" placeholder="Fungsi gedung, alamat singkat, atau PIC lokasi"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Simpan Site</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

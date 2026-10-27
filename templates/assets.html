@@ -1,27 +1,33 @@
 {% extends "base.html" %}
 
-{% block title %}Kelola Data Aset - JESCA{% endblock %}
-{% block page_heading %}Kelola Data Aset{% endblock %}
+{% block title %}Kelola Data Aset - JESCA v2{% endblock %}
+{% block page_heading %}Inventaris & Aset{% endblock %}
 
 {% block content %}
 <!-- Page Header Action Bar -->
 <div class="row g-3 align-items-center mb-4">
-    <div class="col-md-6">
-        <h5 class="fw-bold mb-1">Daftar Inventaris Aset</h5>
+    <div class="col-md-5">
+        <h5 class="fw-bold mb-1">Daftar Inventaris Aset Perusahaan</h5>
         <p class="text-muted small mb-0">
-            Kelola data aset, foto fisik, jadwal maintenance otomatis, QR Code scan summary, dan peminjaman.
+            Kelola data aset, garansi, depresiasi nilai buku, transfer site, lampiran dokumen, dan QR tag.
         </p>
     </div>
-    <div class="col-md-6 text-md-end">
+    <div class="col-md-7 text-md-end">
         <div class="d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
-            <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 d-flex align-items-center gap-1 shadow-sm">
-                <i class="bi bi-file-earmark-spreadsheet"></i>
-                <span>Export CSV</span>
-            </a>
-            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 d-flex align-items-center gap-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#addAssetModal">
-                <i class="bi bi-plus-lg"></i>
-                <span>Tambah Aset Baru</span>
+            <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#importCsvModal">
+                <i class="bi bi-upload me-1"></i> Import CSV
             </button>
+            <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-pdf me-1"></i> Export PDF
+            </a>
+            <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+            </a>
+            {% if current_user.role in ['Admin', 'Staff'] %}
+            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addAssetModal">
+                <i class="bi bi-plus-lg me-1"></i> Tambah Aset
+            </button>
+            {% endif %}
         </div>
     </div>
 </div>
@@ -34,10 +40,8 @@
             <div class="col-12 col-md-3">
                 <label for="search" class="form-label small fw-bold text-muted mb-1">Pencarian Aset</label>
                 <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-light border-end-0 text-muted">
-                        <i class="bi bi-search"></i>
-                    </span>
-                    <input type="text" class="form-control bg-light border-start-0" id="search" name="search" value="{{ search_query }}" placeholder="Nama, kode (Tech/001), lokasi, peminjam...">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" class="form-control bg-light border-start-0" id="search" name="search" value="{{ search_query }}" placeholder="Kode, nama, lokasi, peminjam...">
                 </div>
             </div>
 
@@ -47,16 +51,14 @@
                 <select class="form-select form-select-sm bg-light" id="category" name="category">
                     <option value="">Semua Kategori</option>
                     {% for cat in categories %}
-                        <option value="{{ cat.name }}" {% if category_filter == cat.name %}selected{% endif %}>
-                            {{ cat.name }} ({{ cat.prefix }}/...)
-                        </option>
+                        <option value="{{ cat.name }}" {% if category_filter == cat.name %}selected{% endif %}>{{ cat.name }}</option>
                     {% endfor %}
                 </select>
             </div>
 
             <!-- Status Filter -->
             <div class="col-6 col-md-2">
-                <label for="status" class="form-label small fw-bold text-muted mb-1">Status Operasional</label>
+                <label for="status" class="form-label small fw-bold text-muted mb-1">Status</label>
                 <select class="form-select form-select-sm bg-light" id="status" name="status">
                     <option value="">Semua Status</option>
                     {% for st in statuses %}
@@ -65,24 +67,35 @@
                 </select>
             </div>
 
-            <!-- Maintenance Filter -->
-            <div class="col-6 col-md-3">
-                <label for="maintenance" class="form-label small fw-bold text-muted mb-1">Filter Maintenance</label>
-                <select class="form-select form-select-sm bg-light" id="maintenance" name="maintenance">
-                    <option value="">Semua Jadwal</option>
-                    <option value="due" {% if maintenance_filter == 'due' %}selected{% endif %}>⚠️ Jatuh Tempo / Mendekati 7 Hari</option>
-                    <option value="yes" {% if maintenance_filter == 'yes' %}selected{% endif %}>Perlu Maintenance Berkala</option>
-                    <option value="no" {% if maintenance_filter == 'no' %}selected{% endif %}>Tidak Perlu Maintenance (-)</option>
+            <!-- Vendor Filter -->
+            <div class="col-6 col-md-2">
+                <label for="vendor" class="form-label small fw-bold text-muted mb-1">Vendor</label>
+                <select class="form-select form-select-sm bg-light" id="vendor" name="vendor">
+                    <option value="">Semua Vendor</option>
+                    {% for v in vendors %}
+                        <option value="{{ v.id }}" {% if vendor_filter == v.id|string %}selected{% endif %}>{{ v.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
-            <!-- Action Buttons -->
-            <div class="col-6 col-md-2 d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold">
-                    <i class="bi bi-funnel-fill me-1"></i> Filter
+            <!-- Site Filter -->
+            <div class="col-6 col-md-2">
+                <label for="site" class="form-label small fw-bold text-muted mb-1">Site</label>
+                <select class="form-select form-select-sm bg-light" id="site" name="site">
+                    <option value="">Semua Site</option>
+                    {% for s in sites %}
+                        <option value="{{ s.id }}" {% if site_filter == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Warranty Filter & Action -->
+            <div class="col-12 col-md-1 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold rounded-pill" title="Terapkan Filter">
+                    <i class="bi bi-funnel-fill"></i>
                 </button>
-                {% if search_query or category_filter or status_filter or maintenance_filter %}
-                    <a href="{{ url_for('assets') }}" class="btn btn-light btn-sm border text-danger" title="Reset Filter">
+                {% if search_query or category_filter or status_filter or vendor_filter or site_filter or warranty_filter or maintenance_filter %}
+                    <a href="{{ url_for('assets') }}" class="btn btn-light btn-sm border text-danger rounded-pill" title="Reset">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 {% endif %}
@@ -91,369 +104,264 @@
     </div>
 </div>
 
-<!-- Table Header Count & Subtotal -->
-<div class="d-flex justify-content-between align-items-center mb-3 px-1 flex-wrap gap-2">
-    <div class="small text-muted">
-        Total: <strong>{{ assets|length }}</strong> data aset
-        {% if category_filter %}&bull; Kategori: <strong>{{ category_filter }}</strong>{% endif %}
-        {% if status_filter %}&bull; Status: <strong>{{ status_filter }}</strong>{% endif %}
-        {% if maintenance_filter == 'due' %}&bull; <span class="badge bg-warning-subtle text-warning">Filter: Jadwal Servis 7 Hari</span>{% endif %}
-    </div>
-    <div class="small text-secondary">
-        Subtotal Nilai: <span class="text-success fw-bold">{{ filtered_value|rupiah }}</span>
-    </div>
-</div>
-
-<!-- Main Asset Table Card -->
+<!-- Assets Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0" id="assetsTable">
-                <thead class="table-light text-muted small text-uppercase">
-                    <tr>
-                        <th class="ps-3" style="width: 48px;">Foto</th>
-                        <th style="width: 120px;">Kode Aset</th>
-                        <th>Nama Aset & Spesifikasi</th>
-                        <th>Kategori</th>
-                        <th>Lokasi</th>
-                        <th>Maintenance</th>
-                        <th>Status</th>
-                        <th class="text-center pe-3" style="width: 170px;">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for asset in assets %}
-                    <tr>
-                        <!-- Foto Thumbnail -->
-                        <td class="ps-3">
-                            {% if asset.image %}
-                                <a href="javascript:void(0)" onclick="previewPhoto('{{ url_for('static', filename='uploads/' ~ asset.image) }}', '{{ asset.name|replace('\'', '\\\'') }}')">
-                                    <img src="{{ url_for('static', filename='uploads/' ~ asset.image) }}" alt="Foto" class="rounded-3 border object-fit-cover shadow-sm table-asset-thumb">
-                                </a>
-                            {% else %}
-                                <div class="bg-light rounded-3 border d-flex align-items-center justify-content-center text-muted table-asset-thumb" title="Belum ada foto">
-                                    <i class="bi bi-image" style="font-size: 0.9rem;"></i>
-                                </div>
-                            {% endif %}
-                        </td>
-
-                        <!-- Kode Aset -->
-                        <td>
-                            <span class="badge bg-light text-primary font-monospace border fw-bold" style="font-size: 0.8rem;">
-                                {{ asset.asset_code }}
-                            </span>
-                        </td>
-
-                        <!-- Nama Aset -->
-                        <td>
-                            <div class="fw-bold text-dark">{{ asset.name }}</div>
-                            {% if asset.description %}
-                                <div class="text-muted small text-truncate" style="max-width: 220px;" title="{{ asset.description }}">
-                                    {{ asset.description }}
-                                </div>
-                            {% endif %}
-                            {% if asset.status == 'Dipinjam' and asset.borrower %}
-                                <div class="small text-info fw-semibold mt-1">
-                                    <i class="bi bi-person-fill"></i> Dipinjam: {{ asset.borrower }}
-                                </div>
-                            {% endif %}
-                        </td>
-
-                        <!-- Kategori -->
-                        <td>
-                            <span class="badge bg-light text-dark border">
-                                {{ asset.category }}
-                            </span>
-                        </td>
-
-                        <!-- Lokasi -->
-                        <td>
-                            <span class="small text-secondary d-flex align-items-center gap-1">
-                                <i class="bi bi-geo-alt text-muted"></i>
-                                {{ asset.location }}
-                            </span>
-                        </td>
-
-                        <!-- Maintenance Schedule & Notification Badge -->
-                        <td>
-                            {% if asset.needs_maintenance and asset.next_maintenance_date %}
-                                {% set days_left = (asset.next_maintenance_date - today).days %}
-                                {% if days_left < 0 %}
-                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle d-inline-block text-start py-1 px-2" title="Jatuh tempo terlewat">
-                                        <i class="bi bi-exclamation-octagon-fill me-1"></i> Lewat {{-days_left}} hari!
-                                        <small class="d-block text-muted font-monospace" style="font-size: 0.68rem;">{{ asset.next_maintenance_date|format_date }}</small>
-                                    </span>
-                                {% elif days_left <= 7 %}
-                                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle d-inline-block text-start py-1 px-2" title="Mendekati jadwal seminggu ke depan">
-                                        <i class="bi bi-bell-fill me-1"></i> Sisa {{ days_left }} hari
-                                        <small class="d-block text-muted font-monospace" style="font-size: 0.68rem;">{{ asset.next_maintenance_date|format_date }}</small>
-                                    </span>
-                                {% else %}
-                                    <span class="badge bg-light text-secondary border d-inline-block text-start py-1 px-2">
-                                        <i class="bi bi-calendar-check me-1"></i> {{ asset.next_maintenance_date|format_date }}
-                                        <small class="d-block text-muted" style="font-size: 0.68rem;">({{ days_left }} hari lagi)</small>
-                                    </span>
-                                {% endif %}
-                            {% else %}
-                                <span class="text-muted small">-</span>
-                            {% endif %}
-                        </td>
-
-                        <!-- Status Badge -->
-                        <td>
-                            {% if asset.status == 'Aktif' %}
-                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
-                                    <i class="bi bi-check-circle-fill me-1"></i> Aktif
-                                </span>
-                            {% elif asset.status == 'Dipinjam' %}
-                                <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">
-                                    <i class="bi bi-arrow-left-right me-1"></i> Dipinjam
-                                </span>
-                            {% elif asset.status == 'Dalam Perbaikan' %}
-                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">
-                                    <i class="bi bi-tools me-1"></i> Perbaikan
-                                </span>
-                            {% elif asset.status == 'Rusak' %}
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
-                                    <i class="bi bi-x-circle-fill me-1"></i> Rusak
-                                </span>
-                            {% else %}
-                                <span class="badge bg-secondary-subtle text-secondary border px-2 py-1">
-                                    {{ asset.status }}
-                                </span>
-                            {% endif %}
-                        </td>
-
-                        <!-- Action Buttons -->
-                        <td class="text-center pe-3">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <!-- Detail Button -->
-                                <button type="button" class="btn btn-light border text-primary" title="Detail Aset" 
-                                        onclick="viewAssetDetail({{ asset.id }})">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-
-                                <!-- QR Code Button -->
-                                <button type="button" class="btn btn-light border text-dark" title="QR Code & Scan Summary"
-                                        onclick="openQrTagModal({{ asset.id }})">
-                                    <i class="bi bi-qr-code"></i>
-                                </button>
-
-                                <!-- Selesaikan Maintenance (if needs maintenance) -->
-                                {% if asset.needs_maintenance %}
-                                <button type="button" class="btn btn-light border text-warning" title="Catat Maintenance Selesai"
-                                        onclick="openCompleteMaintenanceModal({{ asset.id }}, '{{ asset.asset_code }}', '{{ asset.name|replace('\'', '\\\'') }}', {{ asset.maintenance_interval_days or 90 }})">
-                                    <i class="bi bi-wrench-adjustable"></i>
-                                </button>
-                                {% endif %}
-
-                                <!-- Check Out / Check In Quick Button -->
-                                {% if asset.status == 'Dipinjam' %}
-                                <button type="button" class="btn btn-light border text-success" title="Kembalikan Aset (Check In)"
-                                        onclick="openCheckInModal({{ asset.id }}, '{{ asset.asset_code }}', '{{ asset.name|replace('\'', '\\\'') }}', '{{ asset.borrower or '' }}')">
-                                    <i class="bi bi-box-arrow-in-down-left"></i>
-                                </button>
-                                {% else %}
-                                <button type="button" class="btn btn-light border text-info" title="Pinjam Aset (Check Out)"
-                                        onclick="openCheckOutModal({{ asset.id }}, '{{ asset.asset_code }}', '{{ asset.name|replace('\'', '\\\'') }}')">
-                                    <i class="bi bi-box-arrow-up-right"></i>
-                                </button>
-                                {% endif %}
-
-                                <!-- Edit Button -->
-                                <button type="button" class="btn btn-light border text-secondary" title="Edit Aset"
-                                        onclick="openEditAssetModal({{ asset.id }})">
-                                    <i class="bi bi-pencil-square"></i>
-                                </button>
-
-                                <!-- Delete Button -->
-                                <button type="button" class="btn btn-light border text-danger" title="Hapus Aset"
-                                        onclick="confirmDeleteAsset({{ asset.id }}, '{{ asset.asset_code }}', '{{ asset.name|replace('\'', '\\\'') }}')">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr>
-                        <td colspan="8" class="text-center py-5">
-                            <div class="empty-state py-4">
-                                <div class="bg-light rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
-                                    <i class="bi bi-inbox fs-3 text-muted"></i>
-                                </div>
-                                <h6 class="fw-bold text-dark">Data Aset Tidak Ditemukan</h6>
-                                <p class="text-muted small mb-3">Belum ada aset yang sesuai dengan kriteria filter.</p>
-                                <button type="button" class="btn btn-sm btn-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#addAssetModal">
-                                    <i class="bi bi-plus-lg me-1"></i> Tambah Aset Baru
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
+        <div>
+            <h6 class="fw-bold mb-0 text-dark">Data Inventaris ({{ assets|length }} Aset)</h6>
+            <small class="text-muted">Total Nilai Perolehan: <strong class="text-success">{{ filtered_value|rupiah }}</strong></small>
         </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-light text-secondary border font-monospace" style="font-size: 0.72rem;">
+                <kbd style="background:#e2e8f0; color:#475569;">Ctrl+N</kbd> Aset Baru
+            </span>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="assetsTable">
+            <thead class="table-light text-secondary small text-uppercase">
+                <tr>
+                    <th class="ps-3">Aset</th>
+                    <th>Kategori</th>
+                    <th>Lokasi & Site</th>
+                    <th>Status</th>
+                    <th>Nilai Buku</th>
+                    <th>Garansi</th>
+                    <th class="text-center pe-3" style="width: 190px;">Aksi</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for a in assets %}
+                <tr data-asset-id="{{ a.id }}">
+                    <!-- Nama & Kode -->
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center gap-2">
+                            {% if a.image %}
+                            <img src="{{ url_for('static', filename='uploads/' ~ a.image) }}" alt="{{ a.name }}" class="rounded-3 object-fit-cover shadow-sm" style="width: 40px; height: 40px;">
+                            {% else %}
+                            <div class="rounded-3 bg-light border d-flex align-items-center justify-content-center text-secondary" style="width: 40px; height: 40px;">
+                                <i class="bi bi-box-seam fs-5"></i>
+                            </div>
+                            {% endif %}
+                            <div>
+                                <div class="fw-semibold text-dark text-truncate" style="max-width: 220px;" title="{{ a.name }}">{{ a.name }}</div>
+                                <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.7rem;">{{ a.asset_code }}</span>
+                                {% if a.borrower %}
+                                <span class="badge bg-info-subtle text-info border font-monospace ms-1" style="font-size: 0.68rem;"><i class="bi bi-person me-1"></i>{{ a.borrower }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Kategori -->
+                    <td><span class="badge bg-light text-secondary border">{{ a.category }}</span></td>
+
+                    <!-- Lokasi & Site -->
+                    <td>
+                        <div class="text-dark fw-medium small"><i class="bi bi-geo-alt text-danger me-1"></i>{{ a.location }}</div>
+                        <span class="site-badge mt-1">{{ a.site.name if a.site else 'Kantor Pusat' }}</span>
+                    </td>
+
+                    <!-- Status -->
+                    <td>
+                        {% if a.status == 'Aktif' %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle">Aktif</span>
+                        {% elif a.status == 'Dipinjam' %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle">Dipinjam</span>
+                        {% elif a.status == 'Dalam Perbaikan' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Perbaikan</span>
+                        {% elif a.status == 'Rusak' %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Rusak</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border">{{ a.status }}</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Nilai Buku (Depresiasi) -->
+                    <td>
+                        <div class="fw-semibold font-monospace text-dark">{{ a.current_book_value|rupiah }}</div>
+                        <small class="book-value-text d-block">Beli: {{ a.purchase_price|rupiah }}</small>
+                    </td>
+
+                    <!-- Garansi -->
+                    <td>
+                        {% if a.warranty_status %}
+                        <span class="badge bg-{{ a.warranty_status.color }}-subtle text-{{ a.warranty_status.color }} border border-{{ a.warranty_status.color }}-subtle" style="font-size: 0.7rem;">
+                            {{ a.warranty_status.label }}
+                        </span>
+                        {% else %}
+                        <span class="text-muted small">-</span>
+                        {% endif %}
+                    </td>
+
+                    <!-- Aksi Buttons -->
+                    <td class="text-center pe-3">
+                        <div class="btn-group btn-group-sm">
+                            <!-- QR Tag -->
+                            <button type="button" class="btn btn-outline-secondary" onclick="openQrTagModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}', '{{ a.category }}', '{{ a.location }}')" title="Cetak QR Tag">
+                                <i class="bi bi-qr-code"></i>
+                            </button>
+                            <!-- Compare -->
+                            <button type="button" class="btn btn-outline-secondary" onclick="AssetCompare.toggle('{{ a.id }}')" title="Bandingkan Side-by-side">
+                                <i class="bi bi-layout-split"></i>
+                            </button>
+                            <!-- Attachments -->
+                            <button type="button" class="btn btn-outline-secondary" onclick="openAttachmentsModal('{{ a.id }}', '{{ a.asset_code }}')" title="Lampiran Dokumen">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
+                            <!-- Transfer -->
+                            {% if current_user.role in ['Admin', 'Staff'] %}
+                            <button type="button" class="btn btn-outline-info" onclick="openTransferModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.location }}')" title="Transfer Lokasi/Site">
+                                <i class="bi bi-arrow-left-right"></i>
+                            </button>
+                            <!-- Check in / Check out -->
+                            {% if a.status == 'Dipinjam' %}
+                            <button type="button" class="btn btn-outline-success" onclick="openCheckInModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}', '{{ a.borrower }}')" title="Pengembalian (Check In)">
+                                <i class="bi bi-box-arrow-in-down-left"></i>
+                            </button>
+                            {% elif a.status in ['Aktif'] %}
+                            <button type="button" class="btn btn-outline-primary" onclick="openCheckOutModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}')" title="Pinjamkan (Check Out)">
+                                <i class="bi bi-box-arrow-up-right"></i>
+                            </button>
+                            {% endif %}
+                            <!-- Edit -->
+                            <button type="button" class="btn btn-outline-secondary" onclick="openEditAssetModal('{{ a.id }}')" title="Edit Data">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <!-- Delete (Admin Only) -->
+                            {% if current_user.role == 'Admin' %}
+                            <button type="button" class="btn btn-outline-danger" onclick="confirmDeleteAsset('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}')" title="Hapus Aset">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                            {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-boxes display-6 d-block mb-2"></i>
+                        Tidak ada aset yang sesuai kriteria pencarian.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 
 <!-- ==========================================
-     MODAL: TAMBAH ASET (WITH MAINTENANCE & FOTO)
+     MODAL: TAMBAH ASET BARU (v2)
      ========================================== -->
-<div class="modal fade" id="addAssetModal" tabindex="-1" aria-labelledby="addAssetModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="addAssetModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-box-seam-fill fs-5"></i>
-                    </div>
-                    <div>
-                        <h6 class="modal-title fw-bold" id="addAssetModalLabel">Tambah Aset Baru</h6>
-                        <small class="text-muted">Auto-coding, foto fisik, & jadwal pemeliharaan berkala</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Baru ke Inventaris</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-            <form method="POST" action="{{ url_for('create_asset') }}" enctype="multipart/form-data" id="addAssetForm">
+            <form method="POST" action="{{ url_for('create_asset') }}" enctype="multipart/form-data">
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <!-- Kategori Selection -->
-                        <div class="col-md-6">
-                            <label for="addCategory" class="form-label small fw-bold text-secondary">
-                                Kategori Aset <span class="text-danger">*</span>
-                            </label>
-                            <select class="form-select form-select-sm" id="addCategory" name="category" required onchange="handleCategoryChange(this.value)">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold">Nama Aset <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" required placeholder="Contoh: MacBook Pro M3 16 Inch">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Kategori <span class="text-danger">*</span></label>
+                            <select class="form-select" name="category" id="addCategorySelect" onchange="updateCustomFields('add', this.value)">
                                 {% for cat in categories %}
-                                    <option value="{{ cat.name }}" data-prefix="{{ cat.prefix }}">
-                                        {{ cat.name }} (Prefix: {{ cat.prefix }}/...)
-                                    </option>
+                                <option value="{{ cat.name }}">{{ cat.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
-                        <!-- Auto-Generated Asset Code Preview -->
-                        <div class="col-md-6">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label for="addAssetCode" class="form-label small fw-bold text-secondary mb-0">Kode Aset</label>
-                                <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace" style="font-size: 0.68rem;">
-                                    <i class="bi bi-magic me-1"></i> Auto-Code
-                                </span>
-                            </div>
-                            <div class="input-group input-group-sm">
-                                <input type="text" class="form-control font-monospace fw-bold text-primary bg-light" id="addAssetCode" name="asset_code" placeholder="Memuat kode...">
-                                <button class="btn btn-outline-secondary" type="button" onclick="refreshAutoCode()" title="Segarkan Kode">
-                                    <i class="bi bi-arrow-repeat" id="refreshCodeIcon"></i>
-                                </button>
-                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Kode Aset (Opsional)</label>
+                            <input type="text" class="form-control font-monospace" name="asset_code" placeholder="Kosongkan untuk auto-code">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Tanggal Perolehan</label>
+                            <input type="date" class="form-control" name="purchase_date" value="{{ today }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nilai Perolehan (IDR)</label>
+                            <input type="text" class="form-control" name="purchase_price" placeholder="25.000.000">
                         </div>
 
-                        <!-- Nama Aset -->
-                        <div class="col-12">
-                            <label for="addName" class="form-label small fw-bold text-secondary">
-                                Nama Aset <span class="text-danger">*</span>
-                            </label>
-                            <input type="text" class="form-control" id="addName" name="name" placeholder="Contoh: MacBook Pro 14 M3 / Genset Honda 3000W" required>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Lokasi / Ruangan</label>
+                            <input type="text" class="form-control" name="location" placeholder="Ruang IT / Lantai 2">
                         </div>
-
-                        <!-- Upload Foto Bukti Aset -->
-                        <div class="col-12">
-                            <label for="addPhoto" class="form-label small fw-bold text-secondary">
-                                Upload Foto Bukti Fisik Aset
-                            </label>
-                            <div class="input-group">
-                                <input type="file" class="form-control" id="addPhoto" name="photo" accept="image/*" onchange="previewAddImage(this)">
-                            </div>
-                            <small class="text-muted" style="font-size: 0.72rem;">Format: JPG, PNG, WEBP</small>
-                            <div id="addPhotoPreviewContainer" class="mt-2 d-none">
-                                <div class="position-relative d-inline-block">
-                                    <img id="addPhotoPreview" src="#" alt="Pratinjau" class="rounded-3 border shadow-sm object-fit-cover" style="max-height: 120px; max-width: 200px;">
-                                    <button type="button" class="btn btn-sm btn-danger rounded-circle position-absolute top-0 end-0 m-1 p-0 d-flex align-items-center justify-content-center" style="width: 20px; height: 20px;" onclick="clearAddPhotoPreview()">
-                                        <i class="bi bi-x"></i>
-                                    </button>
-                                </div>
-                            </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Site Fisik</label>
+                            <select class="form-select" name="site_id">
+                                {% for s in sites %}
+                                <option value="{{ s.id }}">{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
-
-                        <!-- Tanggal Perolehan & Nilai -->
-                        <div class="col-md-6">
-                            <label for="addPurchaseDate" class="form-label small fw-bold text-secondary">Tanggal Perolehan <span class="text-danger">*</span></label>
-                            <input type="date" class="form-control" id="addPurchaseDate" name="purchase_date" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="addPurchasePrice" class="form-label small fw-bold text-secondary">Nilai Perolehan (Rp)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted">Rp</span>
-                                <input type="number" step="1000" min="0" class="form-control" id="addPurchasePrice" name="purchase_price" placeholder="0">
-                            </div>
-                        </div>
-
-                        <!-- Lokasi & Status -->
-                        <div class="col-md-6">
-                            <label for="addLocation" class="form-label small fw-bold text-secondary">Lokasi Penempatan</label>
-                            <input type="text" class="form-control" id="addLocation" name="location" placeholder="Ruang IT, Gudang B, dll">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="addStatus" class="form-label small fw-bold text-secondary">Status Awal</label>
-                            <select class="form-select" id="addStatus" name="status">
-                                {% for st in statuses %}
-                                    <option value="{{ st }}">{{ st }}</option>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Vendor / Supplier</label>
+                            <select class="form-select" name="vendor_id">
+                                <option value="">-- Tanpa Vendor --</option>
+                                {% for v in vendors %}
+                                <option value="{{ v.id }}">{{ v.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
-                        <!-- ==============================================
-                             MAINTENANCE SCHEDULING SECTION
-                             ============================================== -->
-                        <div class="col-12">
-                            <div class="p-3 rounded-3 border bg-light">
-                                <div class="mb-2">
-                                    <label for="addNeedsMaintenance" class="form-label small fw-bold text-dark mb-1">
-                                        <i class="bi bi-tools text-warning me-1"></i> Apakah perangkat ini memerlukan pemeliharaan / maintenance berkala?
-                                    </label>
-                                    <select class="form-select form-select-sm" id="addNeedsMaintenance" name="needs_maintenance" onchange="toggleMaintenanceSection('add')">
-                                        <option value="0" selected>Tidak (-)</option>
-                                        <option value="1">Ya, Perlu Maintenance Berkala</option>
-                                    </select>
-                                </div>
-
-                                <!-- Dynamic Maintenance Inputs -->
-                                <div id="addMaintenanceFields" class="row g-2 mt-2 pt-2 border-top d-none">
-                                    <div class="col-md-6">
-                                        <label for="addMaintenanceInterval" class="form-label small fw-bold text-secondary">
-                                            Frekuensi / Interval Servis
-                                        </label>
-                                        <select class="form-select form-select-sm" id="addMaintenanceInterval" name="maintenance_interval_days" onchange="calcNextMaintenanceDate('add')">
-                                            <option value="30">Setiap 30 Hari (1 Bulan)</option>
-                                            <option value="90" selected>Setiap 90 Hari (3 Bulan / Triwulan)</option>
-                                            <option value="180">Setiap 180 Hari (6 Bulan / Semester)</option>
-                                            <option value="365">Setiap 365 Hari (1 Tahun)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="addNextMaintenanceDate" class="form-label small fw-bold text-secondary">
-                                            Jadwal Maintenance Pertama
-                                        </label>
-                                        <input type="date" class="form-control form-control-sm" id="addNextMaintenanceDate" name="next_maintenance_date">
-                                        <small class="text-muted" style="font-size: 0.7rem;">Sistem akan memberi notifikasi otomatis 7 hari sebelum tanggal ini.</small>
-                                    </div>
-                                </div>
-                            </div>
+                        <!-- Garansi & Penyusutan -->
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Garansi Mulai</label>
+                            <input type="date" class="form-control" name="warranty_start">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Garansi Berakhir</label>
+                            <input type="date" class="form-control" name="warranty_end">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Masa Manfaat (Tahun)</label>
+                            <input type="number" class="form-control" name="useful_life_years" placeholder="Contoh: 4">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Nilai Residu (IDR)</label>
+                            <input type="text" class="form-control" name="salvage_value" placeholder="0">
                         </div>
 
-                        <!-- Deskripsi -->
-                        <div class="col-12">
-                            <label for="addDescription" class="form-label small fw-bold text-secondary">Deskripsi / Catatan / Spesifikasi</label>
-                            <textarea class="form-control" id="addDescription" name="description" rows="2" placeholder="Nomor seri (SN), kelengkapan..."></textarea>
+                        <!-- Dynamic Custom Fields Section -->
+                        <div class="col-12" id="addCustomFieldsContainer">
+                            <!-- Populated via JS based on selected category -->
+                        </div>
+
+                        <!-- Maintenance Toggle -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Perlu Pemeliharaan Berkala?</label>
+                            <select class="form-select" name="needs_maintenance" id="addNeedsMaintenance" onchange="toggleMaintInput('add')">
+                                <option value="0">Tidak Perlu (-)</option>
+                                <option value="1">Ya, Perlu Servis Rutin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-none" id="addMaintIntervalCol">
+                            <label class="form-label small fw-bold">Interval Pemeliharaan (Hari)</label>
+                            <input type="number" class="form-control" name="maintenance_interval_days" value="90">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">Foto Fisik Aset</label>
+                            <input type="file" class="form-control" name="photo" accept="image/*">
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label small fw-bold">Deskripsi / Spesifikasi Tambahan</label>
+                            <textarea class="form-control" name="description" rows="2" placeholder="Catatan spesifikasi, kelengkapan, nomor seri internal..."></textarea>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">
-                        <i class="bi bi-check-circle me-1"></i> Simpan Aset
-                    </button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Simpan Aset</button>
                 </div>
             </form>
         </div>
@@ -461,132 +369,107 @@
 </div>
 
 <!-- ==========================================
-     MODAL: EDIT ASET (WITH MAINTENANCE & FOTO)
+     MODAL: EDIT ASET (v2)
      ========================================== -->
-<div class="modal fade" id="editAssetModal" tabindex="-1" aria-labelledby="editAssetModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
+<div class="modal fade" id="editAssetModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-warning-subtle text-warning rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-pencil-square fs-5"></i>
-                    </div>
-                    <div>
-                        <h6 class="modal-title fw-bold" id="editAssetModalLabel">Edit Data Aset</h6>
-                        <small class="text-muted" id="editSubtitle">Perbarui data, jadwal maintenance, atau ganti foto</small>
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Data Aset</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-
-            <form method="POST" action="" enctype="multipart/form-data" id="editAssetForm">
+            <form method="POST" action="" id="editAssetForm" enctype="multipart/form-data">
                 <div class="modal-body p-4">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="editAssetCode" class="form-label small fw-bold text-secondary">Kode Aset</label>
-                            <input type="text" class="form-control font-monospace fw-bold text-primary" id="editAssetCode" name="asset_code" required>
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold">Nama Aset <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="name" id="editName" required>
                         </div>
-                        <div class="col-md-6">
-                            <label for="editCategory" class="form-label small fw-bold text-secondary">Kategori</label>
-                            <select class="form-select" id="editCategory" name="category" required>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Kategori</label>
+                            <select class="form-select" name="category" id="editCategory" onchange="updateCustomFields('edit', this.value)">
                                 {% for cat in categories %}
-                                    <option value="{{ cat.name }}">{{ cat.name }}</option>
+                                <option value="{{ cat.name }}">{{ cat.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
 
-                        <div class="col-12">
-                            <label for="editName" class="form-label small fw-bold text-secondary">Nama Aset</label>
-                            <input type="text" class="form-control" id="editName" name="name" required>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Kode Aset</label>
+                            <input type="text" class="form-control font-monospace" name="asset_code" id="editAssetCode" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Tanggal Perolehan</label>
+                            <input type="date" class="form-control" name="purchase_date" id="editPurchaseDate">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Nilai Perolehan (IDR)</label>
+                            <input type="text" class="form-control" name="purchase_price" id="editPurchasePrice">
                         </div>
 
-                        <!-- Foto Saat Ini & Upload Baru -->
-                        <div class="col-12">
-                            <label class="form-label small fw-bold text-secondary">Foto Bukti Aset</label>
-                            <div class="d-flex align-items-center gap-3 mb-2" id="currentPhotoRow">
-                                <div id="currentPhotoContainer">
-                                    <img id="editCurrentPhoto" src="#" alt="Foto Aset" class="rounded-3 border object-fit-cover shadow-sm" style="width: 70px; height: 70px;">
-                                </div>
-                                <div class="small text-muted">
-                                    <div class="fw-semibold text-dark">Foto terpasang</div>
-                                    <small>Pilih file baru jika ingin mengganti foto aset ini.</small>
-                                </div>
-                            </div>
-                            <input type="file" class="form-control form-control-sm" id="editPhoto" name="photo" accept="image/*">
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Lokasi</label>
+                            <input type="text" class="form-control" name="location" id="editLocation">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Site Fisik</label>
+                            <select class="form-select" name="site_id" id="editSiteId">
+                                {% for s in sites %}
+                                <option value="{{ s.id }}">{{ s.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold">Vendor</label>
+                            <select class="form-select" name="vendor_id" id="editVendorId">
+                                <option value="">-- Tanpa Vendor --</option>
+                                {% for v in vendors %}
+                                <option value="{{ v.id }}">{{ v.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Garansi Mulai</label>
+                            <input type="date" class="form-control" name="warranty_start" id="editWarrantyStart">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Garansi Berakhir</label>
+                            <input type="date" class="form-control" name="warranty_end" id="editWarrantyEnd">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Masa Manfaat (Thn)</label>
+                            <input type="number" class="form-control" name="useful_life_years" id="editUsefulLife">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label small fw-bold">Nilai Residu</label>
+                            <input type="text" class="form-control" name="salvage_value" id="editSalvageValue">
                         </div>
 
                         <div class="col-md-6">
-                            <label for="editPurchaseDate" class="form-label small fw-bold text-secondary">Tanggal Perolehan</label>
-                            <input type="date" class="form-control" id="editPurchaseDate" name="purchase_date">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="editPurchasePrice" class="form-label small fw-bold text-secondary">Nilai Perolehan (Rp)</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light text-muted">Rp</span>
-                                <input type="number" step="1000" min="0" class="form-control" id="editPurchasePrice" name="purchase_price">
-                            </div>
-                        </div>
-
-                        <div class="col-md-6">
-                            <label for="editLocation" class="form-label small fw-bold text-secondary">Lokasi Penempatan</label>
-                            <input type="text" class="form-control" id="editLocation" name="location">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="editStatus" class="form-label small fw-bold text-secondary">Status Operasional</label>
-                            <select class="form-select" id="editStatus" name="status">
+                            <label class="form-label small fw-bold">Status Operasional</label>
+                            <select class="form-select" name="status" id="editStatus">
                                 {% for st in statuses %}
-                                    <option value="{{ st }}">{{ st }}</option>
+                                <option value="{{ st }}">{{ st }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-
-                        <!-- Edit Maintenance Section -->
-                        <div class="col-12">
-                            <div class="p-3 rounded-3 border bg-light">
-                                <div class="mb-2">
-                                    <label for="editNeedsMaintenance" class="form-label small fw-bold text-dark mb-1">
-                                        <i class="bi bi-tools text-warning me-1"></i> Apakah perangkat ini memerlukan pemeliharaan / maintenance berkala?
-                                    </label>
-                                    <select class="form-select form-select-sm" id="editNeedsMaintenance" name="needs_maintenance" onchange="toggleMaintenanceSection('edit')">
-                                        <option value="0">Tidak (-)</option>
-                                        <option value="1">Ya, Perlu Maintenance Berkala</option>
-                                    </select>
-                                </div>
-
-                                <div id="editMaintenanceFields" class="row g-2 mt-2 pt-2 border-top d-none">
-                                    <div class="col-md-6">
-                                        <label for="editMaintenanceInterval" class="form-label small fw-bold text-secondary">
-                                            Frekuensi / Interval Servis
-                                        </label>
-                                        <select class="form-select form-select-sm" id="editMaintenanceInterval" name="maintenance_interval_days" onchange="calcNextMaintenanceDate('edit')">
-                                            <option value="30">Setiap 30 Hari (1 Bulan)</option>
-                                            <option value="90">Setiap 90 Hari (3 Bulan / Triwulan)</option>
-                                            <option value="180">Setiap 180 Hari (6 Bulan / Semester)</option>
-                                            <option value="365">Setiap 365 Hari (1 Tahun)</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="editNextMaintenanceDate" class="form-label small fw-bold text-secondary">
-                                            Tanggal Jadwal Maintenance Berikutnya
-                                        </label>
-                                        <input type="date" class="form-control form-control-sm" id="editNextMaintenanceDate" name="next_maintenance_date">
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Ganti Foto Fisik</label>
+                            <input type="file" class="form-control" name="photo" accept="image/*">
                         </div>
 
+                        <div class="col-12" id="editCustomFieldsContainer"></div>
+
                         <div class="col-12">
-                            <label for="editDescription" class="form-label small fw-bold text-secondary">Deskripsi / Catatan</label>
-                            <textarea class="form-control" id="editDescription" name="description" rows="2"></textarea>
+                            <label class="form-label small fw-bold">Deskripsi</label>
+                            <textarea class="form-control" name="description" id="editDescription" rows="2"></textarea>
                         </div>
                     </div>
                 </div>
-
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm px-3" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning btn-sm px-4 fw-bold text-dark">
-                        <i class="bi bi-save me-1"></i> Simpan Perubahan
-                    </button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Simpan Perubahan</button>
                 </div>
             </form>
         </div>
@@ -594,162 +477,45 @@
 </div>
 
 <!-- ==========================================
-     MODAL: DETAIL ASET (WITH SCAN LINK & QR)
+     MODAL: TRANSFER ASET
      ========================================== -->
-<div class="modal fade" id="detailAssetModal" tabindex="-1" aria-labelledby="detailAssetModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header border-bottom py-3 px-4">
-                <div class="d-flex align-items-center gap-2">
-                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-info-circle-fill fs-5"></i>
-                    </div>
-                    <h6 class="modal-title fw-bold" id="detailAssetModalLabel">Detail Lengkap Aset</h6>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <div class="row g-4">
-                    <!-- Left: Photo & QR -->
-                    <div class="col-md-5 text-center">
-                        <div id="detailPhotoContainer" class="mb-3">
-                            <img id="detailPhoto" src="#" alt="Foto Aset" class="rounded-3 border shadow-sm w-100 object-fit-cover" style="max-height: 200px;">
-                        </div>
-                        <div id="detailNoPhoto" class="bg-light rounded-3 border p-4 text-muted mb-3 d-none">
-                            <i class="bi bi-image fs-1 d-block mb-1 text-secondary opacity-50"></i>
-                            <small>Tidak ada foto fisik</small>
-                        </div>
-
-                        <!-- QR Code Box -->
-                        <div class="card border rounded-3 p-3 bg-light">
-                            <div class="small fw-bold text-muted mb-2 text-uppercase" style="font-size: 0.68rem;">Tag QR Code</div>
-                            <img id="detailQrImage" src="#" alt="QR Code" class="mx-auto rounded border bg-white p-1" style="width: 120px; height: 120px;">
-                            <div class="d-flex justify-content-center gap-2 mt-2">
-                                <a id="detailScanLink" href="#" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-3" style="font-size: 0.75rem;">
-                                    <i class="bi bi-box-arrow-up-right me-1"></i> Buka Summary
-                                </a>
-                                <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3" id="detailPrintTagBtn" style="font-size: 0.75rem;">
-                                    <i class="bi bi-printer me-1"></i> Cetak Tag
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right: Info Details -->
-                    <div class="col-md-7">
-                        <div class="mb-3">
-                            <span class="badge bg-primary font-monospace fs-6 px-3 py-1 mb-2" id="detailCode">Tech/001</span>
-                            <h5 class="fw-bold text-dark mb-1" id="detailName">-</h5>
-                            <span class="badge bg-light text-secondary border" id="detailCategory">-</span>
-                        </div>
-
-                        <div class="list-group list-group-flush rounded-3 border">
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                <span class="text-muted small">Status Operasional</span>
-                                <span id="detailStatus" class="fw-semibold">-</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3" id="detailBorrowerRow">
-                                <span class="text-muted small">Peminjam</span>
-                                <span id="detailBorrower" class="text-info fw-bold">-</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                <span class="text-muted small">Jadwal Maintenance</span>
-                                <span id="detailMaintenance" class="fw-semibold">-</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                <span class="text-muted small">Nilai Perolehan</span>
-                                <span id="detailPrice" class="fw-bold text-success">-</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                <span class="text-muted small">Tanggal Perolehan</span>
-                                <span id="detailDate" class="text-dark small">-</span>
-                            </div>
-                            <div class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                                <span class="text-muted small">Lokasi Penempatan</span>
-                                <span id="detailLocation" class="text-dark small">-</span>
-                            </div>
-                            <div class="list-group-item py-2 px-3">
-                                <span class="text-muted small d-block mb-1">Deskripsi / Spesifikasi</span>
-                                <div id="detailDescription" class="small text-secondary bg-light p-2 rounded">-</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-top px-4 py-2 bg-light">
-                <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ==========================================
-     MODAL: CETAK QR TAG & SCAN SUMMARY
-     ========================================== -->
-<div class="modal fade" id="qrTagModal" tabindex="-1" aria-labelledby="qrTagModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="transferModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold" id="qrTagModalLabel">QR Code & Label Tag</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-arrow-left-right me-2 text-info"></i>Transfer Lokasi / Site Aset</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-4 text-center">
-                <p class="text-muted small mb-3">
-                    Scan QR ini dengan kamera HP untuk melihat ringkasan summary aset langsung di browser.
-                </p>
-
-                <div class="asset-printable-tag border-2 border-dark rounded-3 p-3 bg-white mx-auto shadow-sm" id="printableTagArea">
-                    <div class="fw-extrabold text-primary mb-1 lh-1" style="font-size: 0.85rem; letter-spacing: 0.5px;">JESCA ASSET TAG</div>
-                    <img id="qrTagModalImg" src="#" alt="QR Code" class="my-2 border rounded p-1 bg-white" style="width: 140px; height: 140px;">
-                    <div class="font-monospace fw-bold text-dark fs-6" id="qrTagModalCode">-</div>
-                    <div class="fw-bold small text-truncate text-secondary mb-1" id="qrTagModalName" style="max-width: 190px;">-</div>
-                    <small class="badge bg-light text-dark border" id="qrTagModalCategory">-</small>
-                </div>
-
-                <div class="mt-3">
-                    <a id="qrTagScanSummaryBtn" href="#" target="_blank" class="btn btn-outline-primary btn-sm w-100 rounded-pill mb-2">
-                        <i class="bi bi-box-arrow-up-right me-1"></i> Buka Halaman Scan Summary
-                    </a>
-                </div>
-            </div>
-            <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4 d-flex justify-content-between">
-                <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Tutup</button>
-                <button type="button" class="btn btn-primary btn-sm px-3 fw-bold" onclick="printAssetTag()">
-                    <i class="bi bi-printer me-1"></i> Cetak Label
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- ==========================================
-     MODAL: SELESAIKAN MAINTENANCE
-     ========================================== -->
-<div class="modal fade" id="completeMaintenanceModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-warning"><i class="bi bi-wrench-adjustable me-1"></i> Servis Selesai</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="POST" action="" id="completeMaintenanceForm">
+            <form method="POST" action="" id="transferAssetForm">
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Aset yang Diservis</label>
-                        <div class="fw-bold text-dark" id="maintTargetName">-</div>
-                        <small class="font-monospace text-primary" id="maintTargetCode">-</small>
+                        <label class="form-label small fw-bold">Aset yang Ditransfer</label>
+                        <div class="font-monospace fw-bold text-dark fs-6" id="transferAssetCode">-</div>
                     </div>
-                    <p class="text-muted small mb-3">
-                        Menandai bahwa servis berkala telah selesai dilakukan hari ini. Jadwal berikutnya akan otomatis dimajukan <strong id="maintIntervalText">90</strong> hari ke depan.
-                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Lokasi Saat Ini</label>
+                        <input type="text" class="form-control bg-light" id="transferFromLocation" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Lokasi Baru <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="to_location" required placeholder="Contoh: Gedung B Ruang 204">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Site Tujuan</label>
+                        <select class="form-select" name="to_site_id">
+                            {% for s in sites %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                     <div class="mb-2">
-                        <label for="maintNotes" class="form-label small fw-bold text-secondary">Catatan Servis (Opsional)</label>
-                        <textarea class="form-control form-control-sm" id="maintNotes" name="notes" rows="2" placeholder="Ganti oli, pembersihan komponen, dll..."></textarea>
+                        <label class="form-label small fw-bold">Alasan Perpindahan</label>
+                        <textarea class="form-control" name="reason" rows="2" placeholder="Rotasi karyawan, renovasi ruangan, dll."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-warning text-dark btn-sm fw-bold">Konfirmasi Selesai</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-4">Proses Transfer</button>
                 </div>
             </form>
         </div>
@@ -757,34 +523,105 @@
 </div>
 
 <!-- ==========================================
-     MODAL: CHECK OUT (PINJAM ASET)
+     MODAL: DOKUMEN & LAMPIRAN
      ========================================== -->
-<div class="modal fade" id="checkOutModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="attachmentsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-info"><i class="bi bi-box-arrow-up-right me-1"></i> Pinjam Aset (Check Out)</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-paperclip me-2 text-primary"></i>Dokumen Lampiran Aset</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form method="POST" action="" id="uploadAttachmentForm" enctype="multipart/form-data" class="mb-4">
+                    <label class="form-label small fw-bold">Unggah Dokumen Baru</label>
+                    <div class="input-group input-group-sm mb-2">
+                        <input type="file" class="form-control" name="attachment_file" required>
+                        <select class="form-select" name="file_type" style="max-width: 120px;">
+                            <option value="invoice">Invoice</option>
+                            <option value="manual">Manual</option>
+                            <option value="certificate">Sertifikat</option>
+                            <option value="other">Lainnya</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i></button>
+                    </div>
+                    <small class="text-muted" style="font-size: 0.72rem;">Format: PDF, DOCX, XLSX, JPG, PNG, TXT (Maks. 5 MB)</small>
+                </form>
+
+                <h6 class="small fw-bold text-secondary mb-2">Berkas Tersimpan:</h6>
+                <div id="attachmentsList" class="d-flex flex-column gap-2" style="max-height: 240px; overflow-y: auto;">
+                    <div class="text-muted small text-center py-3">Memuat dokumen...</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top px-4 py-2">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: IMPORT CSV
+     ========================================== -->
+<div class="modal fade" id="importCsvModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Import Inventaris dari CSV</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('import_assets_csv') }}" enctype="multipart/form-data">
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
+                        Gunakan fitur ini untuk memasukkan data aset secara massal dari spreadsheet. Pastikan struktur kolom sesuai dengan template standar.
+                    </p>
+                    <div class="mb-3 text-center p-3 bg-light rounded-3 border">
+                        <a href="{{ url_for('import_assets_csv') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            <i class="bi bi-download me-1"></i>Unduh Template CSV
+                        </a>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Pilih File CSV <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Proses Impor Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MODAL: CHECK OUT (PINJAM)
+     ========================================== -->
+<div class="modal fade" id="checkOutModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold"><i class="bi bi-box-arrow-up-right me-2 text-primary"></i>Peminjaman Aset (Check Out)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="checkOutForm">
                 <div class="modal-body p-4">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Aset</label>
-                        <div class="fw-bold text-dark" id="checkOutAssetName">-</div>
-                        <small class="font-monospace text-primary" id="checkOutAssetCode">-</small>
+                        <label class="form-label small fw-bold">Aset</label>
+                        <div class="fw-bold text-dark fs-6" id="checkOutAssetTitle">-</div>
                     </div>
                     <div class="mb-3">
-                        <label for="borrowerName" class="form-label small fw-bold text-secondary">Nama Peminjam <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control form-control-sm" id="borrowerName" name="borrower" required placeholder="Contoh: Budi Santoso / Tim Lapangan">
+                        <label class="form-label small fw-bold">Nama Peminjam / Karyawan <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="borrower" required placeholder="Contoh: Budi Santoso (Divisi Marketing)">
                     </div>
-                    <div class="mb-3">
-                        <label for="checkOutNotes" class="form-label small fw-bold text-secondary">Keperluan / Catatan</label>
-                        <textarea class="form-control form-control-sm" id="checkOutNotes" name="notes" rows="2" placeholder="Tujuan peminjaman..."></textarea>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Catatan Peminjaman</label>
+                        <textarea class="form-control" name="notes" rows="2" placeholder="Keperluan acara, proyek X, dll."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-info btn-sm text-white fw-bold">Konfirmasi Pinjam</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Konfirmasi Pinjam</button>
                 </div>
             </form>
         </div>
@@ -792,38 +629,36 @@
 </div>
 
 <!-- ==========================================
-     MODAL: CHECK IN (PENGEMBALIAN ASET)
+     MODAL: CHECK IN (PENGEMBALIAN)
      ========================================== -->
-<div class="modal fade" id="checkInModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-sm">
+<div class="modal fade" id="checkInModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold text-success"><i class="bi bi-box-arrow-in-down-left me-1"></i> Pengembalian Aset (Check In)</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h6 class="modal-title fw-bold"><i class="bi bi-box-arrow-in-down-left me-2 text-success"></i>Pengembalian Aset (Check In)</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="checkInForm">
                 <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
+                        Konfirmasi pengembalian untuk aset <strong id="checkInAssetTitle" class="text-dark"></strong> oleh <strong id="checkInBorrowerTitle" class="text-dark"></strong>.
+                    </p>
                     <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">Aset Dikembalikan</label>
-                        <div class="fw-bold text-dark" id="checkInAssetName">-</div>
-                        <small class="text-muted">Peminjam: <strong id="checkInBorrowerName">-</strong></small>
-                    </div>
-                    <div class="mb-3">
-                        <label for="checkInStatus" class="form-label small fw-bold text-secondary">Kondisi Saat Dikembalikan</label>
-                        <select class="form-select form-select-sm" id="checkInStatus" name="status">
-                            <option value="Aktif" selected>Aktif / Baik</option>
-                            <option value="Dalam Perbaikan">Perlu Perbaikan</option>
+                        <label class="form-label small fw-bold">Status Aset Setelah Dikembalikan</label>
+                        <select class="form-select" name="status">
+                            <option value="Aktif">Aktif (Kondisi Baik & Siap Pakai)</option>
+                            <option value="Dalam Perbaikan">Perlu Perbaikan / Servis</option>
                             <option value="Rusak">Rusak</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label for="checkInNotes" class="form-label small fw-bold text-secondary">Catatan Pengembalian</label>
-                        <textarea class="form-control form-control-sm" id="checkInNotes" name="notes" rows="2" placeholder="Kelengkapan saat kembali..."></textarea>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Catatan Kondisi</label>
+                        <textarea class="form-control" name="notes" rows="2" placeholder="Kondisi fisik saat diterima kembali..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
-                    <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-success btn-sm fw-bold">Proses Pengembalian</button>
+                <div class="modal-footer border-top px-4 py-3">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4">Simpan Pengembalian</button>
                 </div>
             </form>
         </div>
@@ -831,40 +666,47 @@
 </div>
 
 <!-- ==========================================
-     MODAL: PREVIEW FOTO BESAR
+     MODAL: QR TAG VIEW
      ========================================== -->
-<div class="modal fade" id="photoPreviewModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
-            <div class="modal-header border-bottom py-2 px-3">
-                <h6 class="modal-title fw-bold small text-dark" id="photoPreviewTitle">Foto Aset</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<div class="modal fade" id="qrTagModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-center">
+            <div class="modal-header border-bottom py-3 px-4">
+                <h6 class="modal-title fw-bold">Label QR Tag Aset</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="modal-body p-0 text-center bg-black">
-                <img id="photoPreviewImage" src="#" alt="Foto Bukti" class="img-fluid" style="max-height: 80vh; object-fit: contain;">
+            <div class="modal-body p-4" id="printableTagArea">
+                <div class="p-3 border rounded-3 bg-white">
+                    <span class="fs-6 fw-bold font-monospace text-primary d-block" id="qrTagCode">-</span>
+                    <div class="small fw-semibold text-dark text-truncate mb-2" id="qrTagName">-</div>
+                    <img id="qrTagImage" src="" alt="QR" class="img-fluid rounded mb-2" style="width: 180px; height: 180px;">
+                    <div class="text-muted" style="font-size: 0.68rem;">Scan untuk verifikasi via JESCA</div>
+                </div>
+            </div>
+            <div class="modal-footer border-top px-4 py-2 d-flex justify-content-between">
+                <button type="button" class="btn btn-light border btn-sm rounded-pill" data-bs-dismiss="modal">Tutup</button>
+                <button type="button" class="btn btn-primary btn-sm rounded-pill" onclick="window.print()">Print</button>
             </div>
         </div>
     </div>
 </div>
 
 <!-- ==========================================
-     MODAL: KONFIRMASI HAPUS ASET
+     MODAL: HAPUS ASET
      ========================================== -->
-<div class="modal fade" id="deleteAssetModal" tabindex="-1" aria-hidden="true">
+<div class="modal fade" id="deleteAssetModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-body p-4 text-center">
-                <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+        <div class="modal-content border-0 shadow-lg rounded-4 text-center p-3">
+            <div class="modal-body p-3">
+                <div class="bg-danger bg-opacity-10 text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
                     <i class="bi bi-trash fs-4"></i>
                 </div>
-                <h6 class="fw-bold mb-2">Hapus Aset Ini?</h6>
-                <p class="text-muted small mb-3">
-                    Aset <strong id="deleteTargetCode" class="text-dark"></strong> (<span id="deleteTargetName"></span>) beserta fotonya akan dihapus permanen.
-                </p>
+                <h6 class="fw-bold mb-1">Hapus Aset?</h6>
+                <p class="text-muted small mb-3">Aset <strong id="deleteTargetCode" class="text-dark"></strong> akan dihapus permanen.</p>
                 <form method="POST" action="" id="deleteAssetForm">
                     <div class="d-flex gap-2">
-                        <button type="button" class="btn btn-light border btn-sm w-50" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-danger btn-sm w-50 fw-semibold">Hapus</button>
+                        <button type="button" class="btn btn-light border btn-sm w-50 rounded-pill" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-danger btn-sm w-50 rounded-pill fw-semibold">Ya, Hapus</button>
                     </div>
                 </form>
             </div>
@@ -875,265 +717,130 @@
 
 {% block scripts %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const today = new Date().toISOString().split('T')[0];
-        const dateInput = document.getElementById('addPurchaseDate');
-        if (dateInput && !dateInput.value) {
-            dateInput.value = today;
+    const categoryCustomFields = {{ category_custom_fields | tojson }};
+
+    function updateCustomFields(prefix, category) {
+        const container = document.getElementById(prefix + 'CustomFieldsContainer');
+        if (!container) return;
+        const fields = categoryCustomFields[category] || [];
+        if (!fields.length) {
+            container.innerHTML = '';
+            return;
         }
 
-        const initialCategory = document.getElementById('addCategory')?.value || 'Tech';
-        fetchAutoCode(initialCategory);
-
-        // Calculate initial default maintenance date
-        calcNextMaintenanceDate('add');
-    });
-
-    function handleCategoryChange(category) {
-        fetchAutoCode(category);
+        let html = '<div class="p-3 bg-light rounded-3 border mb-2"><h6 class="small fw-bold text-secondary mb-2"><i class="bi bi-sliders me-1"></i>Atribut Spesifik Kategori (' + category + ')</h6><div class="row g-2">';
+        fields.forEach(f => {
+            const label = f.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            html += `<div class="col-md-6">
+                <label class="form-label small fw-bold text-muted">${label}</label>
+                <input type="text" class="form-control form-control-sm" name="cf_${f}" id="${prefix}_cf_${f}">
+            </div>`;
+        });
+        html += '</div></div>';
+        container.innerHTML = html;
     }
 
-    function refreshAutoCode() {
-        const category = document.getElementById('addCategory')?.value || 'Tech';
-        fetchAutoCode(category);
-    }
-
-    function fetchAutoCode(category) {
-        const codeInput = document.getElementById('addAssetCode');
-        const refreshIcon = document.getElementById('refreshCodeIcon');
-        if (refreshIcon) refreshIcon.classList.add('spin-animation');
-
-        fetch(`/api/generate-code?category=${encodeURIComponent(category)}`)
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success' && codeInput) {
-                    codeInput.value = data.code;
-                }
-            })
-            .catch(err => console.error(err))
-            .finally(() => {
-                if (refreshIcon) refreshIcon.classList.remove('spin-animation');
-            });
-    }
-
-    // Toggle Maintenance Form Fields
-    function toggleMaintenanceSection(prefix) {
+    function toggleMaintInput(prefix) {
         const select = document.getElementById(prefix + 'NeedsMaintenance');
-        const fields = document.getElementById(prefix + 'MaintenanceFields');
-        if (select && fields) {
-            if (select.value === '1') {
-                fields.classList.remove('d-none');
-                calcNextMaintenanceDate(prefix);
-            } else {
-                fields.classList.add('d-none');
-            }
+        const col = document.getElementById(prefix + 'MaintIntervalCol');
+        if (select && col) {
+            col.classList.toggle('d-none', select.value !== '1');
         }
     }
 
-    // Auto-calculate Next Maintenance Date based on interval days
-    function calcNextMaintenanceDate(prefix) {
-        const intervalSelect = document.getElementById(prefix + 'MaintenanceInterval');
-        const dateInput = document.getElementById(prefix + 'NextMaintenanceDate');
-        if (intervalSelect && dateInput && !dateInput.value) {
-            const days = parseInt(intervalSelect.value, 10) || 90;
-            const target = new Date();
-            target.setDate(target.getDate() + days);
-            dateInput.value = target.toISOString().split('T')[0];
-        }
+    function openQrTagModal(id, code, name, cat, loc) {
+        document.getElementById('qrTagCode').textContent = code;
+        document.getElementById('qrTagName').textContent = name;
+        document.getElementById('qrTagImage').src = `/api/assets/${id}/qrcode`;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('qrTagModal')).show();
     }
 
-    // Live preview for photo in Add Asset modal
-    function previewAddImage(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                document.getElementById('addPhotoPreview').src = e.target.result;
-                document.getElementById('addPhotoPreviewContainer').classList.remove('d-none');
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
+    function openTransferModal(id, code, loc) {
+        document.getElementById('transferAssetForm').action = `/assets/${id}/transfer`;
+        document.getElementById('transferAssetCode').textContent = code;
+        document.getElementById('transferFromLocation').value = loc;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('transferModal')).show();
     }
 
-    function clearAddPhotoPreview() {
-        document.getElementById('addPhoto').value = '';
-        document.getElementById('addPhotoPreview').src = '#';
-        document.getElementById('addPhotoPreviewContainer').classList.add('d-none');
-    }
+    function openAttachmentsModal(id, code) {
+        document.getElementById('uploadAttachmentForm').action = `/assets/${id}/attachments/upload`;
+        const listEl = document.getElementById('attachmentsList');
+        listEl.innerHTML = '<div class="text-center py-3 text-muted small">Memuat berkas...</div>';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('attachmentsModal')).show();
 
-    function previewPhoto(url, title) {
-        document.getElementById('photoPreviewImage').src = url;
-        document.getElementById('photoPreviewTitle').textContent = title || 'Foto Aset';
-        new bootstrap.Modal(document.getElementById('photoPreviewModal')).show();
-    }
-
-    // View Asset Detail
-    function viewAssetDetail(assetId) {
-        fetch(`/api/assets/${assetId}`)
-            .then(res => res.json())
+        fetch(`/api/assets/${id}/attachments`)
+            .then(r => r.json())
             .then(res => {
-                if (res.status === 'success') {
-                    const data = res.data;
-                    document.getElementById('detailCode').textContent = data.asset_code;
-                    document.getElementById('detailName').textContent = data.name;
-                    document.getElementById('detailCategory').textContent = data.category;
-                    document.getElementById('detailStatus').textContent = data.status;
-                    
-                    const formattedPrice = new Intl.NumberFormat('id-ID', {
-                        style: 'currency', currency: 'IDR', maximumFractionDigits: 0
-                    }).format(data.purchase_price || 0);
-                    document.getElementById('detailPrice').textContent = formattedPrice;
-                    document.getElementById('detailDate').textContent = data.purchase_date || '-';
-                    document.getElementById('detailLocation').textContent = data.location || '-';
-                    document.getElementById('detailDescription').textContent = data.description || 'Tidak ada catatan tambahan.';
-
-                    // Maintenance status
-                    const maintSpan = document.getElementById('detailMaintenance');
-                    if (data.needs_maintenance && data.next_maintenance_date) {
-                        const days = data.days_to_maintenance;
-                        let text = `Jadwal: ${data.next_maintenance_date} (Tiap ${data.maintenance_interval_days} hari)`;
-                        if (days !== null) {
-                            if (days < 0) text += ` - [Terlewat ${-days} hari!]`;
-                            else if (days <= 7) text += ` - [Sisa ${days} hari!]`;
-                        }
-                        maintSpan.textContent = text;
-                    } else {
-                        maintSpan.textContent = 'Tidak memerlukan maintenance berkala (-)';
-                    }
-
-                    // Photo handling
-                    if (data.image_url) {
-                        document.getElementById('detailPhoto').src = data.image_url;
-                        document.getElementById('detailPhotoContainer').classList.remove('d-none');
-                        document.getElementById('detailNoPhoto').classList.add('d-none');
-                    } else {
-                        document.getElementById('detailPhotoContainer').classList.add('d-none');
-                        document.getElementById('detailNoPhoto').classList.remove('d-none');
-                    }
-
-                    // Borrower handling
-                    const borrowerRow = document.getElementById('detailBorrowerRow');
-                    if (data.status === 'Dipinjam' && data.borrower) {
-                        document.getElementById('detailBorrower').textContent = `${data.borrower} (${data.borrow_date || ''})`;
-                        borrowerRow.classList.remove('d-none');
-                    } else {
-                        borrowerRow.classList.add('d-none');
-                    }
-
-                    // QR Code & Scan URL
-                    const qrUrl = `/api/assets/${data.id}/qrcode`;
-                    document.getElementById('detailQrImage').src = qrUrl;
-                    document.getElementById('detailScanLink').href = `/scan/${encodeURIComponent(data.asset_code)}`;
-                    document.getElementById('detailPrintTagBtn').onclick = () => openQrTagModal(data.id);
-
-                    new bootstrap.Modal(document.getElementById('detailAssetModal')).show();
+                if (!res.data.length) {
+                    listEl.innerHTML = '<div class="text-center py-3 text-muted small">Belum ada dokumen dilampirkan.</div>';
+                    return;
                 }
-            })
-            .catch(err => console.error(err));
-    }
-
-    // Open QR Tag Modal
-    function openQrTagModal(assetId) {
-        fetch(`/api/assets/${assetId}`)
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === 'success') {
-                    const data = res.data;
-                    document.getElementById('qrTagModalImg').src = `/api/assets/${data.id}/qrcode`;
-                    document.getElementById('qrTagModalCode').textContent = data.asset_code;
-                    document.getElementById('qrTagModalName').textContent = data.name;
-                    document.getElementById('qrTagModalCategory').textContent = data.category;
-                    document.getElementById('qrTagScanSummaryBtn').href = `/scan/${encodeURIComponent(data.asset_code)}`;
-
-                    new bootstrap.Modal(document.getElementById('qrTagModal')).show();
-                }
+                listEl.innerHTML = res.data.map(d => `
+                    <div class="attachment-item">
+                        <i class="bi bi-file-earmark-text fs-4 text-primary"></i>
+                        <div class="flex-grow-1 text-truncate">
+                            <div class="small fw-semibold text-dark text-truncate">${d.original_name}</div>
+                            <small class="text-muted" style="font-size:0.7rem;">${d.file_type} &bull; ${d.uploaded_at}</small>
+                        </div>
+                        <a href="${d.download_url}" class="btn btn-outline-primary btn-sm rounded-circle p-1" title="Unduh"><i class="bi bi-download"></i></a>
+                    </div>
+                `).join('');
             });
     }
 
-    // Print Tag Function
-    function printAssetTag() {
-        const printContent = document.getElementById('printableTagArea').outerHTML;
-        const originalContent = document.body.innerHTML;
-        document.body.innerHTML = `<div style="display:flex; justify-content:center; align-items:center; height:100vh;">${printContent}</div>`;
-        window.print();
-        document.body.innerHTML = originalContent;
-        window.location.reload();
+    function openCheckOutModal(id, code, name) {
+        document.getElementById('checkOutForm').action = `/assets/${id}/checkout`;
+        document.getElementById('checkOutAssetTitle').textContent = `${name} [${code}]`;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('checkOutModal')).show();
     }
 
-    // Open Complete Maintenance Modal
-    function openCompleteMaintenanceModal(assetId, code, name, interval) {
-        document.getElementById('completeMaintenanceForm').action = `/assets/${assetId}/complete-maintenance`;
-        document.getElementById('maintTargetCode').textContent = code;
-        document.getElementById('maintTargetName').textContent = name;
-        document.getElementById('maintIntervalText').textContent = interval;
-        document.getElementById('maintNotes').value = '';
-        new bootstrap.Modal(document.getElementById('completeMaintenanceModal')).show();
+    function openCheckInModal(id, code, name, borrower) {
+        document.getElementById('checkInForm').action = `/assets/${id}/checkin`;
+        document.getElementById('checkInAssetTitle').textContent = `${name} [${code}]`;
+        document.getElementById('checkInBorrowerTitle').textContent = borrower || 'Peminjam';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('checkInModal')).show();
     }
 
-    // Open Check Out Modal
-    function openCheckOutModal(assetId, code, name) {
-        document.getElementById('checkOutForm').action = `/assets/${assetId}/checkout`;
-        document.getElementById('checkOutAssetCode').textContent = code;
-        document.getElementById('checkOutAssetName').textContent = name;
-        document.getElementById('borrowerName').value = '';
-        document.getElementById('checkOutNotes').value = '';
-        new bootstrap.Modal(document.getElementById('checkOutModal')).show();
-    }
-
-    // Open Check In Modal
-    function openCheckInModal(assetId, code, name, borrower) {
-        document.getElementById('checkInForm').action = `/assets/${assetId}/checkin`;
-        document.getElementById('checkInAssetName').textContent = `${name} [${code}]`;
-        document.getElementById('checkInBorrowerName').textContent = borrower || 'Peminjam';
-        new bootstrap.Modal(document.getElementById('checkInModal')).show();
-    }
-
-    // Open Edit Modal
-    function openEditAssetModal(assetId) {
-        fetch(`/api/assets/${assetId}`)
-            .then(res => res.json())
+    function openEditAssetModal(id) {
+        fetch(`/api/assets/${id}`)
+            .then(r => r.json())
             .then(res => {
-                if (res.status === 'success') {
-                    const data = res.data;
-                    document.getElementById('editAssetForm').action = `/assets/${data.id}/edit`;
-                    document.getElementById('editSubtitle').textContent = `Mengubah aset #${data.id}`;
-                    document.getElementById('editAssetCode').value = data.asset_code;
-                    document.getElementById('editName').value = data.name;
-                    document.getElementById('editCategory').value = data.category;
-                    document.getElementById('editPurchaseDate').value = data.purchase_date;
-                    document.getElementById('editPurchasePrice').value = data.purchase_price;
-                    document.getElementById('editLocation').value = data.location;
-                    document.getElementById('editStatus').value = data.status;
-                    document.getElementById('editDescription').value = data.description;
+                const a = res.data;
+                document.getElementById('editAssetForm').action = `/assets/${a.id}/edit`;
+                document.getElementById('editName').value = a.name;
+                document.getElementById('editCategory').value = a.category;
+                document.getElementById('editAssetCode').value = a.asset_code;
+                document.getElementById('editPurchaseDate').value = a.purchase_date;
+                document.getElementById('editPurchasePrice').value = a.purchase_price;
+                document.getElementById('editLocation').value = a.location;
+                if (a.site_id) document.getElementById('editSiteId').value = a.site_id;
+                if (a.vendor_id) document.getElementById('editVendorId').value = a.vendor_id;
+                document.getElementById('editWarrantyStart').value = a.warranty_start || '';
+                document.getElementById('editWarrantyEnd').value = a.warranty_end || '';
+                document.getElementById('editUsefulLife').value = a.useful_life_years || '';
+                document.getElementById('editSalvageValue').value = a.salvage_value || '';
+                document.getElementById('editStatus').value = a.status;
+                document.getElementById('editDescription').value = a.description;
 
-                    // Maintenance fields in edit
-                    const needsMaintSelect = document.getElementById('editNeedsMaintenance');
-                    needsMaintSelect.value = data.needs_maintenance ? '1' : '0';
-                    toggleMaintenanceSection('edit');
-                    if (data.needs_maintenance) {
-                        document.getElementById('editMaintenanceInterval').value = data.maintenance_interval_days || 90;
-                        document.getElementById('editNextMaintenanceDate').value = data.next_maintenance_date || '';
+                updateCustomFields('edit', a.category);
+                if (a.custom_fields) {
+                    for (const [k, v] of Object.entries(a.custom_fields)) {
+                        const el = document.getElementById(`edit_cf_${k}`);
+                        if (el) el.value = v;
                     }
-
-                    const photoRow = document.getElementById('currentPhotoRow');
-                    if (data.image_url) {
-                        document.getElementById('editCurrentPhoto').src = data.image_url;
-                        photoRow.classList.remove('d-none');
-                    } else {
-                        photoRow.classList.add('d-none');
-                    }
-
-                    new bootstrap.Modal(document.getElementById('editAssetModal')).show();
                 }
-            })
-            .catch(err => console.error(err));
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('editAssetModal')).show();
+            });
     }
 
-    // Confirm Delete Modal
-    function confirmDeleteAsset(assetId, code, name) {
-        document.getElementById('deleteTargetCode').textContent = code;
-        document.getElementById('deleteTargetName').textContent = name;
-        document.getElementById('deleteAssetForm').action = `/assets/${assetId}/delete`;
-        new bootstrap.Modal(document.getElementById('deleteAssetModal')).show();
+    function confirmDeleteAsset(id, code, name) {
+        document.getElementById('deleteTargetCode').textContent = `${code} (${name})`;
+        document.getElementById('deleteAssetForm').action = `/assets/${id}/delete`;
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteAssetModal')).show();
     }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateCustomFields('add', document.getElementById('addCategorySelect').value);
+    });
 </script>
 {% endblock %}

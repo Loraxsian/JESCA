@@ -1,5 +1,5 @@
 # ==========================================
-# JESCA (Jessica Assets) - Dockerfile
+# JESCA (Jessica Assets) v2.0 - Dockerfile
 # ==========================================
 FROM python:3.11-slim
 
@@ -22,14 +22,18 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application source code
 COPY . .
 
-# Ensure data and uploads directories exist for persistence
-RUN mkdir -p /app/data /app/static/uploads
+# Ensure storage directories exist for persistence
+RUN mkdir -p /app/data /app/static/uploads /app/static/attachments /app/backups
 
 # Expose web application port
 EXPOSE 5000
 
-# Volume for persistent SQLite storage & image uploads
-VOLUME ["/app/data", "/app/static/uploads"]
+# Healthcheck targeting v2 /health endpoint
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:5000/health || exit 1
 
-# Run application using Gunicorn WSGI server
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--threads", "4", "--access-logfile", "-", "--error-logfile", "-", "app:app"]
+# Volumes for persistent SQLite storage, uploads, attachments, and backups
+VOLUME ["/app/data", "/app/static/uploads", "/app/static/attachments", "/app/backups"]
+
+# Run application using Gunicorn with custom config
+CMD ["gunicorn", "-c", "gunicorn.conf.py", "app:app"]

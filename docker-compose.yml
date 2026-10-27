@@ -9,16 +9,16 @@ services:
       - "5000:5000"
     environment:
       - FLASK_ENV=production
-      - SECRET_KEY=jesca-super-secret-key-production-2024
+      - SECRET_KEY=jesca-super-secret-key-production-2026
       - DATABASE_URL=sqlite:////app/data/jesca.db
-      - ADMIN_USERNAME=Admin
-      - ADMIN_PASSWORD=Admin123
+      - GUNICORN_WORKERS=4
     volumes:
-      - .:/app
       - ./data:/app/data
       - ./static/uploads:/app/static/uploads
+      - ./static/attachments:/app/static/attachments
+      - ./backups:/app/backups
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/login"]
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
       interval: 30s
       timeout: 5s
       retries: 3
