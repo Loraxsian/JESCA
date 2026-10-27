@@ -295,11 +295,15 @@ function openCommandPalette() {
             list.innerHTML = '<div style="text-align:center;padding:24px;color:#94a3b8;font-size:0.875rem;">Tidak ada perintah yang cocok dengan "' + filter + '"</div>';
             return;
         }
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var activeBg = isDark ? '#162035' : '#f0f4ff';
+        var textColor = isDark ? '#f8fafc' : '#1e293b';
+
         filtered.forEach(function(cmd, idx) {
             var item = document.createElement('button');
-            item.style.cssText = 'width:100%;text-align:left;padding:10px 14px;border:none;background:' + (idx === 0 ? '#f0f4ff' : 'transparent') + ';border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;color:#1e293b;font-size:0.9rem;font-family:inherit;margin-bottom:2px;transition:background 0.1s;';
-            item.innerHTML = '<i class="bi ' + cmd.icon + '" style="color:#4361ee;font-size:1.1rem;width:22px;text-align:center;"></i><span>' + cmd.label + '</span>';
-            item.addEventListener('mouseenter', function() { item.style.background = '#f0f4ff'; });
+            item.style.cssText = 'width:100%;text-align:left;padding:10px 14px;border:none;background:' + (idx === 0 ? activeBg : 'transparent') + ';border-radius:10px;cursor:pointer;display:flex;align-items:center;gap:12px;color:' + textColor + ';font-size:0.9rem;font-family:inherit;margin-bottom:2px;transition:background 0.1s;';
+            item.innerHTML = '<i class="bi ' + cmd.icon + '" style="color:#3b82f6;font-size:1.1rem;width:22px;text-align:center;"></i><span>' + cmd.label + '</span>';
+            item.addEventListener('mouseenter', function() { item.style.background = activeBg; });
             item.addEventListener('mouseleave', function() { item.style.background = 'transparent'; });
             item.addEventListener('click', function() {
                 overlay.remove();
@@ -321,12 +325,12 @@ function openCommandPalette() {
     // Dark mode support
     var currentTheme = document.documentElement.getAttribute('data-theme');
     if (currentTheme === 'dark') {
-        box.style.background = '#1e293b';
-        box.style.borderColor = '#334155';
-        searchInput.style.color = '#e2e8f0';
-        searchInput.style.borderBottomColor = '#334155';
-        footer.style.background = '#0f172a';
-        footer.style.borderTopColor = '#334155';
+        box.style.background = '#101726';
+        box.style.borderColor = '#1c263c';
+        searchInput.style.color = '#f8fafc';
+        searchInput.style.borderBottomColor = '#1c263c';
+        footer.style.background = '#0b101c';
+        footer.style.borderTopColor = '#1c263c';
     }
 
     box.appendChild(searchInput);
