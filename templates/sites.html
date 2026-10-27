@@ -9,7 +9,7 @@
         <p class="text-muted small mb-0">Kelola multi-lokasi penempatan aset (Kantor Pusat, Gudang, Kantor Cabang, Site Proyek).</p>
     </div>
     <div class="col-md-6 text-md-end">
-        {% if current_user.role == 'Admin' %}
+        {% if current_user.role in ['Admin', 'Staff'] %}
         <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addSiteModal">
             <i class="bi bi-plus-lg me-1"></i> Tambah Site
         </button>
@@ -47,12 +47,13 @@
                     </p>
                 </div>
 
-                {% if current_user.role == 'Admin' %}
                 <div class="border-top pt-3 d-flex justify-content-end gap-2">
+                    {% if current_user.role in ['Admin', 'Staff'] %}
                     <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editSiteModal{{ s.id }}">
                         <i class="bi bi-pencil me-1"></i>Edit
                     </button>
-                    {% if s.name != 'Kantor Pusat' %}
+                    {% endif %}
+                    {% if current_user.role == 'Admin' and s.name != 'Kantor Pusat' %}
                     <form method="POST" action="{{ url_for('delete_site', site_id=s.id) }}" onsubmit="return confirm('Hapus site {{ s.name }}? Aset yang berada di site ini akan tetap tersimpan.');">
                         <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
                             <i class="bi bi-trash"></i>
@@ -60,7 +61,6 @@
                     </form>
                     {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
     </div>

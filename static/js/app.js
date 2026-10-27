@@ -152,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
         warningTimer = setTimeout(function() {
             if (!warningShown) {
                 warningShown = true;
-                JescaToast.show('⚠️ Sesi Anda akan berakhir dalam 5 menit karena tidak ada aktivitas.', 'warning');
+                JescaToast.show('Sesi Anda akan berakhir dalam 5 menit karena tidak ada aktivitas.', 'warning');
             }
         }, IDLE_TIMEOUT - WARNING_BEFORE);
 

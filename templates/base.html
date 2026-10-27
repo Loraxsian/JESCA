@@ -56,8 +56,8 @@
             <!-- Navigation Links -->
             <div class="sidebar-menu p-3">
                 
-                <!-- Section: UTAMA -->
-                <div class="menu-label">Menu Utama</div>
+                <!-- Section: INVENTARIS UTAMA -->
+                <div class="menu-label">Inventaris Utama</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     <li class="nav-item">
                         <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
@@ -68,36 +68,66 @@
                     <li class="nav-item">
                         <a href="{{ url_for('assets') }}" class="nav-link {% if request.endpoint == 'assets' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-boxes"></i>
-                            <span>Kelola Data Aset</span>
+                            <span>Data Aset</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-geo-alt"></i>
+                            <span>Lokasi & Site</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('vendors') }}" class="nav-link {% if request.endpoint == 'vendors' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-building"></i>
+                            <span>Vendor & Supplier</span>
                         </a>
                     </li>
                 </ul>
 
-                <!-- Section: AKTIVITAS & LAPORAN -->
-                <div class="menu-label">Aktivitas & Laporan</div>
+                <!-- Section: RIWAYAT & LAPORAN -->
+                <div class="menu-label">Riwayat & Laporan</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     <li class="nav-item">
                         <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-clock-history"></i>
-                            <span>Log & Riwayat</span>
+                            <span>Log Aktivitas</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-file-earmark-text"></i>
+                            <span>Laporan Audit</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('export_assets_csv') }}" class="nav-link d-flex align-items-center gap-3">
-                            <i class="bi bi-file-earmark-arrow-down text-success"></i>
-                            <span>Export Laporan (CSV)</span>
+                            <i class="bi bi-file-earmark-spreadsheet text-success"></i>
+                            <span>Export CSV</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('export_assets_pdf') }}" class="nav-link d-flex align-items-center gap-3">
+                            <i class="bi bi-file-pdf text-danger"></i>
+                            <span>Export PDF</span>
                         </a>
                     </li>
                 </ul>
 
-                <!-- Section: PENGATURAN & ACCOUNTS -->
-                <div class="menu-label">Sistem & Pengguna</div>
-                <ul class="nav nav-pills flex-column gap-1 mb-4">
+                <!-- Section: PENGATURAN -->
+                <div class="menu-label">Pengaturan</div>
+                <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role == 'Admin' %}
                     <li class="nav-item">
                         <a href="{{ url_for('accounts') }}" class="nav-link {% if request.endpoint in ['accounts', 'users_redirect'] %}active{% endif %} d-flex align-items-center gap-3">
-                            <i class="bi bi-person-badge-fill"></i>
-                            <span>Accounts</span>
+                            <i class="bi bi-people"></i>
+                            <span>Kelola Pengguna</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('admin_backups') }}" class="nav-link {% if request.endpoint == 'admin_backups' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-database"></i>
+                            <span>Backup & Restore</span>
                         </a>
                     </li>
                     {% endif %}
@@ -111,34 +141,41 @@
 
                 <!-- Category Quick Links -->
                 <div class="menu-label">Kategori Aset</div>
-                <div class="d-flex flex-column gap-1">
+                <div class="d-flex flex-column gap-1 mb-3">
                     <a href="{{ url_for('assets', category='Tech') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-laptop text-primary"></i> Tech / IT</span>
-                        <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.72rem;">Tech/00x</span>
+                        <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.72rem;">Tech</span>
                     </a>
                     <a href="{{ url_for('assets', category='Tools') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-tools text-warning"></i> Tools</span>
-                        <span class="badge bg-light text-warning border font-monospace" style="font-size: 0.72rem;">Tools/00x</span>
+                        <span class="badge bg-light text-warning border font-monospace" style="font-size: 0.72rem;">Tools</span>
                     </a>
                     <a href="{{ url_for('assets', category='Furniture') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-lamp text-info"></i> Furnitur</span>
-                        <span class="badge bg-light text-info border font-monospace" style="font-size: 0.72rem;">Furn/00x</span>
+                        <span class="badge bg-light text-info border font-monospace" style="font-size: 0.72rem;">Furn</span>
                     </a>
                     <a href="{{ url_for('assets', category='Vehicle') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-car-front text-danger"></i> Kendaraan</span>
-                        <span class="badge bg-light text-danger border font-monospace" style="font-size: 0.72rem;">Vehicle/00x</span>
+                        <span class="badge bg-light text-danger border font-monospace" style="font-size: 0.72rem;">Vehicle</span>
                     </a>
                     <a href="{{ url_for('assets', category='Office') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-printer text-success"></i> Kantor</span>
-                        <span class="badge bg-light text-success border font-monospace" style="font-size: 0.72rem;">Office/00x</span>
+                        <span class="badge bg-light text-success border font-monospace" style="font-size: 0.72rem;">Office</span>
                     </a>
+                </div>
+
+                <!-- Keyboard Shortcut Hint -->
+                <div class="p-2 rounded-2 bg-light border text-center">
+                    <small class="text-muted d-block" style="font-size: 0.68rem;">
+                        <kbd style="font-size: 0.65rem; background: #e2e8f0; border-radius: 3px; padding: 1px 4px;">Ctrl+K</kbd> Command Palette
+                    </small>
                 </div>
 
             </div>
         </aside>
 
         <!-- Main Content Area -->
-        <div id="page-content-wrapper" class="w-100 d-flex flex-column min-vh-100">
+        <div id="page-content-wrapper" class="flex-grow-1 d-flex flex-column min-vh-100 min-w-0">
             <!-- Clean Top Navbar -->
             <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top px-3 py-2">
                 <div class="container-fluid px-0">
@@ -146,7 +183,7 @@
                         <button class="btn btn-sm btn-light border-0 d-md-none me-1" id="sidebar-toggle" aria-label="Toggle Sidebar">
                             <i class="bi bi-list fs-5"></i>
                         </button>
-                        <span class="fw-bold fs-6 text-dark">{% block page_heading %}JESCA{% endblock %}</span>
+                        <span class="fw-bold fs-6 text-dark text-truncate" style="max-width: 240px;">{% block page_heading %}JESCA{% endblock %}</span>
                     </div>
 
                     <div class="d-flex align-items-center gap-2 ms-auto">
@@ -254,7 +291,7 @@
                                 <div class="avatar-circle bg-primary-subtle text-primary fw-bold">
                                     {{ current_user.username[0]|upper }}
                                 </div>
-                                <div class="text-start d-none d-md-block">
+                                <div class="text-start d-none d-lg-block">
                                     <div class="fw-semibold lh-1" style="font-size: 0.85rem;">{{ current_user.full_name }}</div>
                                     <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">{{ current_user.role }}</span>
                                 </div>

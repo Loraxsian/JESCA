@@ -1992,6 +1992,8 @@ def create_vendor():
     notes = request.form.get('notes', '').strip()
 
     if not name:
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': 'Nama vendor wajib diisi.'}), 400
         flash('Nama vendor wajib diisi.', 'danger')
         return redirect(url_for('vendors'))
 
@@ -2008,6 +2010,9 @@ def create_vendor():
     db.session.commit()
 
     log_activity('TAMBAH_VENDOR', details=f"Vendor baru ditambahkan: '{name}' oleh {current_user.username}.")
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'status': 'success', 'vendor': new_v.to_dict()})
+
     flash(f'Vendor "{name}" berhasil ditambahkan!', 'success')
     return redirect(url_for('vendors'))
 
@@ -2080,16 +2085,20 @@ def sites():
 
 @app.route('/sites/create', methods=['POST'])
 @login_required
-@role_required('Admin')
+@role_required('Admin', 'Staff')
 def create_site():
     name = request.form.get('name', '').strip()
     description = request.form.get('description', '').strip()
 
     if not name:
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': 'Nama lokasi/site wajib diisi.'}), 400
         flash('Nama lokasi/site wajib diisi.', 'danger')
         return redirect(url_for('sites'))
 
     if Site.query.filter_by(name=name).first():
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': f'Site "{name}" sudah terdaftar.'}), 400
         flash(f'Site "{name}" sudah terdaftar.', 'warning')
         return redirect(url_for('sites'))
 
@@ -2098,13 +2107,16 @@ def create_site():
     db.session.commit()
 
     log_activity('TAMBAH_SITE', details=f"Lokasi/Site '{name}' ditambahkan.")
+    if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return jsonify({'status': 'success', 'site': {'id': s.id, 'name': s.name, 'description': s.description}})
+
     flash(f'Site "{name}" berhasil ditambahkan!', 'success')
     return redirect(url_for('sites'))
 
 
 @app.route('/sites/<int:site_id>/edit', methods=['POST'])
 @login_required
-@role_required('Admin')
+@role_required('Admin', 'Staff')
 def edit_site(site_id):
     s = db.session.get(Site, site_id)
     if not s:
@@ -2362,7 +2374,7 @@ def clear_history():
 
 @app.route('/reports/audit')
 @login_required
-@role_required('Admin', 'Auditor')
+@role_required('Admin', 'Auditor', 'Staff')
 def audit_report():
     """Audit-ready report with period filters & CSV export."""
     from_date_str = request.args.get('from', '').strip()

@@ -37,7 +37,7 @@
     <div class="card-body p-3 p-md-4">
         <form method="GET" action="{{ url_for('assets') }}" class="row g-2 g-md-3 align-items-end">
             <!-- Search Keyword -->
-            <div class="col-12 col-md-3">
+            <div class="col-12 col-sm-6 col-xl-3">
                 <label for="search" class="form-label small fw-bold text-muted mb-1">Pencarian Aset</label>
                 <div class="input-group input-group-sm">
                     <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
@@ -46,7 +46,7 @@
             </div>
 
             <!-- Category Filter -->
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-sm-3 col-xl-2">
                 <label for="category" class="form-label small fw-bold text-muted mb-1">Kategori</label>
                 <select class="form-select form-select-sm bg-light" id="category" name="category">
                     <option value="">Semua Kategori</option>
@@ -57,7 +57,7 @@
             </div>
 
             <!-- Status Filter -->
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-sm-3 col-xl-2">
                 <label for="status" class="form-label small fw-bold text-muted mb-1">Status</label>
                 <select class="form-select form-select-sm bg-light" id="status" name="status">
                     <option value="">Semua Status</option>
@@ -68,7 +68,7 @@
             </div>
 
             <!-- Vendor Filter -->
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-sm-4 col-xl-2">
                 <label for="vendor" class="form-label small fw-bold text-muted mb-1">Vendor</label>
                 <select class="form-select form-select-sm bg-light" id="vendor" name="vendor">
                     <option value="">Semua Vendor</option>
@@ -79,7 +79,7 @@
             </div>
 
             <!-- Site Filter -->
-            <div class="col-6 col-md-2">
+            <div class="col-6 col-sm-4 col-xl-2">
                 <label for="site" class="form-label small fw-bold text-muted mb-1">Site</label>
                 <select class="form-select form-select-sm bg-light" id="site" name="site">
                     <option value="">Semua Site</option>
@@ -90,8 +90,8 @@
             </div>
 
             <!-- Warranty Filter & Action -->
-            <div class="col-12 col-md-1 d-flex gap-2">
-                <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold rounded-pill" title="Terapkan Filter">
+            <div class="col-12 col-sm-4 col-xl-1 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1 fw-semibold rounded-pill" title="Terapkan Filter">
                     <i class="bi bi-funnel-fill"></i>
                 </button>
                 {% if search_query or category_filter or status_filter or vendor_filter or site_filter or warranty_filter or maintenance_filter %}
@@ -255,7 +255,7 @@
      MODAL: TAMBAH ASET BARU (v2)
      ========================================== -->
 <div class="modal fade" id="addAssetModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
                 <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Baru ke Inventaris</h6>
@@ -295,16 +295,30 @@
                             <input type="text" class="form-control" name="location" placeholder="Ruang IT / Lantai 2">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">Site Fisik</label>
-                            <select class="form-select" name="site_id">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold mb-0">Site Fisik</label>
+                                {% if current_user.role in ['Admin', 'Staff'] %}
+                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.75rem;" onclick="openQuickAddSiteModal()">
+                                    <i class="bi bi-plus-lg"></i> Site Baru
+                                </button>
+                                {% endif %}
+                            </div>
+                            <select class="form-select site-select-target" name="site_id">
                                 {% for s in sites %}
                                 <option value="{{ s.id }}">{{ s.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">Vendor / Supplier</label>
-                            <select class="form-select" name="vendor_id">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold mb-0">Vendor / Supplier</label>
+                                {% if current_user.role in ['Admin', 'Staff'] %}
+                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.75rem;" onclick="openQuickAddVendorModal()">
+                                    <i class="bi bi-plus-lg"></i> Vendor Baru
+                                </button>
+                                {% endif %}
+                            </div>
+                            <select class="form-select vendor-select-target" name="vendor_id">
                                 <option value="">-- Tanpa Vendor --</option>
                                 {% for v in vendors %}
                                 <option value="{{ v.id }}">{{ v.name }}</option>
@@ -372,7 +386,7 @@
      MODAL: EDIT ASET (v2)
      ========================================== -->
 <div class="modal fade" id="editAssetModal" tabindex="-1">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
                 <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Data Aset</h6>
@@ -412,16 +426,30 @@
                             <input type="text" class="form-control" name="location" id="editLocation">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">Site Fisik</label>
-                            <select class="form-select" name="site_id" id="editSiteId">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold mb-0">Site Fisik</label>
+                                {% if current_user.role in ['Admin', 'Staff'] %}
+                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.75rem;" onclick="openQuickAddSiteModal()">
+                                    <i class="bi bi-plus-lg"></i> Site Baru
+                                </button>
+                                {% endif %}
+                            </div>
+                            <select class="form-select site-select-target" name="site_id" id="editSiteId">
                                 {% for s in sites %}
                                 <option value="{{ s.id }}">{{ s.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold">Vendor</label>
-                            <select class="form-select" name="vendor_id" id="editVendorId">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label small fw-bold mb-0">Vendor</label>
+                                {% if current_user.role in ['Admin', 'Staff'] %}
+                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.75rem;" onclick="openQuickAddVendorModal()">
+                                    <i class="bi bi-plus-lg"></i> Vendor Baru
+                                </button>
+                                {% endif %}
+                            </div>
+                            <select class="form-select vendor-select-target" name="vendor_id" id="editVendorId">
                                 <option value="">-- Tanpa Vendor --</option>
                                 {% for v in vendors %}
                                 <option value="{{ v.id }}">{{ v.name }}</option>
@@ -713,6 +741,74 @@
         </div>
     </div>
 </div>
+
+<!-- Quick Add Site Modal (AJAX) -->
+<div class="modal fade" id="quickAddSiteModal" tabindex="-1" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-2 px-3">
+                <h6 class="modal-title fw-bold small"><i class="bi bi-geo-alt text-primary me-1"></i>Tambah Site Cepat</h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="quickAddSiteForm">
+                <div class="modal-body p-3">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Nama Site <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" id="quickSiteName" required placeholder="Gudang Barat, Cabang, dll">
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Keterangan (Opsional)</label>
+                        <input type="text" class="form-control form-control-sm" id="quickSiteDesc" placeholder="Keterangan singkat">
+                    </div>
+                    <div id="quickSiteError" class="text-danger small d-none mt-1"></div>
+                </div>
+                <div class="modal-footer border-top px-3 py-2">
+                    <button type="button" class="btn btn-light btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3" id="quickSiteSubmitBtn">Simpan Site</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Add Vendor Modal (AJAX) -->
+<div class="modal fade" id="quickAddVendorModal" tabindex="-1" style="z-index: 1065;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-2 px-3">
+                <h6 class="modal-title fw-bold small"><i class="bi bi-building text-primary me-1"></i>Tambah Vendor Cepat</h6>
+                <button type="button" class="btn-close btn-sm" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="quickAddVendorForm">
+                <div class="modal-body p-3">
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Nama Vendor / Toko <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control form-control-sm" id="quickVendorName" required placeholder="PT. Jaya Abadi, Toko Komputer, dll">
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Kontak Person</label>
+                            <input type="text" class="form-control form-control-sm" id="quickVendorContact" placeholder="PIC">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">No. Telepon</label>
+                            <input type="text" class="form-control form-control-sm" id="quickVendorPhone" placeholder="08...">
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" class="form-control form-control-sm" id="quickVendorEmail" placeholder="info@vendor.com">
+                    </div>
+                    <div id="quickVendorError" class="text-danger small d-none mt-1"></div>
+                </div>
+                <div class="modal-footer border-top px-3 py-2">
+                    <button type="button" class="btn btn-light btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3" id="quickVendorSubmitBtn">Simpan Vendor</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
@@ -838,6 +934,108 @@
         document.getElementById('deleteAssetForm').action = `/assets/${id}/delete`;
         bootstrap.Modal.getOrCreateInstance(document.getElementById('deleteAssetModal')).show();
     }
+
+    function openQuickAddSiteModal() {
+        document.getElementById('quickSiteError').classList.add('d-none');
+        document.getElementById('quickAddSiteForm').reset();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('quickAddSiteModal')).show();
+    }
+
+    function openQuickAddVendorModal() {
+        document.getElementById('quickVendorError').classList.add('d-none');
+        document.getElementById('quickAddVendorForm').reset();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('quickAddVendorModal')).show();
+    }
+
+    document.getElementById('quickAddSiteForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('quickSiteSubmitBtn');
+        const errEl = document.getElementById('quickSiteError');
+        const name = document.getElementById('quickSiteName').value.trim();
+        const desc = document.getElementById('quickSiteDesc').value.trim();
+        
+        btn.disabled = true;
+        errEl.classList.add('d-none');
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('description', desc);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) formData.append('csrf_token', csrfToken);
+
+        fetch('/sites/create', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            if (data.status === 'success') {
+                document.querySelectorAll('.site-select-target, select[name="site_id"], select[name="to_site_id"]').forEach(sel => {
+                    sel.add(new Option(data.site.name, data.site.id));
+                    sel.value = data.site.id;
+                });
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('quickAddSiteModal')).hide();
+                if (window.JescaToast) window.JescaToast.show(`Site "${data.site.name}" berhasil ditambahkan!`, 'success');
+            } else {
+                errEl.textContent = data.message || 'Gagal menambahkan site.';
+                errEl.classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            errEl.textContent = 'Terjadi kesalahan sistem.';
+            errEl.classList.remove('d-none');
+        });
+    });
+
+    document.getElementById('quickAddVendorForm')?.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const btn = document.getElementById('quickVendorSubmitBtn');
+        const errEl = document.getElementById('quickVendorError');
+        const name = document.getElementById('quickVendorName').value.trim();
+        const contact = document.getElementById('quickVendorContact').value.trim();
+        const phone = document.getElementById('quickVendorPhone').value.trim();
+        const email = document.getElementById('quickVendorEmail').value.trim();
+
+        btn.disabled = true;
+        errEl.classList.add('d-none');
+
+        const formData = new FormData();
+        formData.append('name', name);
+        formData.append('contact_person', contact);
+        formData.append('phone', phone);
+        formData.append('email', email);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        if (csrfToken) formData.append('csrf_token', csrfToken);
+
+        fetch('/vendors/create', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            if (data.status === 'success') {
+                document.querySelectorAll('.vendor-select-target, select[name="vendor_id"]').forEach(sel => {
+                    sel.add(new Option(data.vendor.name, data.vendor.id));
+                    sel.value = data.vendor.id;
+                });
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('quickAddVendorModal')).hide();
+                if (window.JescaToast) window.JescaToast.show(`Vendor "${data.vendor.name}" berhasil ditambahkan!`, 'success');
+            } else {
+                errEl.textContent = data.message || 'Gagal menambahkan vendor.';
+                errEl.classList.remove('d-none');
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            errEl.textContent = 'Terjadi kesalahan sistem.';
+            errEl.classList.remove('d-none');
+        });
+    });
 
     document.addEventListener('DOMContentLoaded', function() {
         updateCustomFields('add', document.getElementById('addCategorySelect').value);
