@@ -956,9 +956,9 @@ def dashboard():
     # Overdue returns
     overdue_returns = get_overdue_returns()
 
-    # Recent items
-    recent_assets = Asset.query.order_by(Asset.created_at.desc(), Asset.id.desc()).limit(5).all()
-    recent_logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(6).all()
+    # Recent items (scrollable list)
+    recent_assets = Asset.query.order_by(Asset.created_at.desc(), Asset.id.desc()).limit(20).all()
+    recent_logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(25).all()
     active_percentage = round((active_count / total_assets * 100), 1) if total_assets > 0 else 0
     maintenance_alerts = get_maintenance_notifications()
 
