@@ -70,7 +70,7 @@ jesca-assets/
 
 ## 🛠️ Cara Menjalankan Aplikasi
 
-### Cara 1: Menggunakan Docker Compose (Direkomendasikan)
+### Cara 1: Menggunakan Docker (Direkomendasikan)
 
 Pastikan Docker dan Docker Compose sudah terpasang di sistem Anda, lalu jalankan:
 
@@ -138,3 +138,7 @@ docker compose down
 4. Kotak input **Kode Aset** akan secara otomatis memunculkan kode berikutnya, contoh: `Tech/004`.
 5. Ubah kategori ke *Tools*, maka kode otomatis akan langsung beralih ke `Tools/004`.
 6. Simpan aset dan pastikan kode unik tersebut tersimpan di tabel dan database SQLite.
+
+
+
+@Oktober 2026 - And Jessica Nova Lya Mendrofa
