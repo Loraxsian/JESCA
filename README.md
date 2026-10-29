@@ -140,4 +140,5 @@ docker compose down
 6. Simpan aset dan pastikan kode unik tersebut tersimpan di tabel dan database SQLite.
 
 
+
 @Oktober 2026 - And Jessica Nova Lya Mendrofa
