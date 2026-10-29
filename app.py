@@ -279,10 +279,19 @@ class Asset(db.Model):
             return self.purchase_price or 0.0
         if not self.purchase_date:
             return self.purchase_price or 0.0
+        
+        # Jika tanggal perolehan hari ini atau di masa depan, belum ada penyusutan
+        if self.purchase_date >= date.today():
+            return self.purchase_price or 0.0
+
         years_elapsed = (date.today() - self.purchase_date).days / 365.25
-        annual_dep = ((self.purchase_price or 0) - (self.salvage_value or 0)) / self.useful_life_years
-        book_value = (self.purchase_price or 0) - (annual_dep * years_elapsed)
-        return round(max(book_value, self.salvage_value or 0), 2)
+        salvage = self.salvage_value or 0.0
+        cost = self.purchase_price or 0.0
+        annual_dep = (cost - salvage) / self.useful_life_years
+        book_value = cost - (annual_dep * years_elapsed)
+        
+        # Nilai buku tidak boleh lebih besar dari harga beli dan tidak boleh lebih kecil dari nilai residu
+        return round(min(cost, max(book_value, salvage)), 2)
 
     @property
     def warranty_status(self):

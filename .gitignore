@@ -16,6 +16,12 @@ backups/*.db
 instance/
 *.sqlite3
 
+# User uploaded files (foto aset, lampiran)
+static/uploads/*
+static/attachments/*
+!static/uploads/.gitkeep
+!static/attachments/.gitkeep
+
 # Environment
 .env
 
