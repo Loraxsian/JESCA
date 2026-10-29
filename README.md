@@ -1,6 +1,5 @@
 # JESCA (Jessica Assets) - Asset Management System
 
-And Jessica Nova Lya Mendrofa
 **JESCA (Jessica Assets)** adalah aplikasi web manajemen inventaris dan aset modern berbasis **Python Flask**, **SQLite (Flask-SQLAlchemy)**, dan **Bootstrap 5**.
 
 Aplikasi ini dilengkapi dengan fitur login administrator, sistem auto-generate kode aset otomatis berbasis kategori (seperti `Tech/001`, `Tools/001`, `Furn/001`, dll.), dashboard visualisasi statistik real-time, serta manajemen CRUD data aset lengkap.
@@ -139,3 +138,6 @@ docker compose down
 4. Kotak input **Kode Aset** akan secara otomatis memunculkan kode berikutnya, contoh: `Tech/004`.
 5. Ubah kategori ke *Tools*, maka kode otomatis akan langsung beralih ke `Tools/004`.
 6. Simpan aset dan pastikan kode unik tersebut tersimpan di tabel dan database SQLite.
+
+
+And Jessica Nova Lya Mendrofa
