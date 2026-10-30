@@ -169,11 +169,19 @@
                         {% elif a.status == 'Dipinjam' %}
                         <span class="badge bg-info-subtle text-info border border-info-subtle">Dipinjam</span>
                         {% elif a.status == 'Dalam Perbaikan' %}
-                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Perbaikan</span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-tools me-1"></i>Perbaikan</span>
                         {% elif a.status == 'Rusak' %}
                         <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Rusak</span>
                         {% else %}
                         <span class="badge bg-secondary-subtle text-secondary border">{{ a.status }}</span>
+                        {% endif %}
+
+                        {% if a.needs_maintenance and a.next_maintenance_date and a.next_maintenance_date <= date_today and a.status != 'Afkir' %}
+                        <div class="mt-1">
+                            <span class="badge bg-warning text-dark font-monospace" style="font-size: 0.65rem;" title="Jatuh tempo maintenance">
+                                <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Perlu Servis
+                            </span>
+                        </div>
                         {% endif %}
                     </td>
 
@@ -208,6 +216,10 @@
                             <!-- Attachments -->
                             <button type="button" class="btn btn-outline-secondary" onclick="openAttachmentsModal('{{ a.id }}', '{{ a.asset_code }}')" title="Lampiran Dokumen">
                                 <i class="bi bi-paperclip"></i>
+                            </button>
+                            <!-- Circulation History -->
+                            <button type="button" class="btn btn-outline-secondary" onclick="openCirculationModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name|replace(\"'\", \"\\\\'\") }}')" title="Riwayat Peminjaman">
+                                <i class="bi bi-clock-history"></i>
                             </button>
                             <!-- Transfer -->
                             {% if current_user.role in ['Admin', 'Staff'] %}
@@ -485,6 +497,19 @@
                         <div class="col-md-6">
                             <label class="form-label small fw-bold">Ganti Foto Fisik</label>
                             <input type="file" class="form-control" name="photo" accept="image/*">
+                        </div>
+
+                        <!-- Maintenance Toggle in Edit Modal -->
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Perlu Pemeliharaan Berkala?</label>
+                            <select class="form-select" name="needs_maintenance" id="editNeedsMaintenance" onchange="toggleMaintInput('edit')">
+                                <option value="0">Tidak Perlu (-)</option>
+                                <option value="1">Ya, Perlu Servis Rutin</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 d-none" id="editMaintIntervalCol">
+                            <label class="form-label small fw-bold">Interval Pemeliharaan (Hari)</label>
+                            <input type="number" class="form-control" name="maintenance_interval_days" id="editMaintInterval" value="90">
                         </div>
 
                         <div class="col-12" id="editCustomFieldsContainer"></div>
@@ -918,6 +943,14 @@
                 document.getElementById('editStatus').value = a.status;
                 document.getElementById('editDescription').value = a.description;
 
+                // Populate maintenance fields
+                const needsMaint = (a.needs_maintenance === true || a.needs_maintenance === 1) ? '1' : '0';
+                const maintSelect = document.getElementById('editNeedsMaintenance');
+                if (maintSelect) maintSelect.value = needsMaint;
+                const maintInterval = document.getElementById('editMaintInterval');
+                if (maintInterval) maintInterval.value = a.maintenance_interval_days || 90;
+                toggleMaintInput('edit');
+
                 updateCustomFields('edit', a.category);
                 if (a.custom_fields) {
                     for (const [k, v] of Object.entries(a.custom_fields)) {
@@ -1040,5 +1073,82 @@
     document.addEventListener('DOMContentLoaded', function() {
         updateCustomFields('add', document.getElementById('addCategorySelect').value);
     });
+
+    function openCirculationModal(id, code, name) {
+        document.getElementById('circulationAssetTitle').textContent = `[${code}] ${name}`;
+        const tbody = document.getElementById('circulationTableBody');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm me-2"></div>Memuat histori peminjaman...</td></tr>';
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('circulationModal')).show();
+
+        fetch(`/api/assets/${id}/circulation`)
+            .then(r => r.json())
+            .then(res => {
+                if (!res.data || res.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-muted"><i class="bi bi-clock-history d-block fs-3 mb-2 text-secondary"></i>Belum ada riwayat peminjaman untuk aset ini.</td></tr>';
+                    return;
+                }
+                let html = '';
+                res.data.forEach(item => {
+                    const retDate = item.return_date ? item.return_date : '<span class="badge bg-warning-subtle text-warning border">Masih Dipinjam</span>';
+                    const dur = item.return_date ? `${item.duration_days} hari` : '-';
+                    html += `<tr>
+                        <td class="ps-4 fw-semibold text-dark"><i class="bi bi-person me-1 text-secondary"></i>${item.borrower}</td>
+                        <td class="font-monospace text-muted">${item.borrow_date}</td>
+                        <td class="font-monospace">${retDate}</td>
+                        <td><span class="badge bg-light text-dark border font-monospace">${dur}</span></td>
+                        <td class="text-dark">${item.notes || '-'}</td>
+                        <td class="pe-4 text-muted small">${item.checkout_by}</td>
+                    </tr>`;
+                });
+                tbody.innerHTML = html;
+            })
+            .catch(() => {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-danger">Gagal memuat histori peminjaman.</td></tr>';
+            });
+    }
 </script>
+
+<!-- ==========================================
+     MODAL: RIWAYAT SIRKULASI PEMINJAMAN
+     ========================================== -->
+<div class="modal fade" id="circulationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary-subtle text-primary rounded-3 p-2">
+                        <i class="bi bi-clock-history fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0">Riwayat Sirkulasi Peminjaman</h6>
+                        <small class="text-muted" id="circulationAssetTitle">Aset</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Peminjam</th>
+                                <th>Tgl Pinjam</th>
+                                <th>Tgl Kembali</th>
+                                <th>Durasi</th>
+                                <th>Catatan</th>
+                                <th class="pe-4">Petugas</th>
+                            </tr>
+                        </thead>
+                        <tbody id="circulationTableBody" class="small">
+                            <tr><td colspan="6" class="text-center py-4 text-muted">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer border-top px-4 py-2">
+                <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

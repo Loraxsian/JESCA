@@ -189,8 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
-        // Ctrl+N — New asset modal
-        if ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N')) {
+        // Alt+N / Ctrl+N / Cmd+N — New asset modal
+        if ((e.altKey && (e.key === 'n' || e.key === 'N')) || ((e.ctrlKey || e.metaKey) && (e.key === 'n' || e.key === 'N'))) {
             e.preventDefault();
             var modal = document.getElementById('addAssetModal');
             if (modal) {
@@ -493,7 +493,7 @@ window.JescaQRScanner = {
                 '<button type="button" class="btn-close" data-bs-dismiss="modal" onclick="JescaQRScanner.stop()"></button>' +
                 '</div>' +
                 '<div class="modal-body p-3">' +
-                '<div id="qr-reader" style="width:100%;border-radius:12px;overflow:hidden;background:#000;"></div>' +
+                '<div id="qr-reader" style="width:100%;min-height:280px;border-radius:12px;overflow:hidden;background:#000;"></div>' +
                 '<p class="text-muted small text-center mt-2 mb-0">Arahkan kamera perangkat ke QR Code pada label aset JESCA</p>' +
                 '</div>' +
                 '<div class="modal-footer border-top px-4 py-2">' +
@@ -501,41 +501,56 @@ window.JescaQRScanner = {
                 '</div>' +
                 '</div></div>';
             document.body.appendChild(modal);
+
+            modal.addEventListener('hidden.bs.modal', function() {
+                JescaQRScanner.stop();
+            });
         }
 
         var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
         bsModal.show();
 
-        modal.addEventListener('shown.bs.modal', function() {
-            if (typeof Html5Qrcode !== 'undefined') {
+        setTimeout(function() {
+            JescaQRScanner.start(bsModal);
+        }, 400);
+    },
+
+    start: function(bsModal) {
+        JescaQRScanner.stop();
+        var readerEl = document.getElementById('qr-reader');
+        if (!readerEl) return;
+        readerEl.innerHTML = '';
+
+        if (typeof Html5Qrcode !== 'undefined') {
+            try {
                 JescaQRScanner.scanner = new Html5Qrcode('qr-reader');
                 JescaQRScanner.scanner.start(
                     { facingMode: 'environment' },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     function(decodedText) {
                         JescaQRScanner.stop();
-                        bsModal.hide();
+                        if (bsModal) bsModal.hide();
                         window.location.href = decodedText;
                     },
                     function(error) {}
                 ).catch(function(err) {
-                    var r = document.getElementById('qr-reader');
-                    if (r) {
-                        r.innerHTML = '<div class="text-center py-4 text-white"><i class="bi bi-camera-video-off fs-2 d-block mb-2 text-warning"></i><small>Tidak dapat mengakses kamera.<br>Pastikan izin kamera diberikan pada browser.</small></div>';
-                    }
+                    readerEl.innerHTML = '<div class="text-center py-5 text-white"><i class="bi bi-camera-video-off fs-2 d-block mb-2 text-warning"></i><small>Tidak dapat mengakses kamera.<br>Pastikan izin kamera diberikan pada browser atau gunakan HTTPS.</small></div>';
                 });
-            } else {
-                var r2 = document.getElementById('qr-reader');
-                if (r2) {
-                    r2.innerHTML = '<div class="text-center py-4 text-white"><i class="bi bi-qr-code fs-2 d-block mb-2"></i><small>Library scanner sedang dimuat...</small></div>';
-                }
+            } catch (e) {
+                readerEl.innerHTML = '<div class="text-center py-5 text-white"><i class="bi bi-exclamation-octagon fs-2 d-block mb-2 text-danger"></i><small>Error inisialisasi kamera: ' + (e.message || e) + '</small></div>';
             }
-        }, { once: true });
+        } else {
+            readerEl.innerHTML = '<div class="text-center py-5 text-white"><i class="bi bi-qr-code fs-2 d-block mb-2 text-info"></i><small>Library kamera scanner belum siap.<br>Pastikan tersambung ke internet untuk memuat library.</small></div>';
+        }
     },
 
     stop: function() {
         if (this.scanner) {
-            this.scanner.stop().catch(function() {});
+            try {
+                this.scanner.stop().then(function() {
+                    try { JescaQRScanner.scanner.clear(); } catch(e){}
+                }).catch(function() {});
+            } catch(e) {}
             this.scanner = null;
         }
     }

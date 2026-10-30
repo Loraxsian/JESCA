@@ -71,21 +71,15 @@
         {% endif %}
 
         {% if po.status == 'APPROVED' and current_user.role in ['Admin', 'Administrator', 'Staff'] %}
-            <form method="POST" action="{{ url_for('order_purchase_order', po_id=po.id) }}" class="d-inline" onsubmit="return confirm('Tandai bahwa PO ini sudah resmi dipesan ke pihak vendor?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-warning text-dark btn-sm rounded-pill px-3 shadow-sm fw-semibold">
-                    <i class="bi bi-truck me-1"></i> Tandai Telah Dipesan ke Vendor
-                </button>
-            </form>
+            <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#orderPoModal">
+                <i class="bi bi-truck me-1"></i> Tandai Telah Dipesan ke Vendor
+            </button>
         {% endif %}
 
         {% if po.status in ['ORDERED', 'APPROVED'] and current_user.role in ['Admin', 'Administrator', 'Staff'] %}
-            <form method="POST" action="{{ url_for('receive_purchase_order', po_id=po.id) }}" class="d-inline" onsubmit="return confirm('Konfirmasi bahwa barang fisik telah tiba dan diperiksa di lokasi?');">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-3 shadow-sm fw-semibold">
-                    <i class="bi bi-box-seam me-1"></i> Konfirmasi Barang Tiba (Received)
-                </button>
-            </form>
+            <button type="button" class="btn btn-info text-white btn-sm rounded-pill px-3 shadow-sm fw-semibold" data-bs-toggle="modal" data-bs-target="#receivePoModal">
+                <i class="bi bi-box-seam me-1"></i> Konfirmasi Barang Tiba (Received)
+            </button>
         {% endif %}
     </div>
 </div>
@@ -103,17 +97,34 @@
     </div>
 </div>
 {% elif po.status == 'RECEIVED' %}
-<div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 p-3 mb-3" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);">
-    <div class="bg-info text-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
-        <i class="bi bi-boxes fs-5"></i>
+    {% if not po.receipt_proof %}
+    <div class="alert alert-warning border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 p-3 mb-3">
+        <div class="bg-warning text-dark rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
+            <i class="bi bi-shield-exclamation fs-5"></i>
+        </div>
+        <div class="flex-grow-1">
+            <div class="fw-bold text-dark">Bukti Penerimaan Barang (Surat Jalan/BAST) Belum Diunggah!</div>
+            <div class="small text-secondary">
+                Konversi item menjadi aset resmi dikunci demi akuntabilitas fisik. Harap unggah berkas Surat Jalan / BAST / Foto Barang fisik di bawah terlebih dahulu.
+            </div>
+        </div>
+        <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 text-dark fw-bold" data-bs-toggle="modal" data-bs-target="#receivePoModal">
+            <i class="bi bi-upload me-1"></i> Unggah Bukti Terima
+        </button>
     </div>
-    <div class="flex-grow-1">
-        <div class="fw-bold text-dark">Barang Fisik Telah Diterima di Site</div>
-        <div class="small text-secondary">
-            Barang sudah diverifikasi tiba. Silakan klik tombol <strong>"Konversi ke Aset"</strong> pada tabel item di bawah untuk mendaftarkan masing-masing perangkat dengan nomor seri dan kode barcode aset unik.
+    {% else %}
+    <div class="alert alert-info border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 p-3 mb-3" style="background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);">
+        <div class="bg-info text-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
+            <i class="bi bi-boxes fs-5"></i>
+        </div>
+        <div class="flex-grow-1">
+            <div class="fw-bold text-dark">Barang Fisik Telah Diterima & Terverifikasi di Site</div>
+            <div class="small text-secondary">
+                Bukti terima (Surat Jalan/BAST) telah diverifikasi. Silakan klik tombol <strong>"Konversi Unit"</strong> pada tabel item di bawah untuk mendaftarkan aset resmi.
+            </div>
         </div>
     </div>
-</div>
+    {% endif %}
 {% elif po.status == 'CLOSED' %}
 <div class="alert alert-success border-0 shadow-sm rounded-4 d-flex align-items-center gap-3 p-3 mb-3" style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);">
     <div class="bg-success text-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
@@ -205,7 +216,32 @@
                     </div>
                     <div class="col-sm-6">
                         <small class="text-muted d-block" style="font-size: 0.75rem;">PENYETUJU (APPROVER)</small>
-                        <div class="fw-semibold text-dark">{{ po.approved_by or '-' }}</div>
+                        <div class="fw-semibold text-dark">
+                            {{ po.approved_by or '-' }}
+                            {% if po.is_self_approved %}
+                            <span class="badge bg-warning-subtle text-dark border border-warning ms-1" style="font-size: 0.65rem;">Self-Approved</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">BUKTI PEMESANAN KE VENDOR</small>
+                        {% if po.order_proof %}
+                        <a href="{{ url_for('download_po_attachment', filename=po.order_proof) }}" target="_blank" class="badge bg-primary-subtle text-primary border text-decoration-none mt-1 py-1 px-2">
+                            <i class="bi bi-paperclip me-1"></i>Unduh Bukti Pemesanan
+                        </a>
+                        {% else %}
+                        <span class="text-muted small fst-italic">Belum dilampirkan</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-sm-6">
+                        <small class="text-muted d-block" style="font-size: 0.75rem;">BUKTI TERIMA BARANG (SURAT JALAN/BAST)</small>
+                        {% if po.receipt_proof %}
+                        <a href="{{ url_for('download_po_attachment', filename=po.receipt_proof) }}" target="_blank" class="badge bg-success-subtle text-success border border-success-subtle text-decoration-none mt-1 py-1 px-2">
+                            <i class="bi bi-check-circle me-1"></i>Lihat Surat Jalan / BAST
+                        </a>
+                        {% else %}
+                        <span class="badge bg-danger-subtle text-danger border mt-1">Wajib Diunggah</span>
+                        {% endif %}
                     </div>
                     {% if po.notes %}
                     <div class="col-12">
@@ -332,10 +368,17 @@
                     </td>
                     <td class="text-end pe-4">
                         {% if po.status == 'RECEIVED' and itm.remaining_to_convert > 0 and current_user.role in ['Admin', 'Administrator', 'Staff'] %}
-                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#convertModal{{ itm.id }}">
-                            <i class="bi bi-box-arrow-in-right"></i>
-                            <span>Konversi Unit ({{ itm.converted_count + 1 }}/{{ itm.quantity }})</span>
-                        </button>
+                            {% if po.receipt_proof %}
+                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-inline-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#convertModal{{ itm.id }}">
+                                <i class="bi bi-box-arrow-in-right"></i>
+                                <span>Konversi Unit ({{ itm.converted_count + 1 }}/{{ itm.quantity }})</span>
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 d-inline-flex align-items-center gap-1 opacity-75" data-bs-toggle="modal" data-bs-target="#receivePoModal" title="Unggah Surat Jalan / BAST terlebih dahulu">
+                                <i class="bi bi-lock-fill text-warning me-1"></i>
+                                <span>Kunci: Butuh Bukti BAST</span>
+                            </button>
+                            {% endif %}
                         {% elif itm.is_converted %}
                         <span class="text-success small fw-semibold">
                             <i class="bi bi-check2-all me-1"></i>Tuntas
@@ -399,7 +442,7 @@
                                         </div>
                                         <div class="col-6">
                                             <label class="form-label small fw-bold text-secondary">Harga Perolehan (IDR)</label>
-                                            <input type="number" step="any" name="purchase_price" class="form-control" value="{{ itm.unit_price }}">
+                                            <input type="number" step="any" name="purchase_price" class="form-control" value="{{ itm.unit_price|int }}">
                                         </div>
                                     </div>
 
@@ -440,6 +483,123 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Riwayat Perjalanan & Jejak Audit PO -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+    <div class="card-header bg-white border-bottom p-3 d-flex align-items-center justify-content-between">
+        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-clock-history me-2 text-primary"></i>Riwayat Perjalanan & Jejak Audit PO</h6>
+        <span class="badge bg-light text-secondary border font-monospace">{{ po.history_entries|length }} Catatan</span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 small">
+            <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.72rem;">
+                <tr>
+                    <th class="ps-4" style="width: 160px;">Waktu Kejadian</th>
+                    <th style="width: 140px;">Tahapan / Aksi</th>
+                    <th style="width: 150px;">Pelaksana</th>
+                    <th>Catatan & Rincian</th>
+                    <th class="pe-4 text-end" style="width: 140px;">Berkas Bukti</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for hist in po.history_entries %}
+                <tr>
+                    <td class="ps-4 font-monospace text-muted">{{ hist.created_at.strftime('%d/%m/%Y %H:%M') if hist.created_at else '-' }}</td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-dark border font-monospace" style="font-size: 0.7rem;">{{ hist.action }}</span>
+                    </td>
+                    <td class="fw-semibold text-dark"><i class="bi bi-person me-1 text-secondary"></i>{{ hist.performed_by }}</td>
+                    <td class="text-secondary">{{ hist.notes or '-' }}</td>
+                    <td class="pe-4 text-end">
+                        {% if hist.attachment %}
+                        <a href="{{ url_for('download_po_attachment', filename=hist.attachment) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill py-0 px-2" style="font-size: 0.72rem;">
+                            <i class="bi bi-paperclip me-1"></i>Unduh Bukti
+                        </a>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">Belum ada riwayat aktivitas yang tercatat untuk PO ini.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Order PO (Upload Bukti Pemesanan) -->
+<div class="modal fade" id="orderPoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="POST" action="{{ url_for('order_purchase_order', po_id=po.id) }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header border-bottom py-3 px-4 bg-warning bg-opacity-10 rounded-top-4">
+                    <h6 class="modal-title fw-bold text-dark"><i class="bi bi-truck me-2 text-warning"></i>Tandai Telah Dipesan ke Vendor</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
+                        Konfirmasi pemesanan pengadaan <strong>{{ po.po_number }}</strong> ke vendor <strong>{{ po.vendor.name if po.vendor else 'Vendor' }}</strong>.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Unggah Bukti Pemesanan (PO Bertandatangan / Invoice DP / Bukti Transfer)</label>
+                        <input type="file" name="order_proof" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.docx">
+                        <small class="text-muted" style="font-size: 0.72rem;">Lampirkan berkas bukti pemesanan resmi ke pihak supplier.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Catatan Pemesanan (Opsional)</label>
+                        <textarea name="order_notes" class="form-control" rows="2" placeholder="Estimasi tiba 3 hari kerja, kurir X, dll."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold text-dark">
+                        <i class="bi bi-truck me-1"></i> Simpan & Tandai Dipesan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Receive PO (Upload Surat Jalan / BAST) -->
+<div class="modal fade" id="receivePoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="POST" action="{{ url_for('receive_purchase_order', po_id=po.id) }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header border-bottom py-3 px-4 bg-info bg-opacity-10 rounded-top-4">
+                    <h6 class="modal-title fw-bold text-dark"><i class="bi bi-box-seam me-2 text-info"></i>Konfirmasi Barang Tiba di Site</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="alert alert-info border-0 rounded-3 small mb-3">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Untuk menjaga integritas aset dan mencegah aset fiktif, Anda <strong>wajib melampirkan berkas bukti fisik</strong> (Surat Jalan / BAST / Foto barang tiba).
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Unggah Surat Jalan / BAST / Foto Barang <span class="text-danger">*</span></label>
+                        <input type="file" name="receipt_proof" class="form-control" accept=".pdf,.jpg,.jpeg,.png,.docx" required>
+                        <small class="text-muted" style="font-size: 0.72rem;">Wajib dilampirkan sebelum unit dapat dikonversi ke data aset.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Catatan Penerimaan (Kondisi Barang)</label>
+                        <textarea name="receipt_notes" class="form-control" rows="2" placeholder="Barang diterima lengkap, segel utuh, dicek oleh..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-info text-white btn-sm rounded-pill px-4 fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i> Simpan & Nyatakan Tiba
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 

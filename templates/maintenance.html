@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Pemeliharaan Aset - JESCA v2{% endblock %}
+{% block page_heading %}Pusat Pemeliharaan & Servis Aset{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="row g-3 align-items-center mb-4">
+    <div class="col-md-7">
+        <h5 class="fw-bold mb-1"><i class="bi bi-wrench-adjustable text-primary me-2"></i>Pusat Pemeliharaan & Servis Aset</h5>
+        <p class="text-muted small mb-0">
+            Jadwal pemeliharaan preventif, penanganan unit perbaikan oleh teknisi, upload bukti servis/kuitansi, dan histori servis berkala.
+        </p>
+    </div>
+    <div class="col-md-5 text-md-end">
+        <a href="{{ url_for('assets') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-boxes me-1"></i> Data Aset
+        </a>
+    </div>
+</div>
+
+<!-- Metric Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Jatuh Tempo / Segera</span>
+                    <div class="bg-warning-subtle text-warning rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-dark">{{ due_assets|length }}</h4>
+                <small class="text-muted" style="font-size: 0.72rem;">Aset memerlukan servis</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Dalam Perbaikan</span>
+                    <div class="bg-danger-subtle text-danger rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-tools"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-dark">{{ in_repair_assets|length }}</h4>
+                <small class="text-muted" style="font-size: 0.72rem;">Sedang dikerjakan teknisi</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Total Servis Tercatat</span>
+                    <div class="bg-success-subtle text-success rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-check-circle-fill"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-dark">{{ total_records_count }}</h4>
+                <small class="text-muted" style="font-size: 0.72rem;">Histori pemeliharaan</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-semibold">Total Biaya Servis</span>
+                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                        <i class="bi bi-cash-stack"></i>
+                    </div>
+                </div>
+                <h4 class="fw-bold mb-0 text-dark" style="font-size: 1.25rem;">Rp {{ "{:,.0f}".format(total_maintenance_cost).replace(',', '.') }}</h4>
+                <small class="text-muted" style="font-size: 0.72rem;">Akumulasi biaya pemeliharaan</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs Navigation -->
+<ul class="nav nav-pills gap-2 mb-3" id="maintTab" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active rounded-pill px-4 btn-sm" id="active-tab" data-bs-toggle="pill" data-bs-target="#active-maint" type="button" role="tab">
+            <i class="bi bi-clock-history me-1"></i> Aset Perlu Servis & Perbaikan ({{ due_assets|length + in_repair_assets|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link rounded-pill px-4 btn-sm" id="history-tab" data-bs-toggle="pill" data-bs-target="#history-maint" type="button" role="tab">
+            <i class="bi bi-journal-check me-1"></i> Riwayat & Bukti Servis ({{ records|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="maintTabContent">
+    <!-- TAB 1: Antrean Pemeliharaan & Sedang Dikerjakan -->
+    <div class="tab-pane fade show active" id="active-maint" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Aset</th>
+                                <th>Kategori</th>
+                                <th>Lokasi</th>
+                                <th>Status</th>
+                                <th>Interval</th>
+                                <th>Jatuh Tempo</th>
+                                <th class="text-end pe-4">Aksi Teknisi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            <!-- In-repair assets first -->
+                            {% for asset in in_repair_assets %}
+                            <tr class="table-danger bg-opacity-10">
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ asset.name }}</div>
+                                    <span class="badge bg-light text-dark font-monospace border" style="font-size: 0.7rem;">{{ asset.asset_code }}</span>
+                                </td>
+                                <td><span class="badge bg-light text-secondary border">{{ asset.category }}</span></td>
+                                <td>{{ asset.location }}</td>
+                                <td><span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-tools me-1"></i>Dalam Perbaikan</span></td>
+                                <td>{{ asset.maintenance_interval_days or '-' }} Hari</td>
+                                <td>
+                                    <span class="text-danger fw-semibold">Sedang Dikerjakan</span>
+                                </td>
+                                <td class="text-end pe-4">
+                                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm"
+                                        data-asset-id="{{ asset.id }}"
+                                        data-asset-code="{{ asset.asset_code }}"
+                                        data-asset-name="{{ asset.name }}"
+                                        data-interval="{{ asset.maintenance_interval_days or 90 }}"
+                                        onclick="openCompleteMaintenanceModalFromBtn(this)">
+                                        <i class="bi bi-check2-circle me-1"></i> Selesaikan Servis & Bukti
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+
+                            <!-- Due / Upcoming assets -->
+                            {% for asset in due_assets %}
+                            {% if asset not in in_repair_assets %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-dark">{{ asset.name }}</div>
+                                    <span class="badge bg-light text-dark font-monospace border" style="font-size: 0.7rem;">{{ asset.asset_code }}</span>
+                                </td>
+                                <td><span class="badge bg-light text-secondary border">{{ asset.category }}</span></td>
+                                <td>{{ asset.location }}</td>
+                                <td>
+                                    {% if asset.status == 'Aktif' %}
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle">Aktif</span>
+                                    {% elif asset.status == 'Dipinjam' %}
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Dipinjam</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary-subtle text-secondary border">{{ asset.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ asset.maintenance_interval_days or 90 }} Hari</td>
+                                <td>
+                                    {% set today = date_today %}
+                                    {% set diff = (asset.next_maintenance_date - today).days if asset.next_maintenance_date else 0 %}
+                                    {% if diff < 0 %}
+                                        <span class="badge bg-danger text-white font-monospace">Terlambat {{ -diff }} hari</span>
+                                        <div class="text-danger small" style="font-size: 0.72rem;">{{ asset.next_maintenance_date.strftime('%d/%m/%Y') }}</div>
+                                    {% elif diff <= 7 %}
+                                        <span class="badge bg-warning text-dark font-monospace">Jatuh tempo dlm {{ diff }} hari</span>
+                                        <div class="text-warning-emphasis small" style="font-size: 0.72rem;">{{ asset.next_maintenance_date.strftime('%d/%m/%Y') }}</div>
+                                    {% else %}
+                                        <span class="badge bg-light text-secondary border font-monospace">{{ diff }} hari lagi</span>
+                                        <div class="text-muted small" style="font-size: 0.72rem;">{{ asset.next_maintenance_date.strftime('%d/%m/%Y') }}</div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-inline-flex gap-2">
+                                        <form method="POST" action="{{ url_for('start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm text-dark fw-medium">
+                                                <i class="bi bi-tools me-1"></i> Mulai Servis
+                                            </button>
+                                        </form>
+                                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm"
+                                        data-asset-id="{{ asset.id }}"
+                                        data-asset-code="{{ asset.asset_code }}"
+                                        data-asset-name="{{ asset.name }}"
+                                        data-interval="{{ asset.maintenance_interval_days or 90 }}"
+                                        onclick="openCompleteMaintenanceModalFromBtn(this)">
+                                            <i class="bi bi-check-lg me-1"></i> Langsung Selesai
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+
+                            {% if not due_assets and not in_repair_assets %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                                    <h6 class="fw-bold mb-1">Semua Aset Dalam Kondisi Prima!</h6>
+                                    <p class="small text-muted mb-0">Tidak ada aset yang jatuh tempo servis atau sedang dalam perbaikan saat ini.</p>
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Riwayat Servis & Bukti Dokumen -->
+    <div class="tab-pane fade" id="history-maint" role="tabpanel">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light text-muted small text-uppercase">
+                            <tr>
+                                <th class="ps-4">Tgl Servis</th>
+                                <th>Aset</th>
+                                <th>Jenis Servis</th>
+                                <th>Teknisi / Pelaksana</th>
+                                <th>Tindakan / Catatan Perbaikan</th>
+                                <th>Biaya</th>
+                                <th>Bukti Lampiran</th>
+                                <th class="pe-4">Servis Berikutnya</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for rec in records %}
+                            <tr>
+                                <td class="ps-4 font-monospace text-muted">{{ rec.service_date.strftime('%d/%m/%Y') if rec.service_date else '-' }}</td>
+                                <td>
+                                    <div class="fw-bold text-dark">{{ rec.asset.name if rec.asset else '-' }}</div>
+                                    <span class="badge bg-light text-secondary font-monospace border" style="font-size: 0.7rem;">{{ rec.asset.asset_code if rec.asset else '-' }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary-subtle text-primary border" style="font-size: 0.7rem;">{{ rec.service_type }}</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-1">
+                                        <i class="bi bi-person text-secondary"></i>
+                                        <span class="fw-semibold">{{ rec.performed_by }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="text-dark" style="max-width: 280px; word-break: break-word;">{{ rec.action_taken }}</div>
+                                </td>
+                                <td class="font-monospace fw-semibold text-dark">
+                                    {% if rec.cost and rec.cost > 0 %}
+                                        Rp {{ "{:,.0f}".format(rec.cost).replace(',', '.') }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if rec.proof_file %}
+                                        <a href="{{ url_for('download_maintenance_attachment', filename=rec.proof_file) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+                                            <i class="bi bi-paperclip me-1"></i> Lihat Bukti
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">Tanpa Bukti</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 font-monospace text-success">
+                                    {{ rec.next_service_date.strftime('%d/%m/%Y') if rec.next_service_date else '-' }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-journal-x fs-1 text-muted d-block mb-2"></i>
+                                    <p class="small mb-0">Belum ada riwayat pengerjaan pemeliharaan tercatat.</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: Selesaikan Servis & Unggah Bukti -->
+<div class="modal fade" id="completeMaintenanceModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-success-subtle text-success rounded-3 p-2">
+                        <i class="bi bi-check2-circle fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0">Konfirmasi Pemeliharaan Selesai</h6>
+                        <small class="text-muted" id="modalTargetAssetTitle">Aset</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="completeMaintenanceForm" method="POST" action="" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Tanggal Pengerjaan <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control form-control-sm" name="service_date" id="serviceDateInput" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Jenis Servis <span class="text-danger">*</span></label>
+                            <select class="form-select form-select-sm" name="service_type" required>
+                                <option value="Rutin / Pembersihan">Rutin / Pembersihan</option>
+                                <option value="Perbaikan Kerusakan">Perbaikan Kerusakan</option>
+                                <option value="Kalibrasi">Kalibrasi</option>
+                                <option value="Penggantian Part">Penggantian Part</option>
+                                <option value="Inspeksi Teknis">Inspeksi Teknis</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Tindakan & Catatan Perbaikan <span class="text-danger">*</span></label>
+                            <textarea class="form-control form-control-sm" name="action_taken" rows="3" required placeholder="Jelaskan komponen yang diperbaiki, diganti, atau diperiksa..."></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Biaya Servis (Rp)</label>
+                            <input type="text" class="form-control form-control-sm" name="cost" placeholder="Contoh: 150000" id="maintCostInput">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Interval Servis Berikutnya (Hari)</label>
+                            <input type="number" class="form-control form-control-sm" name="interval_days" id="modalIntervalDays" min="1" value="90">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Upload Bukti Servis / Nota / Foto (PDF/JPG/PNG)</label>
+                            <input type="file" class="form-control form-control-sm" name="proof_file" accept=".pdf,.jpg,.jpeg,.png,.docx">
+                            <small class="text-muted" style="font-size: 0.72rem;">Lampirkan kuitansi, nota suku cadang, atau foto unit setelah diservis.</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-success btn-sm rounded-pill px-4 fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i> Simpan & Reset Jadwal
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openCompleteMaintenanceModalFromBtn(btn) {
+    const assetId = btn.dataset.assetId;
+    const assetCode = btn.dataset.assetCode;
+    const assetName = btn.dataset.assetName;
+    const intervalDays = btn.dataset.interval;
+    openCompleteMaintenanceModal(assetId, assetCode, assetName, intervalDays);
+}
+
+function openCompleteMaintenanceModal(assetId, assetCode, assetName, intervalDays) {
+    document.getElementById('modalTargetAssetTitle').textContent = `[${assetCode}] ${assetName}`;
+    document.getElementById('completeMaintenanceForm').action = `/assets/${assetId}/maintenance/complete`;
+    document.getElementById('modalIntervalDays').value = intervalDays || 90;
+    
+    // Set default date today
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    document.getElementById('serviceDateInput').value = `${yyyy}-${mm}-${dd}`;
+    
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('completeMaintenanceModal')).show();
+}
+</script>
+{% endblock %}

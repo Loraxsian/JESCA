@@ -101,7 +101,7 @@
                                         <input type="number" name="quantity[]" class="form-control form-control-sm text-center font-monospace item-qty" min="1" value="{{ itm.quantity }}" required>
                                     </td>
                                     <td>
-                                        <input type="number" step="any" name="unit_price[]" class="form-control form-control-sm text-end font-monospace item-price" min="0" value="{{ itm.unit_price }}" required>
+                                        <input type="number" step="any" name="unit_price[]" class="form-control form-control-sm text-end font-monospace item-price" min="0" value="{{ itm.unit_price|int }}" required>
                                     </td>
                                     <td class="text-end font-monospace fw-bold text-dark item-subtotal">
                                         Rp {{ "{:,.0f}".format(itm.total_price).replace(',', '.') }}

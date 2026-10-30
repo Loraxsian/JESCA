@@ -54,12 +54,16 @@ BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
 ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments')
+PO_ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments', 'po')
+MAINT_ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments', 'maintenance')
 BACKUP_FOLDER = os.path.join(BASE_DIR, 'backups')
 QRCODE_FOLDER = os.path.join(BASE_DIR, 'static', 'qrcodes')
 
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(ATTACHMENT_FOLDER, exist_ok=True)
+os.makedirs(PO_ATTACHMENT_FOLDER, exist_ok=True)
+os.makedirs(MAINT_ATTACHMENT_FOLDER, exist_ok=True)
 os.makedirs(BACKUP_FOLDER, exist_ok=True)
 os.makedirs(QRCODE_FOLDER, exist_ok=True)
 
@@ -428,6 +432,13 @@ class PurchaseOrder(db.Model):
     notes = db.Column(db.Text, nullable=True)
     estimated_total = db.Column(db.Float, default=0.0)
 
+    # Attachments & Proofs
+    order_proof = db.Column(db.String(255), nullable=True)
+    order_notes = db.Column(db.Text, nullable=True)
+    receipt_proof = db.Column(db.String(255), nullable=True)
+    receipt_notes = db.Column(db.Text, nullable=True)
+    is_self_approved = db.Column(db.Boolean, default=False)
+
     submitted_at = db.Column(db.DateTime, nullable=True)
     approved_at = db.Column(db.DateTime, nullable=True)
     ordered_at = db.Column(db.DateTime, nullable=True)
@@ -523,6 +534,58 @@ class POItem(db.Model):
             'remaining_to_convert': self.remaining_to_convert,
             'is_converted': self.is_converted
         }
+
+
+class PurchaseOrderHistory(db.Model):
+    """Immutable audit trail for every Purchase Order status change."""
+    __tablename__ = 'po_histories'
+
+    id = db.Column(db.Integer, primary_key=True)
+    po_id = db.Column(db.Integer, db.ForeignKey('purchase_orders.id'), nullable=False)
+    action = db.Column(db.String(50), nullable=False)
+    to_status = db.Column(db.String(30), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    attachment = db.Column(db.String(255), nullable=True)
+    performed_by = db.Column(db.String(80), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    po = db.relationship('PurchaseOrder', backref=db.backref('history_entries', lazy=True, order_by='PurchaseOrderHistory.created_at.desc()'))
+
+
+class MaintenanceRecord(db.Model):
+    """Detailed log of each physical maintenance / servicing event performed on an asset."""
+    __tablename__ = 'maintenance_records'
+
+    id = db.Column(db.Integer, primary_key=True)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
+    service_type = db.Column(db.String(100), default='Rutin')
+    action_taken = db.Column(db.Text, nullable=False)
+    cost = db.Column(db.Float, default=0.0)
+    proof_file = db.Column(db.String(255), nullable=True)
+    performed_by = db.Column(db.String(80), nullable=False)
+    service_date = db.Column(db.Date, default=date.today)
+    next_service_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    asset = db.relationship('Asset', backref=db.backref('maintenance_records', lazy=True, order_by='MaintenanceRecord.service_date.desc()'))
+
+
+class AssetCirculationLog(db.Model):
+    """Permanent log of all asset check-outs and check-ins (historical record)."""
+    __tablename__ = 'asset_circulation_logs'
+
+    id = db.Column(db.Integer, primary_key=True)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
+    borrower = db.Column(db.String(100), nullable=False)
+    borrow_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    return_date = db.Column(db.DateTime, nullable=True)
+    duration_days = db.Column(db.Integer, default=0)
+    notes = db.Column(db.Text, nullable=True)
+    checkout_by = db.Column(db.String(80), nullable=False)
+    checkin_by = db.Column(db.String(80), nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    asset = db.relationship('Asset', backref=db.backref('circulation_logs', lazy=True, order_by='AssetCirculationLog.borrow_date.desc()'))
 
 
 @login_manager.user_loader
@@ -748,6 +811,94 @@ def delete_photo_file(filename):
             app.logger.error(f"Error removing image file: {e}")
 
 
+def save_po_attachment(file_storage):
+    """Save PO proof attachment (signed PO, DP invoice, delivery order, BAST)."""
+    if not file_storage or not file_storage.filename:
+        return None
+    ext = file_storage.filename.rsplit('.', 1)[1].lower() if '.' in file_storage.filename else ''
+    if ext in ALLOWED_ATTACHMENT_EXTENSIONS:
+        clean_name = secure_filename(file_storage.filename.rsplit('.', 1)[0])[:30]
+        unique_name = f"po_{int(datetime.utcnow().timestamp())}_{clean_name}_{uuid.uuid4().hex[:6]}.{ext}"
+        filepath = os.path.join(PO_ATTACHMENT_FOLDER, unique_name)
+        file_storage.save(filepath)
+        return unique_name
+    return None
+
+
+def save_maint_attachment(file_storage):
+    """Save maintenance servicing proof attachment (receipt, repair note, photo)."""
+    if not file_storage or not file_storage.filename:
+        return None
+    ext = file_storage.filename.rsplit('.', 1)[1].lower() if '.' in file_storage.filename else ''
+    if ext in ALLOWED_ATTACHMENT_EXTENSIONS:
+        clean_name = secure_filename(file_storage.filename.rsplit('.', 1)[0])[:30]
+        unique_name = f"maint_{int(datetime.utcnow().timestamp())}_{clean_name}_{uuid.uuid4().hex[:6]}.{ext}"
+        filepath = os.path.join(MAINT_ATTACHMENT_FOLDER, unique_name)
+        file_storage.save(filepath)
+        return unique_name
+    return None
+
+
+def parse_currency(val):
+    """
+    Safely converts string or number to float without thousand separator inflation.
+    Handles '10.200.000', '10200000.0', '10,200,000.50', 'Rp 10.200.000', etc.
+    """
+    if val is None:
+        return 0.0
+    if isinstance(val, (int, float)):
+        return float(val)
+    val = str(val).strip().replace('Rp', '').replace('rp', '').replace(' ', '')
+    if not val:
+        return 0.0
+    if '.' in val and ',' in val:
+        if val.rfind(',') > val.rfind('.'):
+            val = val.replace('.', '').replace(',', '.')
+        else:
+            val = val.replace(',', '')
+    elif '.' in val:
+        parts = val.split('.')
+        if len(parts) == 2 and len(parts[1]) in [1, 2]:
+            if parts[1] == '0' or parts[1] == '00':
+                val = parts[0]
+            else:
+                pass  # decimal like 1500.50
+        elif len(parts) > 1 and all(len(p) == 3 for p in parts[1:]):
+            val = val.replace('.', '')
+        elif len(parts) == 2 and parts[1] == '0':
+            val = parts[0]
+        else:
+            val = val.replace('.', '')
+    elif ',' in val:
+        parts = val.split(',')
+        if len(parts) > 1 and all(len(p) == 3 for p in parts[1:]):
+            val = val.replace(',', '')
+        else:
+            val = val.replace(',', '.')
+    try:
+        return float(val)
+    except Exception:
+        return 0.0
+
+
+def log_po_history(po, action, notes=None, attachment=None):
+    """Record an audit trail event in the PO history table."""
+    try:
+        hist = PurchaseOrderHistory(
+            po_id=po.id,
+            action=action,
+            to_status=po.status,
+            notes=notes,
+            attachment=attachment,
+            performed_by=current_user.username if (current_user and current_user.is_authenticated) else 'System'
+        )
+        db.session.add(hist)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error logging PO history: {e}")
+
+
 # ==========================================
 # Template Filters
 # ==========================================
@@ -923,7 +1074,24 @@ def check_and_update_schema():
                 if col_name not in cols_u:
                     conn.execute(db.text(f"ALTER TABLE users ADD COLUMN {col_name} {col_type}"))
 
+            # Check purchase_orders columns
+            res_po = conn.execute(db.text("PRAGMA table_info(purchase_orders)"))
+            cols_po = [row[1] for row in res_po.fetchall()]
+            po_additions = [
+                ('order_proof', 'VARCHAR(255)'),
+                ('order_notes', 'TEXT'),
+                ('receipt_proof', 'VARCHAR(255)'),
+                ('receipt_notes', 'TEXT'),
+                ('is_self_approved', 'BOOLEAN DEFAULT 0')
+            ]
+            for col_name, col_type in po_additions:
+                if col_name not in cols_po:
+                    conn.execute(db.text(f"ALTER TABLE purchase_orders ADD COLUMN {col_name} {col_type}"))
+
             conn.commit()
+
+        # Create any newly defined tables
+        db.create_all()
     except Exception as e:
         app.logger.warning(f"Schema update notice: {e}")
 
@@ -1133,9 +1301,18 @@ def dashboard():
     # Overdue returns
     overdue_returns = get_overdue_returns()
 
-    # Recent items (scrollable list)
+    # Recent items (scrollable list) with privacy-aware role filtering
     recent_assets = Asset.query.order_by(Asset.created_at.desc(), Asset.id.desc()).limit(20).all()
-    recent_logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(25).all()
+    if current_user.role == 'Staff':
+        recent_logs = ActivityLog.query.filter_by(username=current_user.username)\
+            .order_by(ActivityLog.created_at.desc()).limit(25).all()
+    elif current_user.role == 'Teknisi':
+        recent_logs = ActivityLog.query.filter(
+            (ActivityLog.action.like('%MAINTENANCE%')) | 
+            (ActivityLog.username == current_user.username)
+        ).order_by(ActivityLog.created_at.desc()).limit(25).all()
+    else:
+        recent_logs = ActivityLog.query.order_by(ActivityLog.created_at.desc()).limit(25).all()
     active_percentage = round((active_count / total_assets * 100), 1) if total_assets > 0 else 0
     maintenance_alerts = get_maintenance_notifications()
 
@@ -1602,6 +1779,10 @@ def checkout_asset(asset_id):
         flash(f'Aset dengan status "{asset.status}" tidak dapat dipinjam.', 'danger')
         return redirect(url_for('assets'))
 
+    # Guard: Alert if overdue for maintenance
+    if asset.needs_maintenance and asset.next_maintenance_date and asset.next_maintenance_date <= date.today() and asset.status != 'Afkir':
+        flash(f'Aset [{asset.asset_code}] sedang jatuh tempo pemeliharaan ({asset.next_maintenance_date.strftime("%d/%m/%Y")}). Harap lakukan servis teknisi sebelum dipinjamkan.', 'warning')
+
     if asset.status == 'Dipinjam':
         flash(f'Aset sedang dipinjam oleh {asset.borrower}. Selesaikan check-in terlebih dahulu.', 'warning')
         return redirect(url_for('assets'))
@@ -1613,9 +1794,20 @@ def checkout_asset(asset_id):
         flash('Nama peminjam wajib diisi.', 'danger')
         return redirect(url_for('assets'))
 
+    now = datetime.utcnow()
     asset.status = 'Dipinjam'
     asset.borrower = borrower
-    asset.borrow_date = datetime.utcnow()
+    asset.borrow_date = now
+
+    # Record permanent circulation log
+    circ_log = AssetCirculationLog(
+        asset_id=asset.id,
+        borrower=borrower,
+        borrow_date=now,
+        checkout_by=current_user.username,
+        notes=notes
+    )
+    db.session.add(circ_log)
     db.session.commit()
 
     log_activity(
@@ -1633,7 +1825,7 @@ def checkout_asset(asset_id):
 @login_required
 @role_required('Admin', 'Staff')
 def checkin_asset(asset_id):
-    """Check In (Pengembalian Aset) with utilization tracking."""
+    """Check In (Pengembalian Aset) with permanent circulation history logging."""
     asset = db.session.get(Asset, asset_id)
     if not asset:
         flash('Aset tidak ditemukan.', 'danger')
@@ -1642,11 +1834,22 @@ def checkin_asset(asset_id):
     prev_borrower = asset.borrower or 'Peminjam'
     new_status = request.form.get('status', 'Aktif').strip()
     return_notes = request.form.get('notes', '').strip()
+    now = datetime.utcnow()
 
-    # Track utilization days
+    # Track utilization days & close open circulation log
+    days_borrowed = 1
     if asset.borrow_date:
-        days_borrowed = max(1, (datetime.utcnow() - asset.borrow_date).days)
+        days_borrowed = max(1, (now - asset.borrow_date).days)
         asset.total_checkout_days = (asset.total_checkout_days or 0) + days_borrowed
+
+    active_circ = AssetCirculationLog.query.filter_by(asset_id=asset.id, return_date=None)\
+        .order_by(AssetCirculationLog.id.desc()).first()
+    if active_circ:
+        active_circ.return_date = now
+        active_circ.duration_days = max(1, (now - active_circ.borrow_date).days)
+        active_circ.checkin_by = current_user.username
+        if return_notes:
+            active_circ.notes = (active_circ.notes or '') + f" | Catatan Kembali: {return_notes}"
 
     asset.status = new_status
     asset.borrower = None
@@ -1657,44 +1860,162 @@ def checkin_asset(asset_id):
         'CHECK_IN',
         asset_code=asset.asset_code,
         asset_name=asset.name,
-        details=f"Aset dikembalikan oleh: {prev_borrower}. Status sekarang: {new_status}. Catatan: {return_notes or '-'}"
+        details=f"Aset dikembalikan oleh: {prev_borrower} ({days_borrowed} hari). Status sekarang: {new_status}. Catatan: {return_notes or '-'}"
     )
 
     flash(f'Aset [{asset.asset_code}] berhasil dikembalikan (Status: {new_status}).', 'success')
     return redirect(url_for('assets'))
 
 
-@app.route('/assets/<int:asset_id>/complete-maintenance', methods=['POST'])
+@app.route('/api/assets/<int:asset_id>/circulation')
 @login_required
-@role_required('Admin', 'Staff', 'Teknisi')
-def complete_maintenance(asset_id):
-    """Mark current maintenance as completed and schedule next date."""
+def api_asset_circulation(asset_id):
+    """Return past borrow/circulation history for an asset."""
+    logs = AssetCirculationLog.query.filter_by(asset_id=asset_id)\
+        .order_by(AssetCirculationLog.borrow_date.desc()).all()
+    data = []
+    for l in logs:
+        data.append({
+            'id': l.id,
+            'borrower': l.borrower,
+            'borrow_date': l.borrow_date.strftime('%d/%m/%Y %H:%M') if l.borrow_date else '-',
+            'return_date': l.return_date.strftime('%d/%m/%Y %H:%M') if l.return_date else None,
+            'duration_days': l.duration_days or 0,
+            'notes': l.notes or '',
+            'checkout_by': l.checkout_by or '-',
+            'checkin_by': l.checkin_by or '-'
+        })
+    return jsonify({'status': 'success', 'data': data})
+@app.route('/maintenance')
+@login_required
+@role_required('Admin', 'Administrator', 'Teknisi', 'Staff')
+def maintenance():
+    """Technician & Maintenance Operations Center."""
+    today = date.today()
+    threshold = today + timedelta(days=14)
+
+    due_assets = Asset.query.filter(
+        Asset.needs_maintenance == True,
+        Asset.next_maintenance_date != None,
+        Asset.next_maintenance_date <= threshold,
+        Asset.status != 'Afkir'
+    ).order_by(Asset.next_maintenance_date.asc()).all()
+
+    in_repair_assets = Asset.query.filter_by(status='Dalam Perbaikan').order_by(Asset.updated_at.desc()).all()
+    records = MaintenanceRecord.query.order_by(MaintenanceRecord.service_date.desc(), MaintenanceRecord.id.desc()).all()
+    total_records_count = len(records)
+    total_maintenance_cost = sum(r.cost or 0.0 for r in records)
+
+    return render_template(
+        'maintenance.html',
+        due_assets=due_assets,
+        in_repair_assets=in_repair_assets,
+        records=records,
+        total_records_count=total_records_count,
+        total_maintenance_cost=total_maintenance_cost,
+        date_today=today
+    )
+
+
+@app.route('/assets/<int:asset_id>/maintenance/start', methods=['POST'])
+@login_required
+@role_required('Admin', 'Administrator', 'Teknisi', 'Staff')
+def start_maintenance(asset_id):
+    """Technician marks an asset as currently undergoing repair/servicing."""
     asset = db.session.get(Asset, asset_id)
     if not asset:
         flash('Aset tidak ditemukan.', 'danger')
-        return redirect(url_for('assets'))
+        return redirect(url_for('maintenance'))
 
-    notes = request.form.get('notes', '').strip()
-    today = date.today()
-    interval = asset.maintenance_interval_days or 90
-
-    asset.last_maintenance_date = today
-    asset.next_maintenance_date = today + timedelta(days=interval)
-    if asset.status == 'Dalam Perbaikan':
-        asset.status = 'Aktif'
-
+    old_status = asset.status
+    asset.status = 'Dalam Perbaikan'
     db.session.commit()
 
-    next_date_str = asset.next_maintenance_date.strftime('%d/%m/%Y')
+    log_activity(
+        'MULAI_SERVIS',
+        asset_code=asset.asset_code,
+        asset_name=asset.name,
+        details=f"Pengerjaan pemeliharaan dimulai oleh Teknisi {current_user.username}. Status diubah dari '{old_status}' menjadi 'Dalam Perbaikan'."
+    )
+
+    flash(f'Aset [{asset.asset_code}] resmi ditandai "Dalam Perbaikan" oleh Teknisi {current_user.username}.', 'info')
+    return redirect(url_for('maintenance'))
+
+
+@app.route('/assets/<int:asset_id>/maintenance/complete', methods=['POST'])
+@app.route('/assets/<int:asset_id>/complete-maintenance', methods=['POST'])
+@login_required
+@role_required('Admin', 'Administrator', 'Teknisi', 'Staff')
+def complete_maintenance(asset_id):
+    """Complete maintenance service, record invoice/proof, reset interval."""
+    asset = db.session.get(Asset, asset_id)
+    if not asset:
+        flash('Aset tidak ditemukan.', 'danger')
+        return redirect(url_for('maintenance'))
+
+    service_type = request.form.get('service_type', 'Rutin').strip()
+    action_taken = request.form.get('action_taken', '').strip() or request.form.get('notes', '').strip() or 'Pemeliharaan rutin selesai dilakukan.'
+    cost = parse_currency(request.form.get('cost', '0'))
+    s_date_str = request.form.get('service_date', '').strip()
+
+    try:
+        service_date = datetime.strptime(s_date_str, '%Y-%m-%d').date() if s_date_str else date.today()
+    except Exception:
+        service_date = date.today()
+
+    interval_str = request.form.get('interval_days', '').strip()
+    try:
+        interval = int(interval_str) if interval_str else (asset.maintenance_interval_days or 90)
+    except Exception:
+        interval = asset.maintenance_interval_days or 90
+
+    # Handle proof file upload
+    proof_file = request.files.get('proof_file')
+    proof_filename = save_maint_attachment(proof_file) if proof_file else None
+
+    # Create permanent MaintenanceRecord
+    rec = MaintenanceRecord(
+        asset_id=asset.id,
+        service_type=service_type,
+        action_taken=action_taken,
+        cost=cost,
+        proof_file=proof_filename,
+        performed_by=current_user.username,
+        service_date=service_date,
+        next_service_date=service_date + timedelta(days=interval)
+    )
+    db.session.add(rec)
+
+    # Update asset state
+    asset.status = 'Aktif'
+    asset.last_maintenance_date = service_date
+    asset.maintenance_interval_days = interval
+    asset.next_maintenance_date = service_date + timedelta(days=interval)
+    db.session.commit()
+
     log_activity(
         'MAINTENANCE_SELESAI',
         asset_code=asset.asset_code,
         asset_name=asset.name,
-        details=f"Pemeliharaan selesai dicatat oleh {current_user.username}. Jadwal berikutnya: {next_date_str}. Catatan: {notes or '-'}"
+        details=f"Pemeliharaan [{service_type}] selesai dikerjakan oleh {current_user.username}. Biaya: Rp {cost:,.0f}. Jadwal berikutnya: {asset.next_maintenance_date.strftime('%d/%m/%Y')}."
     )
 
-    flash(f'Maintenance untuk [{asset.asset_code}] selesai dicatat! Jadwal berikutnya: {next_date_str}.', 'success')
-    return redirect(request.referrer or url_for('assets'))
+    flash(f'Pemeliharaan untuk [{asset.asset_code}] berhasil disimpan & jadwal servis berikutnya diperbarui ({asset.next_maintenance_date.strftime("%d/%m/%Y")})!', 'success')
+    return redirect(request.referrer or url_for('maintenance'))
+
+
+@app.route('/attachments/maintenance/<filename>')
+@login_required
+def download_maintenance_attachment(filename):
+    safe_name = secure_filename(filename)
+    return send_from_directory(MAINT_ATTACHMENT_FOLDER, safe_name)
+
+
+@app.route('/attachments/po/<filename>')
+@login_required
+def download_po_attachment(filename):
+    safe_name = secure_filename(filename)
+    return send_from_directory(PO_ATTACHMENT_FOLDER, safe_name)
 
 
 # ==========================================
@@ -1957,6 +2278,7 @@ def import_assets_csv():
 # ==========================================
 @app.route('/assets/export/pdf')
 @login_required
+@role_required('Admin', 'Administrator', 'Auditor')
 def export_assets_pdf():
     """Generate formal PDF asset inventory report."""
     if not HAVE_REPORTLAB:
@@ -2255,7 +2577,7 @@ def api_vendors():
 # ==========================================
 @app.route('/sites')
 @login_required
-@role_required('Admin', 'Staff')
+@role_required('Admin', 'Administrator')
 def sites():
     site_list = Site.query.order_by(Site.name.asc()).all()
     return render_template('sites.html', sites=site_list)
@@ -2263,7 +2585,7 @@ def sites():
 
 @app.route('/sites/create', methods=['POST'])
 @login_required
-@role_required('Admin', 'Staff')
+@role_required('Admin', 'Administrator')
 def create_site():
     name = request.form.get('name', '').strip()
     description = request.form.get('description', '').strip()
@@ -2294,7 +2616,7 @@ def create_site():
 
 @app.route('/sites/<int:site_id>/edit', methods=['POST'])
 @login_required
-@role_required('Admin', 'Staff')
+@role_required('Admin', 'Administrator')
 def edit_site(site_id):
     s = db.session.get(Site, site_id)
     if not s:
@@ -2438,6 +2760,7 @@ def api_warranty_alerts():
 
 @app.route('/assets/export/csv')
 @login_required
+@role_required('Admin', 'Administrator', 'Auditor')
 def export_assets_csv():
     assets_all = Asset.query.order_by(Asset.asset_code.asc()).all()
 
@@ -2488,6 +2811,7 @@ def export_assets_csv():
 # ==========================================
 @app.route('/history')
 @login_required
+@role_required('Admin')
 def history():
     action_filter = request.args.get('action', '').strip()
     search_query = request.args.get('search', '').strip()
@@ -2552,7 +2876,7 @@ def clear_history():
 
 @app.route('/reports/audit')
 @login_required
-@role_required('Admin', 'Auditor', 'Staff')
+@role_required('Admin', 'Auditor')
 def audit_report():
     """Audit-ready report with period filters & CSV export."""
     from_date_str = request.args.get('from', '').strip()
@@ -2998,10 +3322,7 @@ def create_purchase_order():
             qty = max(1, int(quantities[i])) if i < len(quantities) else 1
         except Exception:
             qty = 1
-        try:
-            price = max(0.0, float(unit_prices[i].replace('.', '').replace(',', '.'))) if i < len(unit_prices) else 0.0
-        except Exception:
-            price = 0.0
+        price = parse_currency(unit_prices[i]) if i < len(unit_prices) else 0.0
         spec = specifications[i].strip() if i < len(specifications) else ''
 
         subtotal = qty * price
@@ -3049,9 +3370,11 @@ def create_purchase_order():
     db.session.commit()
 
     if status == 'SUBMITTED':
+        log_po_history(po, 'SUBMIT', f"Pengajuan PO '{po.title}' dibuat dan diajukan ke Admin.")
         log_activity('SUBMIT_PO', details=f"PO [{po.po_number}] '{po.title}' berhasil diajukan untuk persetujuan Admin.")
         flash(f'Purchase Order [{po.po_number}] berhasil diajukan untuk persetujuan Admin!', 'success')
     else:
+        log_po_history(po, 'DRAFT', f"Draft PO '{po.title}' disimpan.")
         log_activity('BUAT_PO_DRAFT', details=f"Draft PO [{po.po_number}] '{po.title}' disimpan.")
         flash(f'Draft Purchase Order [{po.po_number}] berhasil disimpan!', 'success')
 
@@ -3142,10 +3465,7 @@ def edit_purchase_order(po_id):
             qty = max(1, int(quantities[i])) if i < len(quantities) else 1
         except Exception:
             qty = 1
-        try:
-            price = max(0.0, float(unit_prices[i].replace('.', '').replace(',', '.'))) if i < len(unit_prices) else 0.0
-        except Exception:
-            price = 0.0
+        price = parse_currency(unit_prices[i]) if i < len(unit_prices) else 0.0
         spec = specifications[i].strip() if i < len(specifications) else ''
 
         total_est += (qty * price)
@@ -3188,6 +3508,7 @@ def edit_purchase_order(po_id):
         db.session.add(new_item)
 
     db.session.commit()
+    log_po_history(po, 'EDIT', f"Perubahan rincian PO dan estimasi total (Rp {po.estimated_total:,.0f}) disimpan.")
     log_activity('EDIT_PO', details=f"PO [{po.po_number}] diperbarui oleh {current_user.username}.")
     flash(f'Perubahan pada Purchase Order [{po.po_number}] berhasil disimpan.', 'success')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
@@ -3220,6 +3541,7 @@ def submit_purchase_order(po_id):
     po.rejection_reason = None
     db.session.commit()
 
+    log_po_history(po, 'SUBMIT', f"Diajukan kembali untuk persetujuan Admin.")
     log_activity('SUBMIT_PO', details=f"PO [{po.po_number}] diajukan oleh {current_user.username}.")
     flash(f'Purchase Order [{po.po_number}] berhasil diajukan untuk persetujuan Admin!', 'success')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
@@ -3229,7 +3551,7 @@ def submit_purchase_order(po_id):
 @login_required
 @admin_required
 def approve_purchase_order(po_id):
-    """Admin approves a submitted PO."""
+    """Admin approves a submitted PO (with self-approval detection)."""
     po = db.session.get(PurchaseOrder, po_id)
     if not po:
         flash('PO tidak ditemukan.', 'danger')
@@ -3239,14 +3561,18 @@ def approve_purchase_order(po_id):
         flash(f'Hanya PO dengan status SUBMITTED yang dapat disetujui (Status saat ini: {po.status}).', 'warning')
         return redirect(url_for('purchase_order_detail', po_id=po.id))
 
+    is_self = (po.requested_by == current_user.username)
+    po.is_self_approved = is_self
     po.status = 'APPROVED'
     po.approved_by = current_user.username
     po.approved_at = datetime.utcnow()
     po.rejection_reason = None
     db.session.commit()
 
-    log_activity('APPROVE_PO', details=f"PO [{po.po_number}] disetujui oleh Administrator {current_user.username}.")
-    flash(f'Purchase Order [{po.po_number}] telah berhasil disetujui (Approved)!', 'success')
+    self_text = " (Self-Approved oleh Admin Pemohon)" if is_self else ""
+    log_po_history(po, 'APPROVE', f"Disetujui oleh {current_user.username}{self_text}.")
+    log_activity('APPROVE_PO', details=f"PO [{po.po_number}] disetujui oleh Administrator {current_user.username}{self_text}.")
+    flash(f'Purchase Order [{po.po_number}] telah berhasil disetujui (Approved){self_text}!', 'success')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
 
 
@@ -3273,6 +3599,7 @@ def reject_purchase_order(po_id):
     po.rejection_reason = reason
     db.session.commit()
 
+    log_po_history(po, 'REJECT', f"Ditolak oleh Admin {current_user.username}. Alasan: {reason}")
     log_activity('REJECT_PO', details=f"PO [{po.po_number}] ditolak oleh {current_user.username}. Alasan: {reason}")
     flash(f'Purchase Order [{po.po_number}] telah ditolak. Alasan: {reason}', 'warning')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
@@ -3282,7 +3609,7 @@ def reject_purchase_order(po_id):
 @login_required
 @role_required('Admin', 'Administrator', 'Staff')
 def order_purchase_order(po_id):
-    """Mark an approved PO as ORDERED (sent to vendor)."""
+    """Mark an approved PO as ORDERED with order proof upload."""
     po = db.session.get(PurchaseOrder, po_id)
     if not po:
         flash('PO tidak ditemukan.', 'danger')
@@ -3292,10 +3619,20 @@ def order_purchase_order(po_id):
         flash('Hanya PO dengan status APPROVED yang dapat ditandai ORDERED.', 'warning')
         return redirect(url_for('purchase_order_detail', po_id=po.id))
 
+    order_notes = request.form.get('order_notes', '').strip()
+    proof_file = request.files.get('order_proof')
+    proof_name = None
+    if proof_file and proof_file.filename:
+        proof_name = save_po_attachment(proof_file)
+        if proof_name:
+            po.order_proof = proof_name
+
     po.status = 'ORDERED'
     po.ordered_at = datetime.utcnow()
+    po.order_notes = order_notes
     db.session.commit()
 
+    log_po_history(po, 'ORDER', notes=f"Telah dipesan ke vendor. Catatan: {order_notes or '-'}", attachment=po.order_proof)
     log_activity('ORDER_PO', details=f"PO [{po.po_number}] ditandai telah dipesan ke vendor oleh {current_user.username}.")
     flash(f'PO [{po.po_number}] berhasil ditandai telah dipesan ke vendor (Ordered)!', 'info')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
@@ -3305,7 +3642,7 @@ def order_purchase_order(po_id):
 @login_required
 @role_required('Admin', 'Administrator', 'Staff')
 def receive_purchase_order(po_id):
-    """Mark goods as RECEIVED (physically arrived at site/office)."""
+    """Mark goods as RECEIVED with mandatory delivery receipt proof (Surat Jalan/BAST)."""
     po = db.session.get(PurchaseOrder, po_id)
     if not po:
         flash('PO tidak ditemukan.', 'danger')
@@ -3315,15 +3652,29 @@ def receive_purchase_order(po_id):
         flash('Hanya PO yang sudah dipesan/disetujui yang dapat ditandai diterima.', 'warning')
         return redirect(url_for('purchase_order_detail', po_id=po.id))
 
+    receipt_notes = request.form.get('receipt_notes', '').strip()
+    proof_file = request.files.get('receipt_proof')
+
+    if not proof_file or not proof_file.filename:
+        if not po.receipt_proof:
+            flash('Unggah berkas bukti penerimaan barang fisik (Surat Jalan / BAST / Foto Barang) wajib dilampirkan sebelum status dapat diubah menjadi RECEIVED.', 'danger')
+            return redirect(url_for('purchase_order_detail', po_id=po.id))
+    else:
+        saved_name = save_po_attachment(proof_file)
+        if saved_name:
+            po.receipt_proof = saved_name
+
     po.status = 'RECEIVED'
     po.received_at = datetime.utcnow()
+    po.receipt_notes = receipt_notes
     for item in po.items:
         item.quantity_received = item.quantity
 
     db.session.commit()
 
+    log_po_history(po, 'RECEIVE', notes=f"Barang fisik tiba di lokasi. Catatan: {receipt_notes or '-'}", attachment=po.receipt_proof)
     log_activity('RECEIVE_PO', details=f"Barang untuk PO [{po.po_number}] dinyatakan telah tiba oleh {current_user.username}.")
-    flash(f'Barang untuk PO [{po.po_number}] telah tiba di lokasi! Anda sekarang dapat mengonversi item menjadi aset resmi.', 'success')
+    flash(f'Barang untuk PO [{po.po_number}] telah tiba dan bukti penerimaan tersimpan! Anda sekarang dapat mengonversi item menjadi aset resmi.', 'success')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
 
 
@@ -3348,6 +3699,7 @@ def cancel_purchase_order(po_id):
     po.status = 'CANCELLED'
     db.session.commit()
 
+    log_po_history(po, 'CANCEL', f"Dibatalkan oleh {current_user.username}.")
     log_activity('CANCEL_PO', details=f"PO [{po.po_number}] dibatalkan oleh {current_user.username}.")
     flash(f'Purchase Order [{po.po_number}] telah dibatalkan.', 'info')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
@@ -3359,7 +3711,7 @@ def cancel_purchase_order(po_id):
 def convert_po_item_to_asset(po_id, item_id):
     """
     Convert 1 unit of a received PO item into a real company asset.
-    If PO item quantity is 3, user calls this 3 times to get 3 unique assets.
+    Strictly requires verified delivery proof (Surat Jalan/BAST) before conversion.
     """
     po = db.session.get(PurchaseOrder, po_id)
     item = db.session.get(POItem, item_id)
@@ -3372,6 +3724,11 @@ def convert_po_item_to_asset(po_id, item_id):
         flash('Item hanya dapat dikonversi menjadi aset setelah PO berstatus RECEIVED (Barang Tiba).', 'warning')
         return redirect(url_for('purchase_order_detail', po_id=po.id))
 
+    # Strict physical proof guard
+    if not po.receipt_proof:
+        flash('Barang tidak dapat dikonversi menjadi aset resmi sebelum berkas bukti penerimaan (Surat Jalan/BAST) diunggah.', 'danger')
+        return redirect(url_for('purchase_order_detail', po_id=po.id))
+
     if item.remaining_to_convert <= 0:
         flash('Semua unit untuk item ini sudah dikonversi menjadi aset.', 'info')
         return redirect(url_for('purchase_order_detail', po_id=po.id))
@@ -3381,11 +3738,10 @@ def convert_po_item_to_asset(po_id, item_id):
     location = request.form.get('location', '').strip()
     site_id_str = request.form.get('site_id', '').strip()
     site_id = int(site_id_str) if site_id_str.isdigit() else None
-    price_str = request.form.get('purchase_price', str(item.unit_price)).strip().replace('.', '').replace(',', '.')
-    try:
-        purchase_price = float(price_str)
-    except Exception:
-        purchase_price = item.unit_price or 0.0
+    
+    # Safe currency parsing to prevent unit_price inflation
+    raw_price = request.form.get('purchase_price')
+    purchase_price = parse_currency(raw_price) if raw_price is not None else float(item.unit_price or 0.0)
 
     p_date_str = request.form.get('purchase_date', '').strip()
     try:
@@ -3444,8 +3800,10 @@ def convert_po_item_to_asset(po_id, item_id):
     if po.is_all_converted:
         po.status = 'CLOSED'
         po.closed_at = datetime.utcnow()
+        log_po_history(po, 'CLOSE', f"Seluruh unit item tuntas dikonversi. PO otomatis ditutup (Closed).")
         msg = f"Aset [{new_asset.asset_code}] '{new_asset.name}' berhasil dibuat! Seluruh item PO [{po.po_number}] telah tuntas dikonversi, PO otomatis ditutup (Closed)."
     else:
+        log_po_history(po, 'CONVERT_ITEM', f"Unit #{item.converted_count} '{new_asset.name}' [{new_asset.asset_code}] resmi didaftarkan.")
         msg = f"Aset [{new_asset.asset_code}] '{new_asset.name}' berhasil dibuat (Unit {item.converted_count}/{item.quantity}). Sisa {item.remaining_to_convert} unit untuk item ini."
 
     db.session.commit()
@@ -3454,7 +3812,7 @@ def convert_po_item_to_asset(po_id, item_id):
         'TAMBAH_ASET_PO',
         asset_code=new_asset.asset_code,
         asset_name=new_asset.name,
-        details=f"Dikonversi dari PO [{po.po_number}] Item #{item.id} oleh {current_user.username}."
+        details=f"Dikonversi dari PO [{po.po_number}] Item #{item.id} (Nilai: Rp {purchase_price:,.0f}) oleh {current_user.username}."
     )
     flash(msg, 'success')
     return redirect(url_for('purchase_order_detail', po_id=po.id))

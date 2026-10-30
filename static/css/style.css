@@ -150,7 +150,8 @@ main.container-fluid {
     scrollbar-width: thin;
     scrollbar-color: #cbd5e1 transparent;
     flex: 1 1 0%;
-    min-height: 0;
+    min-height: 180px;
+    max-height: 480px;
 }
 
 /* Non-dashboard pages: main is overflow-hidden, so content needs its own scroll */

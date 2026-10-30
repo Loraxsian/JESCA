@@ -22,6 +22,9 @@
     <!-- Favicon JA -->
     <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
 
+    <!-- html5-qrcode for Camera QR Scanner -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
     {% block head %}{% endblock %}
 </head>
 <script>
@@ -83,28 +86,44 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
+                        <a href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-wrench-adjustable"></i>
+                            <span>Pemeliharaan Aset</span>
+                            {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                            <span class="badge bg-warning text-dark rounded-pill ms-auto" style="font-size: 0.65rem;">{{ maintenance_alerts|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% if current_user.role in ['Admin', 'Administrator'] %}
+                    <li class="nav-item">
                         <a href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-geo-alt"></i>
                             <span>Lokasi & Site</span>
                         </a>
                     </li>
+                    {% endif %}
+                    {% if current_user.role != 'Teknisi' %}
                     <li class="nav-item">
                         <a href="{{ url_for('vendors') }}" class="nav-link {% if request.endpoint == 'vendors' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-building"></i>
                             <span>Vendor & Supplier</span>
                         </a>
                     </li>
+                    {% endif %}
                 </ul>
 
                 <!-- Section: RIWAYAT & LAPORAN -->
+                {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
                 <div class="menu-label">Riwayat & Laporan</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
+                    {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
                         <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-clock-history"></i>
                             <span>Log Aktivitas</span>
                         </a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-file-earmark-text"></i>
@@ -124,6 +143,7 @@
                         </a>
                     </li>
                 </ul>
+                {% endif %}
 
                 <!-- Section: PENGATURAN -->
                 <div class="menu-label">Pengaturan</div>
@@ -412,7 +432,7 @@
             </div>
 
             <!-- Page Main Body -->
-            <main class="flex-grow-1 container-fluid px-3 px-md-4 pb-3 d-flex flex-column overflow-hidden">
+            <main class="flex-grow-1 container-fluid px-3 px-md-4 pb-3 d-flex flex-column overflow-y-auto">
                 {% block content %}{% endblock %}
             </main>
 
