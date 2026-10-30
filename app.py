@@ -6,6 +6,12 @@ import json
 import uuid
 import shutil
 import secrets
+import smtplib
+import threading
+import base64
+import hashlib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from functools import wraps
 from datetime import datetime, date, timedelta
 from urllib.parse import quote
@@ -152,6 +158,41 @@ ROLE_CHOICES = ['Admin', 'Staff', 'Auditor', 'Teknisi']
 # ==========================================
 # Database Models
 # ==========================================
+class SystemSetting(db.Model):
+    """Dynamic persistent system configurations (SMTP & Global Settings)."""
+    __tablename__ = 'system_settings'
+
+    id = db.Column(db.Integer, primary_key=True)
+    mail_enabled = db.Column(db.Boolean, default=False)
+    mail_server = db.Column(db.String(150), default='smtp.gmail.com')
+    mail_port = db.Column(db.Integer, default=587)
+    mail_use_tls = db.Column(db.Boolean, default=True)
+    mail_use_ssl = db.Column(db.Boolean, default=False)
+    mail_username = db.Column(db.String(150), nullable=True)
+    mail_password = db.Column(db.String(255), nullable=True)
+    mail_sender_name = db.Column(db.String(100), default='JESCA Notification')
+    mail_target_admins = db.Column(db.Text, nullable=True)  # Comma separated
+    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @classmethod
+    def get_settings(cls):
+        """Fetch singleton setting row (id=1) or create default."""
+        setting = cls.query.get(1)
+        if not setting:
+            setting = cls(
+                id=1,
+                mail_enabled=False,
+                mail_server='smtp.gmail.com',
+                mail_port=587,
+                mail_use_tls=True,
+                mail_use_ssl=False,
+                mail_sender_name='JESCA Notification'
+            )
+            db.session.add(setting)
+            db.session.commit()
+        return setting
+
+
 class Site(db.Model):
     """Physical location / branch that holds assets."""
     __tablename__ = 'sites'
@@ -888,6 +929,103 @@ def delete_avatar_file(filename):
             app.logger.error(f"Error removing avatar file: {e}")
 
 
+# ==========================================
+# Helpers: Password Cipher & Email Dispatcher
+# ==========================================
+def encrypt_smtp_password(plain_pwd: str) -> str:
+    """Obfuscate SMTP password using XOR cipher with app SECRET_KEY."""
+    if not plain_pwd:
+        return ""
+    key = hashlib.sha256(app.config['SECRET_KEY'].encode()).digest()
+    pwd_bytes = plain_pwd.encode('utf-8')
+    xored = bytes([b ^ key[i % len(key)] for i, b in enumerate(pwd_bytes)])
+    return "enc:" + base64.b64encode(xored).decode('utf-8')
+
+
+def decrypt_smtp_password(stored_pwd: str) -> str:
+    """De-obfuscate stored SMTP password."""
+    if not stored_pwd:
+        return ""
+    if not stored_pwd.startswith("enc:"):
+        return stored_pwd  # backward compatibility for plain text
+    try:
+        raw_b64 = stored_pwd[4:]
+        xored = base64.b64decode(raw_b64)
+        key = hashlib.sha256(app.config['SECRET_KEY'].encode()).digest()
+        decrypted = bytes([b ^ key[i % len(key)] for i, b in enumerate(xored)])
+        return decrypted.decode('utf-8')
+    except Exception as e:
+        app.logger.error(f"Decryption error: {e}")
+        return ""
+
+
+def send_system_email(subject: str, html_body: str, recipient_list=None):
+    """
+    Sends email via background thread to avoid blocking web request.
+    Reads current settings from database on each send.
+    """
+    def _worker(app_context, subj, html, recips):
+        with app_context:
+            try:
+                setting = SystemSetting.query.get(1)
+                if not setting or not setting.mail_enabled:
+                    return
+
+                if not setting.mail_server or not setting.mail_username:
+                    app.logger.warning("Email dispatch skipped: server or username not configured.")
+                    return
+
+                # Build recipient list
+                targets = []
+                if recips:
+                    if isinstance(recips, list):
+                        targets.extend(recips)
+                    else:
+                        targets.append(recips)
+                elif setting.mail_target_admins:
+                    targets.extend([e.strip() for e in setting.mail_target_admins.split(',') if e.strip()])
+
+                if not targets:
+                    return
+
+                sender_addr = setting.mail_username
+                sender_name = setting.mail_sender_name or "JESCA Notification"
+                decrypted_pwd = decrypt_smtp_password(setting.mail_password)
+
+                msg = MIMEMultipart('alternative')
+                msg['Subject'] = subj
+                msg['From'] = f"{sender_name} <{sender_addr}>"
+                msg['To'] = ", ".join(targets)
+
+                part = MIMEText(html, 'html', 'utf-8')
+                msg.attach(part)
+
+                # Connect via SSL or TLS
+                if setting.mail_use_ssl:
+                    server = smtplib.SMTP_SSL(setting.mail_server, setting.mail_port or 465, timeout=15)
+                else:
+                    server = smtplib.SMTP(setting.mail_server, setting.mail_port or 587, timeout=15)
+                    if setting.mail_use_tls:
+                        server.starttls()
+
+                if decrypted_pwd:
+                    server.login(setting.mail_username, decrypted_pwd)
+
+                server.sendmail(sender_addr, targets, msg.as_string())
+                server.quit()
+                app.logger.info(f"Email successfully sent to {targets}: {subj}")
+            except Exception as e:
+                app.logger.error(f"Failed to dispatch email: {e}")
+
+    # Launch asynchronously
+    t = threading.Thread(
+        target=_worker,
+        args=(app.app_context(), subject, html_body, recipient_list),
+        daemon=True
+    )
+    t.start()
+
+
 def parse_currency(val):
     """
     Safely converts string or number to float without thousand separator inflation.
@@ -1072,6 +1210,18 @@ def seed_database():
             description='Lokasi utama operasional kantor'
         )
         db.session.add(default_site)
+
+    # Seed default SystemSetting
+    if not SystemSetting.query.get(1):
+        db.session.add(SystemSetting(
+            id=1,
+            mail_enabled=False,
+            mail_server='smtp.gmail.com',
+            mail_port=587,
+            mail_use_tls=True,
+            mail_use_ssl=False,
+            mail_sender_name='JESCA Notification'
+        ))
 
     db.session.commit()
 
@@ -1812,6 +1962,28 @@ def edit_asset(asset_id):
         asset_name=asset.name,
         details=detail_str
     )
+
+    # Trigger Async Notification if status changed to 'Rusak' or 'Afkir'
+    if old_status != status and status in ['Rusak', 'Afkir']:
+        html_alert = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #fee2e2; border-radius: 8px;">
+            <div style="background: #ef4444; color: white; padding: 12px 16px; border-radius: 6px 6px 0 0;">
+                <h3 style="margin: 0; font-size: 16px;">⚠️ PERINGATAN KONDISI ASET BERMASALAH</h3>
+            </div>
+            <div style="padding: 16px; background: #fff;">
+                <p>Status aset telah diubah menjadi <strong>{status}</strong> oleh <strong>{current_user.full_name}</strong>.</p>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <tr><td style="padding: 6px 0; color: #64748b;">Kode Aset:</td><td><strong>{asset.asset_code}</strong></td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748b;">Nama Aset:</td><td>{asset.name}</td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748b;">Kategori:</td><td>{asset.category}</td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748b;">Lokasi:</td><td>{asset.location}</td></tr>
+                    <tr><td style="padding: 6px 0; color: #64748b;">Waktu:</td><td>{datetime.now().strftime('%d %B %Y %H:%M')}</td></tr>
+                </table>
+                <p style="margin-top: 15px; font-size: 12px; color: #64748b;">Silakan tindak lanjuti pemeriksaan atau pembuatan jadwal servis melalui menu Pemeliharaan Aset.</p>
+            </div>
+        </div>
+        """
+        send_system_email(f"[PERINGATAN ASET] {asset.asset_code} - Status Diubah Menjadi {status}", html_alert)
 
     flash(f'Perubahan aset [{asset.asset_code}] berhasil disimpan!', 'success')
     return redirect(url_for('assets'))
@@ -3095,6 +3267,155 @@ def auto_backup_job():
 
 
 # ==========================================
+# Routes: System Settings & SMTP Diagnostic
+# ==========================================
+@app.route('/settings', methods=['GET', 'POST'])
+@login_required
+@role_required('Admin')
+def system_settings():
+    """System settings, system health diagnostics, and dynamic SMTP setup."""
+    setting = SystemSetting.get_settings()
+
+    if request.method == 'POST':
+        mail_enabled = request.form.get('mail_enabled') == '1'
+        mail_server = request.form.get('mail_server', '').strip()
+        mail_port = int(request.form.get('mail_port', 587) or 587)
+        encryption = request.form.get('encryption', 'tls')
+        mail_username = request.form.get('mail_username', '').strip()
+        mail_password_input = request.form.get('mail_password', '').strip()
+        mail_sender_name = request.form.get('mail_sender_name', 'JESCA Notification').strip()
+        mail_target_admins = request.form.get('mail_target_admins', '').strip()
+
+        setting.mail_enabled = mail_enabled
+        setting.mail_server = mail_server or 'smtp.gmail.com'
+        setting.mail_port = mail_port
+        setting.mail_use_tls = (encryption == 'tls')
+        setting.mail_use_ssl = (encryption == 'ssl')
+        setting.mail_username = mail_username
+        setting.mail_sender_name = mail_sender_name or 'JESCA Notification'
+        setting.mail_target_admins = mail_target_admins
+
+        if mail_password_input:
+            setting.mail_password = encrypt_smtp_password(mail_password_input)
+
+        db.session.commit()
+        log_activity('EDIT_SETTINGS', details=f"Pengaturan sistem & SMTP diperbarui oleh {current_user.username}. Status Email: {'Aktif' if mail_enabled else 'Nonaktif'}.")
+        flash('Pengaturan sistem dan SMTP berhasil disimpan!', 'success')
+        return redirect(url_for('system_settings'))
+
+    # Calculate system diagnostic metrics
+    db_size_bytes = os.path.getsize(db_path) if os.path.exists(db_path) else 0
+    if db_size_bytes > 1024 * 1024:
+        db_size_str = f"{db_size_bytes / (1024 * 1024):.2f} MB"
+    else:
+        db_size_str = f"{db_size_bytes / 1024:.1f} KB"
+
+    # Count assets, users, categories, vendors, sites
+    total_assets = Asset.query.count()
+    total_users = User.query.count()
+    total_vendors = Vendor.query.count()
+    total_sites = Site.query.count()
+    total_pos = PurchaseOrder.query.count()
+
+    import platform
+    import sys
+    runtime_info = {
+        'python_version': platform.python_version(),
+        'platform': platform.platform(),
+        'is_docker': os.path.exists('/.dockerenv'),
+        'db_size': db_size_str,
+        'counts': {
+            'assets': total_assets,
+            'users': total_users,
+            'vendors': total_vendors,
+            'sites': total_sites,
+            'pos': total_pos
+        }
+    }
+
+    return render_template(
+        'settings.html',
+        setting=setting,
+        has_password=bool(setting.mail_password),
+        runtime=runtime_info
+    )
+
+
+@app.route('/settings/test-smtp', methods=['POST'])
+@login_required
+@role_required('Admin')
+def test_smtp_connection():
+    """Send test email to test recipient to verify SMTP credentials and handshake."""
+    test_target = request.form.get('test_email', '').strip()
+    if not test_target:
+        flash('Masukkan alamat email tujuan uji coba.', 'warning')
+        return redirect(url_for('system_settings'))
+
+    setting = SystemSetting.get_settings()
+    if not setting.mail_server or not setting.mail_username:
+        flash('Server SMTP dan Username pengirim belum dikonfigurasi.', 'danger')
+        return redirect(url_for('system_settings'))
+
+    decrypted_pwd = decrypt_smtp_password(setting.mail_password)
+
+    try:
+        sender_addr = setting.mail_username
+        sender_name = setting.mail_sender_name or "JESCA Notification"
+
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = "[UJI KONEKSI] Tes Pengiriman Email JESCA"
+        msg['From'] = f"{sender_name} <{sender_addr}>"
+        msg['To'] = test_target
+
+        html = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
+            <div style="background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px 8px 0 0;">
+                <h2 style="margin: 0; font-size: 18px;">JESCA &bull; Tes Notifikasi Sistem</h2>
+                <small style="color: #94a3b8;">Jessica Assets Management System</small>
+            </div>
+            <div style="padding: 20px; background: #ffffff;">
+                <p>Halo <strong>{current_user.full_name}</strong>,</p>
+                <p>Jika Anda menerima email ini, berarti <strong>konfigurasi Dynamic SMTP JESCA Anda telah berhasil terhubung</strong> dengan baik ke server email!</p>
+                <div style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 12px; margin: 15px 0;">
+                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155;">
+                        <li><strong>Host:</strong> {setting.mail_server}:{setting.mail_port}</li>
+                        <li><strong>Enkripsi:</strong> {'SSL' if setting.mail_use_ssl else 'TLS'}</li>
+                        <li><strong>Pengirim:</strong> {setting.mail_username}</li>
+                        <li><strong>Waktu Tes:</strong> {datetime.now().strftime('%d %B %Y %H:%M:%S')}</li>
+                    </ul>
+                </div>
+                <p style="font-size: 12px; color: #64748b;">Notifikasi otomatis untuk perubahan status aset dan pengajuan Purchase Order siap digunakan.</p>
+            </div>
+            <div style="text-align: center; font-size: 11px; color: #94a3b8; padding: 10px; border-top: 1px solid #e2e8f0;">
+                &copy; 2026 JESCA &bull; Jessica Assets Management System
+            </div>
+        </div>
+        """
+        msg.attach(MIMEText(html, 'html', 'utf-8'))
+
+        if setting.mail_use_ssl:
+            server = smtplib.SMTP_SSL(setting.mail_server, setting.mail_port or 465, timeout=12)
+        else:
+            server = smtplib.SMTP(setting.mail_server, setting.mail_port or 587, timeout=12)
+            if setting.mail_use_tls:
+                server.starttls()
+
+        if decrypted_pwd:
+            server.login(setting.mail_username, decrypted_pwd)
+
+        server.sendmail(sender_addr, [test_target], msg.as_string())
+        server.quit()
+
+        log_activity('TEST_SMTP', details=f"Uji koneksi SMTP sukses terkirim ke {test_target}.")
+        flash(f'Berhasil! Email uji coba berhasil dikirim ke {test_target}.', 'success')
+    except Exception as e:
+        app.logger.error(f"SMTP Test Connection Error: {e}")
+        flash(f'Koneksi SMTP gagal: {str(e)}', 'danger')
+
+    return redirect(url_for('system_settings'))
+
+
+# ==========================================
 # Routes: REST API v1 (API Key Protected)
 # ==========================================
 @app.route('/api/v1/assets', methods=['GET'])
@@ -3642,6 +3963,28 @@ def submit_purchase_order(po_id):
 
     log_po_history(po, 'SUBMIT', f"Diajukan kembali untuk persetujuan Admin.")
     log_activity('SUBMIT_PO', details=f"PO [{po.po_number}] diajukan oleh {current_user.username}.")
+
+    # Async email notification for PO submission
+    html_po = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #bae6fd; border-radius: 8px;">
+        <div style="background: #0284c7; color: white; padding: 12px 16px; border-radius: 6px 6px 0 0;">
+            <h3 style="margin: 0; font-size: 16px;">📋 PENGAJUAN PURCHASE ORDER BARU</h3>
+        </div>
+        <div style="padding: 16px; background: #fff;">
+            <p>Purchase Order baru memerlukan persetujuan Administrator:</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <tr><td style="padding: 6px 0; color: #64748b;">Nomor PO:</td><td><strong>{po.po_number}</strong></td></tr>
+                <tr><td style="padding: 6px 0; color: #64748b;">Judul:</td><td>{po.title}</td></tr>
+                <tr><td style="padding: 6px 0; color: #64748b;">Pemohon:</td><td>{po.requested_by}</td></tr>
+                <tr><td style="padding: 6px 0; color: #64748b;">Estimasi Nilai:</td><td><strong>Rp {po.estimated_total:,.0f}</strong></td></tr>
+                <tr><td style="padding: 6px 0; color: #64748b;">Jumlah Item:</td><td>{po.total_items_quantity} unit</td></tr>
+            </table>
+            <p style="margin-top: 15px; font-size: 12px; color: #64748b;">Silakan masuk ke sistem JESCA untuk menyetujui atau menolak pengajuan ini.</p>
+        </div>
+    </div>
+    """
+    send_system_email(f"[PERLU PERSETUJUAN] PO {po.po_number} - {po.title}", html_po)
+
     flash(f'Purchase Order [{po.po_number}] berhasil diajukan untuk persetujuan Admin!', 'success')
     return redirect(url_for('purchase_order_detail', po_id=po.id))
 

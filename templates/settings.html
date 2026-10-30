@@ -1,0 +1,250 @@
+{% extends "base.html" %}
+
+{% block title %}Pengaturan Sistem &amp; SMTP - JESCA{% endblock %}
+{% block page_heading %}Pengaturan Sistem &amp; Diagnostik{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="row align-items-center mb-4 g-2">
+    <div class="col-md-7">
+        <h5 class="fw-bold mb-1">Pengaturan &amp; Integrasi Dinamis</h5>
+        <p class="text-muted small mb-0">
+            Kelola koneksi notifikasi email (Dynamic SMTP) dan pantau kesehatan arsitektur internal JESCA.
+        </p>
+    </div>
+    <div class="col-md-5 text-md-end">
+        <span class="badge {% if setting.mail_enabled %}bg-success-subtle text-success border border-success-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %} px-3 py-2 rounded-pill font-monospace" style="font-size: 0.78rem;">
+            <i class="bi {% if setting.mail_enabled %}bi-broadcast text-success{% else %}bi-slash-circle text-muted{% endif %} me-1"></i>
+            SMTP: {% if setting.mail_enabled %}AKTIF (SIAP MENGIRIM){% else %}NONAKTIF{% endif %}
+        </span>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- ==========================================
+         MODUL 1: RINGKASAN & DIAGNOSTIK SISTEM
+         ========================================== -->
+    <div class="col-lg-5">
+        <div class="d-flex flex-column gap-3">
+            <!-- App Identity Card -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-body p-4 text-center" style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
+                    <div class="brand-icon mx-auto mb-3 shadow-sm d-flex align-items-center justify-content-center text-white" style="width: 58px; height: 58px; border-radius: 16px; font-size: 1.6rem;">
+                        <i class="bi bi-box-seam-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0 text-dark">JESCA</h5>
+                    <div class="small text-muted mb-2">Jessica Assets Management System</div>
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge bg-primary rounded-pill px-3 py-1 font-monospace" style="font-size: 0.72rem;">Release v2.1</span>
+                        <span class="badge bg-light text-secondary border rounded-pill px-3 py-1 font-monospace" style="font-size: 0.72rem;">
+                            {% if runtime.is_docker %}Docker Container{% else %}Native / Localhost{% endif %}
+                        </span>
+                    </div>
+                    <div class="text-muted small border-top pt-3">
+                        Didesain untuk manajemen inventaris &amp; aset internal yang cepat, portabel, dan akuntabel.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database & Core Metrics -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-database-check text-primary"></i>
+                        Kesehatan Database &amp; Data
+                    </h6>
+                </div>
+                <div class="card-body p-4 pt-3">
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                            <span class="text-muted"><i class="bi bi-hdd me-2"></i>Ukuran File SQLite (jesca.db)</span>
+                            <span class="fw-bold font-monospace text-dark">{{ runtime.db_size }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                            <span class="text-muted"><i class="bi bi-boxes me-2"></i>Total Item Aset Terdaftar</span>
+                            <span class="badge bg-light text-dark border font-monospace">{{ runtime.counts.assets }} Aset</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                            <span class="text-muted"><i class="bi bi-file-earmark-check me-2"></i>Total Purchase Order (PO)</span>
+                            <span class="badge bg-light text-dark border font-monospace">{{ runtime.counts.pos }} PO</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                            <span class="text-muted"><i class="bi bi-people me-2"></i>Total Akun Pengguna</span>
+                            <span class="badge bg-light text-dark border font-monospace">{{ runtime.counts.users }} Akun</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                            <span class="text-muted"><i class="bi bi-building me-2"></i>Vendor &amp; Rekanan</span>
+                            <span class="badge bg-light text-dark border font-monospace">{{ runtime.counts.vendors }} Vendor</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                            <span class="text-muted"><i class="bi bi-geo-alt me-2"></i>Cabang Lokasi (Site)</span>
+                            <span class="badge bg-light text-dark border font-monospace">{{ runtime.counts.sites }} Site</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Runtime Diagnostics -->
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header bg-transparent border-0 pt-3 px-4 pb-0">
+                    <h6 class="fw-bold mb-0 text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-cpu text-info"></i>
+                        Lingkungan Eksekusi (Runtime)
+                    </h6>
+                </div>
+                <div class="card-body p-4 pt-3">
+                    <div class="small text-muted d-flex flex-column gap-2">
+                        <div class="d-flex justify-content-between">
+                            <span>Python Runtime</span>
+                            <span class="font-monospace text-dark fw-semibold">Python {{ runtime.python_version }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Platform OS</span>
+                            <span class="font-monospace text-dark small text-truncate ms-2" style="max-width: 200px;">{{ runtime.platform }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Mode Journal SQLite</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace">WAL (Write-Ahead Log)</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Dispatcher Email</span>
+                            <span class="badge bg-info-subtle text-info border border-info-subtle font-monospace">Async (Threaded)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODUL 2: PUSAT KONFIGURASI DYNAMIC SMTP
+         ========================================== -->
+    <div class="col-lg-7">
+        <div class="card border-0 shadow-sm rounded-4">
+            <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
+                        <i class="bi bi-envelope-gear-fill fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold mb-0 text-dark">Dynamic SMTP Server Binder</h6>
+                        <small class="text-muted">Konfigurasi akun pengirim email langsung dari browser</small>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="POST" action="{{ url_for('system_settings') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="card-body p-4">
+                    <!-- Master Toggle Switch -->
+                    <div class="p-3 rounded-4 mb-4 border d-flex align-items-center justify-content-between" style="background: {% if setting.mail_enabled %}rgba(22, 163, 74, 0.05){% else %}#f8fafc{% endif %};">
+                        <div>
+                            <div class="fw-bold text-dark mb-0">Aktifkan Notifikasi Email Global</div>
+                            <small class="text-muted">Mengizinkan sistem mengirim pemberitahuan otomatis ke tim saat terjadi mutasi aset atau PO baru.</small>
+                        </div>
+                        <div class="form-check form-switch ms-3">
+                            <input class="form-check-input" type="checkbox" name="mail_enabled" value="1" id="mailEnabledSwitch" {% if setting.mail_enabled %}checked{% endif %} style="width: 2.5rem; height: 1.3rem;">
+                        </div>
+                    </div>
+
+                    <!-- Server Settings -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-secondary">SMTP Host / Server <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="mail_server" value="{{ setting.mail_server or 'smtp.gmail.com' }}" placeholder="Contoh: smtp.gmail.com / smtp.office365.com" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Port Koneksi <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="mail_port" value="{{ setting.mail_port or 587 }}" placeholder="587 / 465" required>
+                        </div>
+                    </div>
+
+                    <!-- Encryption Choice -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary d-block">Metode Enkripsi / Keamanan</label>
+                        <div class="d-flex gap-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="encryption" id="encTLS" value="tls" {% if setting.mail_use_tls or not setting.mail_use_ssl %}checked{% endif %}>
+                                <label class="form-check-label small" for="encTLS">
+                                    <strong>STARTTLS</strong> (Rekomendasi Port 587 - Gmail / Outlook)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="encryption" id="encSSL" value="ssl" {% if setting.mail_use_ssl %}checked{% endif %}>
+                                <label class="form-check-label small" for="encSSL">
+                                    <strong>SSL</strong> (Port 465)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Authentication Credentials -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">Email Pengirim / Username <span class="text-danger">*</span></label>
+                            <input type="email" class="form-control" name="mail_username" value="{{ setting.mail_username or '' }}" placeholder="akun@perusahaan.com">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold text-secondary">
+                                Password / App Password
+                                {% if has_password %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle ms-1 font-monospace" style="font-size: 0.65rem;">Tersimpan Enkripsi</span>
+                                {% endif %}
+                            </label>
+                            <input type="password" class="form-control" name="mail_password" placeholder="{% if has_password %}Kosongkan jika tidak ingin mengubah{% else %}Masukkan App Password Gmail/SMTP{% endif %}">
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Disimpan aman dengan cipher symmetric terenkripsi di database.</small>
+                        </div>
+                    </div>
+
+                    <!-- Display Name & Target Recipients -->
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Nama Pengirim yang Tampil (Display Name)</label>
+                        <input type="text" class="form-control" name="mail_sender_name" value="{{ setting.mail_sender_name or 'JESCA Notification' }}" placeholder="Contoh: JESCA Inventory System">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-secondary">Daftar Penerima Notifikasi Otomatis (Mailing List Admin)</label>
+                        <textarea class="form-control" name="mail_target_admins" rows="3" placeholder="admin1@kantor.com, it-ops@kantor.com, finance@kantor.com">{{ setting.mail_target_admins or '' }}</textarea>
+                        <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Pisahkan beberapa alamat email dengan tanda koma (,). Penerima ini akan otomatis menerima notifikasi saat aset rusak atau PO diajukan.</small>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                        <small class="text-muted">
+                            Terakhir diupdate: <strong>{{ setting.updated_at.strftime('%d/%m/%Y %H:%M') if setting.updated_at else 'Belum pernah' }}</strong>
+                        </small>
+                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm">
+                            <i class="bi bi-save me-1"></i>Simpan Pengaturan
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- ==========================================
+             UJI KONEKSI EMAIL (TEST CONNECTION)
+             ========================================== -->
+        <div class="card border-0 shadow-sm rounded-4 mt-3">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <i class="bi bi-send-check text-success fs-5"></i>
+                    <h6 class="fw-bold mb-0 text-dark">Uji Validasi Koneksi SMTP (Live Test)</h6>
+                </div>
+                <p class="text-muted small mb-3">
+                    Kirimkan satu email uji coba HTML instan ke alamat tujuan untuk memastikan koneksi port, sertifikat SSL/TLS, dan kredensial login Anda valid.
+                </p>
+
+                <form method="POST" action="{{ url_for('test_smtp_connection') }}" class="d-flex gap-2">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="flex-grow-1">
+                        <input type="email" class="form-control form-control-sm" name="test_email" placeholder="Masukkan alamat email Anda untuk menerima tes..." required>
+                    </div>
+                    <button type="submit" class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold flex-shrink-0">
+                        <i class="bi bi-send me-1"></i>Kirim Email Uji Coba
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

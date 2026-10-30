@@ -1,89 +1,84 @@
-# JESCA (Jessica Assets) - Asset Management System
+# JESCA (Jessica Assets) — Asset Management System
 
-**JESCA (Jessica Assets)** adalah aplikasi web manajemen inventaris dan aset modern berbasis **Python Flask**, **SQLite (Flask-SQLAlchemy)**, dan **Bootstrap 5**.
+**JESCA (Jessica Assets)** adalah sistem web manajemen aset, inventaris, dan pengadaan modern berbasis **Python Flask**, **SQLite (Flask-SQLAlchemy)**, dan **Bootstrap 5**.
 
-Aplikasi ini dilengkapi dengan fitur login administrator, sistem auto-generate kode aset otomatis berbasis kategori (seperti `Tech/001`, `Tools/001`, `Furn/001`, dll.), dashboard visualisasi statistik real-time, serta manajemen CRUD data aset lengkap.
-
----
-
-## 🚀 Fitur Utama
-
-1. **Autentikasi & Hak Akses Administrator**:
-   - Akun admin bawaan: Username `Admin` & Password `Admin123`.
-   - Penyimpanan password menggunakan hashing aman (`Werkzeug security`).
-   - Tombol *Auto-Fill* pada halaman login untuk pengujian cepat.
-
-2. **Auto-Coding Aset Berdasarkan Kategori**:
-   - Format standar: `<Prefix>/<3-Digit Sequential Number>`.
-   - Contoh:
-     - `Tech` &rarr; `Tech/001`, `Tech/002`, dst.
-     - `Tools` &rarr; `Tools/001`, `Tools/002`, dst.
-     - `Furniture` &rarr; `Furn/001`, `Furn/002`, dst.
-     - `Vehicle` &rarr; `Vehicle/001`, `Vehicle/002`, dst.
-     - `Office` &rarr; `Office/001`, `Office/002`, dst.
-   - Endpoint API terintegrasi `/api/generate-code` yang melakukan pratinjau kode berikutnya secara real-time saat kategori dipilih di form penambahan aset.
-
-3. **Dashboard Statistik & Visualisasi**:
-   - Kartu metrik: Total Aset, Total Valuasi (format Rupiah `Rp xxx.xxx`), Aset Aktif, dan Aset Butuh Perhatian.
-   - **Chart.js**:
-     - *Doughnut Chart*: Distribusi persentase per kategori.
-     - *Bar Chart*: Distribusi kondisi operasional aset (Aktif, Perbaikan, Rusak, Dipinjam, Afkir).
-   - Ringkasan portofolio per kategori beserta subtotal nilai.
-   - Tabel 5 aset terbaru yang baru ditambahkan.
-
-4. **Tabel & Manajemen Kelola Aset (CRUD)**:
-   - Pencarian kata kunci fleksibel (nama, kode, lokasi, deskripsi).
-   - Filter dropdown berdasarkan Kategori dan Status Operasional.
-   - Tambah Aset Baru dengan modal interaktif dan auto-coding otomatis.
-   - Edit & Perbarui data aset.
-   - Detail lengkap aset dalam modal popup.
-   - Hapus aset dengan modal konfirmasi aman.
-   - **Export Laporan ke CSV** (didukung format UTF-8 BOM untuk kompatibilitas Microsoft Excel).
+Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*production-ready*), JESCA menyediakan solusi menyeluruh mulai dari pendaftaran aset, pemeliharaan teknis, sirkulasi peminjaman, pengadaan barang (*Purchase Order*), hingga pelaporan audit dan notifikasi otomatis.
 
 ---
 
-## 📂 Struktur Direktori Proyek
+## 🚀 Fitur Utama & Keunggulan
 
-```
-jesca-assets/
-├── app.py                 # File aplikasi Flask utama (Model, Controller, Routes)
-├── requirements.txt       # Daftar dependensi Python
-├── Dockerfile             # Konfigurasi container Docker
-├── docker-compose.yml     # Konfigurasi orkestrasi Docker Compose
-├── .env.example           # Contoh konfigurasi environment variables
-├── .gitignore             # File yang diabaikan oleh Git
-├── README.md              # Dokumentasi lengkap proyek
-├── data/                  # Direktori database SQLite (jesca.db)
-├── static/
-│   ├── css/
-│   │   └── style.css      # Styling kustom Bootstrap 5 & UI
-│   └── js/
-│       └── app.js         # Logika interaktif frontend
-└── templates/
-    ├── base.html          # Template induk dengan sidebar, navbar, & alerts
-    ├── login.html         # Halaman login administrator
-    ├── dashboard.html     # Halaman dashboard metrik & grafik Chart.js
-    └── assets.html        # Halaman tabel kelola aset & modal-modal CRUD
-```
+### 1. 🔐 Keamanan & Hak Akses Berbasis Peran (RBAC)
+- **4 Role Pengguna Terisolasi**:
+  - **Admin**: Akses penuh (Pengaturan sistem, backup/restore, kelola akun, approval PO).
+  - **Staff**: Pengajuan aset, pengajuan PO, peminjaman barang, dan transfer lokasi.
+  - **Auditor**: Pemeriksaan log, laporan audit periode, dan ekspor data (read-only).
+  - **Teknisi**: Workbench pemeliharaan aset (`/maintenance`), eksekusi perbaikan, dan upload bukti servis.
+- **Proteksi Brute-force & Rate Limiting**: Penguncian akun otomatis setelah percobaan login gagal berturut-turut.
+- **Sesi Otomatis**: Session timeout dengan peringatan dini sebelum sesi berakhir.
+- **Keamanan Kredensial**: Hashing password modern via Werkzeug dan deteksi password default bawaan di dashboard.
+
+### 2. ⚡ Dynamic SMTP & Pengaturan Sistem (`/settings`)
+- **Konfigurasi Email Tanpa Restart**: Pengaturan SMTP (Gmail, Outlook, Mailgun, SMTP internal kantor) dapat diubah langsung dari UI web tanpa menyentuh file server.
+- **Background Dispatcher (Asinkron)**: Pengiriman notifikasi email berjalan di latar belakang menggunakan *thread* terpisah, sehingga tidak memperlambat respon aplikasi.
+- **Uji Koneksi Instan (Live Test)**: Tombol pengujian koneksi, handshake port TLS/SSL, dan kredensial langsung ke email tujuan.
+- **Diagnostik Kesehatan Sistem**: Pemantauan kapasitas file database SQLite, jumlah baris data, dan informasi runtime (Docker vs Local).
+- **Trigger Otomatis**:
+  - Peringatan email instan saat status aset diubah menjadi **Rusak** atau **Afkir**.
+  - Notifikasi email otomatis ke Administrator saat ada pengajuan **Purchase Order Baru**.
+
+### 3. 📦 Alur Pengadaan Barang (Purchase Order Workflow)
+- **Siklus Status PO Terstruktur**: `DRAFT` &rarr; `SUBMITTED` &rarr; `APPROVED` &rarr; `ORDERED` &rarr; `RECEIVED` &rarr; `CONVERTED` / `CANCELLED`.
+- **Wajib Upload Bukti Fisik**:
+  - Upload bukti pemesanan (*Order Proof / Invoice DP*) saat status `ORDERED`.
+  - Wajib upload Surat Jalan / Bukti Terima Fisik (BAST) sebelum unit PO bisa dikonversi menjadi aset resmi.
+- **Anti-Inflasi Harga**: Parsing presisi format mata uang Rupiah (`Rp 10.200.000` &rarr; `10200000.0`).
+- **Jejak Audit PO**: Riwayat perjalanan status per PO tercatat lengkap di tabel `po_histories`.
+
+### 4. 🛠️ Pemeliharaan Aset & Teknisi Workbench (`/maintenance`)
+- Antarmuka khusus Teknisi untuk menangani antrean aset yang perlu diservis.
+- Perubahan status otomatis ke `Dalam Perbaikan` saat teknisi mulai bekerja.
+- Penyelesaian servis disertai input biaya perbaikan, tindakan servis, upload bukti nota, serta perpanjangan otomatis tanggal servis berikutnya.
+
+### 5. 🏷️ Auto-Coding & QR Code Scanner
+- **Auto-Generate Kode Real-Time**: `<Prefix>/<3-Digit Sequential Number>` (contoh: `Tech/001`, `Tools/001`, `Furn/001`, `Vehicle/001`, `Office/001`).
+- **QR Code Terintegrasi**: QR Code otomatis dibuat per aset untuk dicetak pada label fisik.
+- **Kamera Scanner**: Scan QR Code langsung melalui kamera browser laptop/smartphone via `html5-qrcode`.
+- **Halaman Scan Publik Ringkas**: `/scan/<asset_code>` untuk audit dan verifikasi cepat barang di lapangan.
+
+### 6. 📊 Nilai Buku, Depresiasi & Sirkulasi Peminjaman
+- **Metode Garis Lurus (Straight-Line Depreciation)**: Perhitungan nilai buku aset terkini secara otomatis berdasarkan masa manfaat (*useful life*) dan nilai residu.
+- **Riwayat Sirkulasi Peminjaman**: Pencatatan lengkap nama peminjam, tanggal keluar, tanggal kembali, dan durasi hari peminjaman (`asset_circulation_logs`).
+- **Alert Keterlambatan**: Notifikasi peringatan aset yang terlambat dikembalikan pada ikon lonceng navbar.
+
+### 7. 📑 Ekspor & Laporan Profesional
+- **Ekspor PDF Formal**: Landscape A4 rapi, penataan tabel presisi, warna aksen elegan pada judul tabel, tanpa emoji, dan kop resmi.
+- **Ekspor CSV Kompatibel Excel**: Encoding UTF-8 dengan BOM (`\ufeff`) dan delimiter rapi yang langsung terbagi ke kolom masing-masing di Microsoft Excel.
+- **Laporan Audit Terpisah**: Laporan berbasis rentang tanggal periode (`/reports/audit`) khusus untuk kepatuhan dan audit internal.
+
+### 8. 🎨 Multi-Tema & Desain Responsif
+- 5 Pilihan Tema Tampilan: **Light**, **Dark Mode (Midnight Slate)**, **Sakura Pink**, **Forest Green**, dan **Ocean Blue**.
+- **Avatar Profil Solid**: Huruf avatar profil dan foto pengguna tetap tajam dan kontras tinggi di semua mode tema.
+- **Foto Profil Pengguna**: Dukungan unggah foto profil mandiri maupun melalui pengelolaan akun admin.
 
 ---
 
 ## 🛠️ Cara Menjalankan Aplikasi
 
-### Cara 1: Menggunakan Docker (Direkomendasikan)
+### Cara 1: Menggunakan Docker (Sangat Direkomendasikan)
 
-Pastikan Docker dan Docker Compose sudah terpasang di sistem Anda, lalu jalankan:
+Pastikan Docker & Docker Compose sudah terpasang, lalu jalankan:
 
 ```bash
 docker compose up -d --build
 ```
 
-Buka browser dan akses:
+Buka peramban (browser) dan akses:
 ```
 http://localhost:5000
 ```
 
-Untuk menghentikan container:
+Untuk menghentikan:
 ```bash
 docker compose down
 ```
@@ -95,7 +90,8 @@ docker compose down
 1. **Buat Virtual Environment:**
    ```bash
    python3 -m venv venv
-   source venv/bin/activate
+   source venv/bin/activate  # Di Linux/macOS
+   # venv\Scripts\activate   # Di Windows
    ```
 
 2. **Pasang Dependensi:**
@@ -103,42 +99,80 @@ docker compose down
    pip install -r requirements.txt
    ```
 
-3. **Jalankan Aplikasi Flask:**
+3. **Jalankan Aplikasi:**
    ```bash
    python app.py
    ```
-   *Atau dengan Gunicorn:*
+   *Atau dengan Gunicorn di lingkungan produksi:*
    ```bash
    gunicorn --bind 0.0.0.0:5000 app:app
    ```
 
-4. **Buka Aplikasi di Browser:**
+4. **Akses Aplikasi:**
    ```
    http://localhost:5000
    ```
 
 ---
 
-## 🔑 Kredensial Login Default
+## 🔑 Kredensial Pengujian Bawaan
 
-| Parameter | Kredensial |
-|---|---|
-| **URL Login** | `http://localhost:5000/login` |
-| **Username** | `Admin` |
-| **Password** | `Admin123` |
-| **Peran** | Administrator |
+| Username | Password Default | Peran (Role) | Hak Akses |
+|---|---|---|---|
+| `Admin` | `Admin123` | **Admin** | Akses penuh (Pengaturan sistem, backup, akun, PO) |
+| `staff1` | `staff123` | **Staff** | Input aset, pinjam barang, pengajuan PO |
+| `auditor` | `audit123` | **Auditor** | Laporan audit, ekspor inventaris (read-only) |
+| `teknisi` | `teknisi123` | **Teknisi** | Pemeliharaan & servis aset (`/maintenance`) |
+
+> **Catatan Keamanan:** Segera ganti password akun Administrator setelah instalasi awal melalui menu profil di pojok kanan atas.
 
 ---
 
-## 🧪 Pengujian Fitur Auto-Coding
+## 📂 Struktur Direktori Proyek
 
-1. Masuk ke halaman **Kelola Data Aset** (`/assets`).
-2. Klik tombol **Tambah Aset Baru**.
-3. Pilih dropdown **Kategori Aset** (misal: *Tech*).
-4. Kotak input **Kode Aset** akan secara otomatis memunculkan kode berikutnya, contoh: `Tech/004`.
-5. Ubah kategori ke *Tools*, maka kode otomatis akan langsung beralih ke `Tools/004`.
-6. Simpan aset dan pastikan kode unik tersebut tersimpan di tabel dan database SQLite.
+```
+jesca-assets/
+├── app.py                     # Inti aplikasi Flask (Model, Routing, Dynamic SMTP, RBAC)
+├── requirements.txt           # Daftar dependensi Python
+├── Dockerfile                 # Konfigurasi container Docker
+├── docker-compose.yml         # Konfigurasi orkestrasi & Volume Mapping
+├── .env.example               # Contoh konfigurasi environment
+├── README.md                  # Dokumentasi resmi proyek
+├── data/                      # Direktori persisten database SQLite (jesca.db)
+├── backups/                   # Direktori arsip pencadangan database
+├── static/
+│   ├── css/
+│   │   └── style.css          # Styling kustom Bootstrap 5, palet multi-tema & animasi
+│   ├── js/
+│   │   └── app.js             # Skrip frontend, shortcut keyboard, QR scanner, tema
+│   ├── uploads/
+│   │   └── avatars/           # Foto profil pengguna
+│   └── attachments/
+│       ├── po/                # Bukti dokumen pengadaan PO (Surat Jalan/BAST/Invoice)
+│       └── maintenance/       # Bukti servis & nota reparasi teknisi
+└── templates/
+    ├── base.html              # Template induk, sidebar dinamis, navbar & modal global
+    ├── login.html             # Halaman autentikasi aman
+    ├── dashboard.html         # Dashboard analitik, valuasi, Chart.js & peringatan
+    ├── assets.html            # Manajemen inventaris, filter kategori, auto-coding & modal CRUD
+    ├── maintenance.html       # Workbench servis teknisi & log riwayat pemeliharaan
+    ├── purchase_orders.html   # Daftar manajemen Purchase Order
+    ├── purchase_order_detail.html # Detail PO, timeline persetujuan, upload bukti & konversi unit
+    ├── purchase_order_form.html   # Form pembuatan & pengeditan PO
+    ├── settings.html          # Pengaturan Dynamic SMTP & Diagnostik Sistem
+    ├── accounts.html          # Pengelolaan akun pengguna, peran & REST API key
+    ├── audit_report.html      # Laporan audit kepatuhan periode
+    ├── history.html           # Riwayat log aktivitas operasional dengan sticky header
+    ├── vendors.html           # Manajemen data rekanan & vendor supplier
+    ├── sites.html             # Manajemen cabang lokasi fisik aset
+    └── admin_backups.html     # Manajemen backup & restore database
+```
 
+---
 
+## 📄 Hak Cipta & Pengembang
 
-@Oktober 2026 - And Jessica Nova Lya Mendrofa
+Dikembangkan dengan dedikasi untuk sistem inventaris aset yang modern, transparan, dan akuntabel.
+
+&copy; 2026 **JESCA** &bull; Jessica Assets Management System  
+*Contributors: Loraxsian &amp; Jessica Nova Lya Mendrofa*
