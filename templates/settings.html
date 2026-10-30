@@ -191,8 +191,10 @@
                                     <span class="badge bg-success-subtle text-success border border-success-subtle ms-1 font-monospace" style="font-size: 0.65rem;">Tersimpan Enkripsi</span>
                                 {% endif %}
                             </label>
-                            <input type="password" class="form-control" name="mail_password" placeholder="{% if has_password %}Kosongkan jika tidak ingin mengubah{% else %}Masukkan App Password Gmail/SMTP{% endif %}">
-                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">Disimpan aman dengan cipher symmetric terenkripsi di database.</small>
+                            <input type="password" class="form-control" name="mail_password" placeholder="{% if has_password %}Kosongkan jika tidak ingin mengubah{% else %}Masukkan 16 karakter App Password{% endif %}">
+                            <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                <strong>Catatan Gmail:</strong> Gunakan 16 karakter <em>App Password</em> (bukan password login biasa). Buka <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-primary text-decoration-none fw-semibold">Google App Passwords <i class="bi bi-box-arrow-up-right"></i></a>.
+                            </small>
                         </div>
                     </div>
 

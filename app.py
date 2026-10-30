@@ -1009,7 +1009,11 @@ def send_system_email(subject: str, html_body: str, recipient_list=None):
                         server.starttls()
 
                 if decrypted_pwd:
-                    server.login(setting.mail_username, decrypted_pwd)
+                    try:
+                        server.login(setting.mail_username, decrypted_pwd)
+                    except Exception as auth_err:
+                        app.logger.error(f"SMTP Auth failed: {auth_err}")
+                        return
 
                 server.sendmail(sender_addr, targets, msg.as_string())
                 server.quit()
@@ -3401,7 +3405,13 @@ def test_smtp_connection():
                 server.starttls()
 
         if decrypted_pwd:
-            server.login(setting.mail_username, decrypted_pwd)
+            try:
+                server.login(setting.mail_username, decrypted_pwd)
+            except (smtplib.SMTPAuthenticationError, smtplib.SMTPServerDisconnected) as auth_err:
+                err_text = str(auth_err)
+                if '535' in err_text or 'BadCredentials' in err_text or isinstance(auth_err, smtplib.SMTPServerDisconnected):
+                    raise Exception("Kredensial email atau App Password salah/ditolak oleh Gmail. Pastikan Anda menggunakan 16 karakter 'App Password' (bukan password login akun biasa) dari myaccount.google.com/apppasswords.")
+                raise Exception(f"Autentikasi ditolak: {err_text}")
 
         server.sendmail(sender_addr, [test_target], msg.as_string())
         server.quit()
