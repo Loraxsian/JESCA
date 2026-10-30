@@ -368,24 +368,34 @@
                         <!-- User Profile Menu -->
                         <div class="dropdown">
                             <button class="btn btn-light border-0 d-flex align-items-center gap-2 py-1 px-2 rounded-pill dropdown-toggle shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                <div class="avatar-circle bg-primary-subtle text-primary fw-bold">
-                                    {{ current_user.username[0]|upper }}
-                                </div>
+                                {% if current_user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.profile_image) }}" alt="Avatar" class="avatar-circle object-fit-cover border shadow-sm">
+                                {% else %}
+                                    <div class="avatar-circle user-avatar-solid fw-bold">
+                                        {{ current_user.username[0]|upper }}
+                                    </div>
+                                {% endif %}
                                 <div class="text-start d-none d-lg-block">
-                                    <div class="fw-semibold lh-1" style="font-size: 0.85rem;">{{ current_user.full_name }}</div>
-                                    <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">{{ current_user.role }}</span>
+                                    <div class="fw-semibold lh-1 text-dark" style="font-size: 0.85rem;">{{ current_user.full_name }}</div>
+                                    <span class="badge role-badge-nav" style="font-size: 0.65rem;">{{ current_user.role }}</span>
                                 </div>
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 200px;">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 220px;">
                                 <li class="px-3 py-2 border-bottom">
                                     <div class="fw-bold text-dark">{{ current_user.full_name }}</div>
                                     <small class="text-muted">@{{ current_user.username }} &bull; {{ current_user.role }}</small>
                                 </li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                        <i class="bi bi-person-circle text-muted"></i>
+                                        <span>Profil &amp; Foto</span>
+                                    </a>
+                                </li>
                                 {% if current_user.role == 'Admin' %}
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('accounts') }}">
-                                        <i class="bi bi-person-badge text-muted"></i>
-                                        <span>Accounts</span>
+                                        <i class="bi bi-people text-muted"></i>
+                                        <span>Kelola Akun</span>
                                     </a>
                                 </li>
                                 {% endif %}
@@ -440,7 +450,7 @@
             <footer class="bg-white border-top py-2 px-4 text-center text-muted small">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
-                        <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System v2.0
+                        <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
@@ -488,6 +498,70 @@
                     <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
                         <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Password Baru</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL MODAL: EDIT PROFIL & FOTO
+         ========================================== -->
+    <div class="modal fade" id="editProfileModal" tabindex="-1" aria-labelledby="editProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom py-3 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-person-bounding-box fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold mb-0" id="editProfileModalLabel">Profil &amp; Foto Pengguna</h6>
+                            <small class="text-muted">Kelola nama tampilan dan foto profil akun Anda</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="modal-body p-4">
+                        <!-- Current Avatar Preview -->
+                        <div class="d-flex align-items-center gap-3 mb-4 p-3 rounded-3 bg-light border">
+                            {% if current_user.profile_image %}
+                                <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.profile_image) }}" alt="Preview" class="rounded-circle object-fit-cover border shadow-sm" style="width: 64px; height: 64px;">
+                            {% else %}
+                                <div class="user-avatar-solid rounded-circle fw-bold d-flex align-items-center justify-content-center shadow-sm" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                                    {{ current_user.username[0]|upper }}
+                                </div>
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-dark">{{ current_user.full_name }}</div>
+                                <div class="small text-muted">@{{ current_user.username }} &bull; <span class="badge bg-secondary-subtle text-secondary">{{ current_user.role }}</span></div>
+                                {% if current_user.profile_image %}
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="remove_avatar" value="1" id="removeAvatarCheck">
+                                    <label class="form-check-label small text-danger" for="removeAvatarCheck">
+                                        Hapus foto profil (gunakan inisial huruf)
+                                    </label>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="profileFullName" class="form-label small fw-bold text-secondary">Nama Lengkap</label>
+                            <input type="text" class="form-control" id="profileFullName" name="full_name" value="{{ current_user.full_name }}" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="profileAvatarFile" class="form-label small fw-bold text-secondary">Unggah Foto Baru</label>
+                            <input type="file" class="form-control" id="profileAvatarFile" name="avatar_file" accept="image/png, image/jpeg, image/webp">
+                            <small class="text-muted d-block mt-1">Format didukung: PNG, JPG, WEBP. Maksimal 5 MB.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                        <button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Profil</button>
                     </div>
                 </form>
             </div>

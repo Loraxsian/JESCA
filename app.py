@@ -53,6 +53,7 @@ app = Flask(__name__)
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 DATA_DIR = os.path.join(BASE_DIR, 'data')
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads')
+AVATAR_FOLDER = os.path.join(BASE_DIR, 'static', 'uploads', 'avatars')
 ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments')
 PO_ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments', 'po')
 MAINT_ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments', 'maintenance')
@@ -61,6 +62,7 @@ QRCODE_FOLDER = os.path.join(BASE_DIR, 'static', 'qrcodes')
 
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+os.makedirs(AVATAR_FOLDER, exist_ok=True)
 os.makedirs(ATTACHMENT_FOLDER, exist_ok=True)
 os.makedirs(PO_ATTACHMENT_FOLDER, exist_ok=True)
 os.makedirs(MAINT_ATTACHMENT_FOLDER, exist_ok=True)
@@ -185,6 +187,7 @@ class User(UserMixin, db.Model):
     password_hash = db.Column(db.String(255), nullable=False)
     full_name = db.Column(db.String(120), default='Administrator')
     role = db.Column(db.String(30), default='Admin')  # Admin, Staff, Auditor, Teknisi
+    profile_image = db.Column(db.String(255), nullable=True)
     is_active = db.Column(db.Boolean, default=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     # v2: security fields
@@ -839,6 +842,31 @@ def save_maint_attachment(file_storage):
     return None
 
 
+def save_avatar_file(file_storage):
+    """Securely save user profile image and return filename."""
+    if not file_storage or not file_storage.filename:
+        return None
+    if allowed_file(file_storage.filename):
+        ext = file_storage.filename.rsplit('.', 1)[1].lower()
+        clean_name = secure_filename(file_storage.filename.rsplit('.', 1)[0])[:25]
+        unique_name = f"avatar_{int(datetime.utcnow().timestamp())}_{clean_name}_{uuid.uuid4().hex[:6]}.{ext}"
+        filepath = os.path.join(AVATAR_FOLDER, unique_name)
+        file_storage.save(filepath)
+        return unique_name
+    return None
+
+
+def delete_avatar_file(filename):
+    """Delete avatar image file if exists."""
+    if filename:
+        try:
+            path = os.path.join(AVATAR_FOLDER, filename)
+            if os.path.exists(path):
+                os.remove(path)
+        except Exception as e:
+            app.logger.error(f"Error removing avatar file: {e}")
+
+
 def parse_currency(val):
     """
     Safely converts string or number to float without thousand separator inflation.
@@ -1063,6 +1091,7 @@ def check_and_update_schema():
             res_u = conn.execute(db.text("PRAGMA table_info(users)"))
             cols_u = [row[1] for row in res_u.fetchall()]
             user_additions = [
+                ('profile_image', 'VARCHAR(255)'),
                 ('is_active', 'BOOLEAN DEFAULT 1'),
                 ('force_password_change', 'BOOLEAN DEFAULT 0'),
                 ('api_key', 'VARCHAR(64)'),
@@ -1245,6 +1274,36 @@ def change_password():
     db.session.commit()
     log_activity('GANTI_PASSWORD', details=f"Pengguna {current_user.username} memperbarui password akunnya.")
     flash('Password Anda berhasil diperbarui!', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
+
+
+@app.route('/profile/update', methods=['POST'])
+@login_required
+def update_profile():
+    """Update profile full name and photo for current user."""
+    full_name = request.form.get('full_name', '').strip()
+    remove_avatar = request.form.get('remove_avatar') == '1'
+    avatar_file = request.files.get('avatar_file')
+
+    if full_name:
+        current_user.full_name = full_name
+
+    if remove_avatar and current_user.profile_image:
+        delete_avatar_file(current_user.profile_image)
+        current_user.profile_image = None
+
+    if avatar_file and avatar_file.filename != '':
+        saved_name = save_avatar_file(avatar_file)
+        if saved_name:
+            if current_user.profile_image:
+                delete_avatar_file(current_user.profile_image)
+            current_user.profile_image = saved_name
+        else:
+            flash('Format foto profil tidak didukung (gunakan JPG, PNG, atau WEBP).', 'warning')
+
+    db.session.commit()
+    log_activity('EDIT_PROFILE', details=f"Pengguna {current_user.username} memperbarui profil dan foto.")
+    flash('Profil Anda berhasil diperbarui!', 'success')
     return redirect(request.referrer or url_for('dashboard'))
 
 
@@ -2299,16 +2358,16 @@ def export_assets_pdf():
     styles = getSampleStyleSheet()
     elements = []
 
-    title_text = "LAPORAN INVENTARIS ASET PERUSAHAAN"
-    sub_text = f"Jessica Assets Management System (JESCA v2.0) | Tanggal Cetak: {datetime.now().strftime('%d %B %Y %H:%M')} | Dicetak oleh: {current_user.full_name}"
+    title_text = "LAPORAN INVENTARIS ASET"
+    sub_text = f"JESCA &bull; Jessica Assets Management System | Tanggal Cetak: {datetime.now().strftime('%d %B %Y %H:%M')} | Dicetak oleh: {current_user.full_name}"
 
-    elements.append(Paragraph(f"<b><font size=14 color='#1e293b'>{title_text}</font></b>", styles['Normal']))
+    elements.append(Paragraph(f"<b><font size=15 color='#0f172a'>{title_text}</font></b>", styles['Normal']))
     elements.append(Spacer(1, 4))
-    elements.append(Paragraph(f"<font size=8 color='#64748b'>{sub_text}</font>", styles['Normal']))
+    elements.append(Paragraph(f"<font size=8.5 color='#475569'>{sub_text}</font>", styles['Normal']))
     elements.append(Spacer(1, 14))
 
     table_data = [
-        ['No', 'Kode Aset', 'Nama Aset', 'Kategori', 'Lokasi', 'Status', 'Nilai Perolehan', 'Nilai Buku', 'Maintenance']
+        ['No', 'Kode Aset', 'Nama Aset', 'Kategori', 'Lokasi', 'Status', 'Nilai Perolehan', 'Nilai Buku', 'Jadwal Servis']
     ]
 
     for idx, a in enumerate(assets_list, 1):
@@ -2316,7 +2375,7 @@ def export_assets_pdf():
         table_data.append([
             str(idx),
             a.asset_code,
-            a.name[:30],
+            a.name[:32],
             a.category,
             a.location[:18],
             a.status,
@@ -2325,9 +2384,10 @@ def export_assets_pdf():
             maint_str
         ])
 
-    pdf_table = Table(table_data, repeatRows=1)
+    col_widths = [26, 85, 175, 75, 95, 75, 105, 105, 75]
+    pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
     pdf_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), rl_colors.HexColor('#4361ee')),
+        ('BACKGROUND', (0, 0), (-1, 0), rl_colors.HexColor('#1e293b')),
         ('TEXTCOLOR', (0, 0), (-1, 0), rl_colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 8),
@@ -2335,11 +2395,14 @@ def export_assets_pdf():
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [rl_colors.white, rl_colors.HexColor('#f8fafc')]),
         ('GRID', (0, 0), (-1, -1), 0.5, rl_colors.HexColor('#cbd5e1')),
         ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-        ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-        ('ALIGN', (6, 1), (7, -1), 'RIGHT'),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('ALIGN', (2, 0), (4, -1), 'LEFT'),
+        ('ALIGN', (5, 0), (5, -1), 'CENTER'),
+        ('ALIGN', (6, 0), (7, -1), 'RIGHT'),
+        ('ALIGN', (8, 0), (8, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('TOPPADDING', (0, 0), (-1, -1), 4.5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4.5),
     ]))
     elements.append(pdf_table)
 
@@ -2769,22 +2832,22 @@ def export_assets_csv():
     writer = csv.writer(output, delimiter=';')
 
     writer.writerow([
-        'ID', 'Kode Aset', 'Nama Aset', 'Kategori', 'Lokasi',
+        'No', 'Kode Aset', 'Nama Aset', 'Kategori', 'Lokasi',
         'Tanggal Perolehan', 'Nilai Perolehan (IDR)', 'Nilai Buku (IDR)', 'Status',
-        'Peminjam', 'Vendor', 'Site', 'Garansi Mulai', 'Garansi Selesai',
-        'Perlu Maintenance', 'Interval (Hari)', 'Jadwal Maintenance', 'Deskripsi'
+        'Peminjam', 'Vendor / Supplier', 'Lokasi Cabang (Site)', 'Mulai Garansi', 'Akhir Garansi',
+        'Perlu Servis Rutin', 'Interval (Hari)', 'Jadwal Servis Berikutnya', 'Keterangan'
     ])
 
-    for a in assets_all:
+    for idx, a in enumerate(assets_all, 1):
         writer.writerow([
-            a.id,
+            idx,
             a.asset_code,
             a.name,
             a.category,
             a.location,
-            a.purchase_date.strftime('%Y-%m-%d') if a.purchase_date else '',
-            f"{a.purchase_price:.2f}",
-            f"{a.current_book_value:.2f}",
+            a.purchase_date.strftime('%Y-%m-%d') if a.purchase_date else '-',
+            f"{int(round(a.purchase_price or 0))}",
+            f"{int(round(a.current_book_value or 0))}",
             a.status,
             a.borrower or '-',
             a.vendor.name if a.vendor else '-',
@@ -2794,7 +2857,7 @@ def export_assets_csv():
             'Ya' if a.needs_maintenance else 'Tidak',
             a.maintenance_interval_days or '-',
             a.next_maintenance_date.strftime('%Y-%m-%d') if a.next_maintenance_date else '-',
-            (a.description or '').replace('\n', ' ')
+            (a.description or '').replace('\r', '').replace('\n', ' ').strip() or '-'
         ])
 
     log_activity('EXPORT_CSV', details=f"Ekspor CSV {len(assets_all)} data inventaris aset.")
@@ -3118,6 +3181,20 @@ def edit_account(user_id):
     target_user.full_name = full_name or target_user.username
     target_user.role = role
     target_user.is_active = is_active
+
+    remove_avatar = request.form.get('remove_avatar') == '1'
+    if remove_avatar and target_user.profile_image:
+        delete_avatar_file(target_user.profile_image)
+        target_user.profile_image = None
+
+    avatar_file = request.files.get('avatar_file')
+    if avatar_file and avatar_file.filename != '':
+        saved_name = save_avatar_file(avatar_file)
+        if saved_name:
+            if target_user.profile_image:
+                delete_avatar_file(target_user.profile_image)
+            target_user.profile_image = saved_name
+
     db.session.commit()
 
     log_activity(
@@ -3833,20 +3910,21 @@ def export_purchase_orders_csv():
     output.write('\ufeff')
     writer = csv.writer(output, delimiter=';')
     writer.writerow([
-        'Nomor PO', 'Judul Pengadaan', 'Status', 'Pemohon', 'Disetujui Oleh',
-        'Vendor', 'Estimasi Total (IDR)', 'Jumlah Item', 'Tanggal Pengajuan',
+        'No', 'Nomor PO', 'Judul Pengadaan', 'Status', 'Pemohon', 'Disetujui Oleh',
+        'Vendor / Rekanan', 'Estimasi Nilai Total (IDR)', 'Jumlah Item', 'Tanggal Pengajuan',
         'Tanggal Disetujui', 'Tanggal Dipesan', 'Tanggal Diterima', 'Tanggal Selesai'
     ])
 
-    for o in orders:
+    for idx, o in enumerate(orders, 1):
         writer.writerow([
+            idx,
             o.po_number,
             o.title,
             o.status,
             o.requested_by,
             o.approved_by or '-',
             o.vendor.name if o.vendor else '-',
-            f"{o.estimated_total:.2f}",
+            f"{int(round(o.estimated_total or 0))}",
             o.total_items_quantity,
             o.created_at.strftime('%Y-%m-%d %H:%M') if o.created_at else '-',
             o.approved_at.strftime('%Y-%m-%d %H:%M') if o.approved_at else '-',
@@ -3891,12 +3969,12 @@ def export_purchase_orders_pdf():
     styles = getSampleStyleSheet()
     elements = []
 
-    title_text = "REKAPITULASI PURCHASE ORDER (PENGADAAN ASET)"
-    sub_text = f"Jessica Assets Management System (JESCA v2.0) | Tanggal Cetak: {datetime.now().strftime('%d %B %Y %H:%M')} | Dicetak oleh: {current_user.full_name}"
+    title_text = "REKAPITULASI PURCHASE ORDER"
+    sub_text = f"JESCA &bull; Jessica Assets Management System | Tanggal Cetak: {datetime.now().strftime('%d %B %Y %H:%M')} | Dicetak oleh: {current_user.full_name}"
 
-    elements.append(Paragraph(f"<b><font size=14 color='#1e293b'>{title_text}</font></b>", styles['Normal']))
+    elements.append(Paragraph(f"<b><font size=15 color='#0f172a'>{title_text}</font></b>", styles['Normal']))
     elements.append(Spacer(1, 4))
-    elements.append(Paragraph(f"<font size=8 color='#64748b'>{sub_text}</font>", styles['Normal']))
+    elements.append(Paragraph(f"<font size=8.5 color='#475569'>{sub_text}</font>", styles['Normal']))
     elements.append(Spacer(1, 14))
 
     table_data = [
@@ -3907,18 +3985,19 @@ def export_purchase_orders_pdf():
         table_data.append([
             str(idx),
             o.po_number,
-            o.title[:30],
+            o.title[:32],
             o.requested_by,
-            (o.vendor.name if o.vendor else '-')[:20],
+            (o.vendor.name if o.vendor else '-')[:22],
             o.status,
             str(o.total_items_quantity),
             f"Rp {o.estimated_total:,.0f}".replace(',', '.'),
             o.created_at.strftime('%d/%m/%Y') if o.created_at else '-'
         ])
 
-    pdf_table = Table(table_data, repeatRows=1)
+    col_widths = [26, 95, 175, 75, 115, 75, 60, 95, 75]
+    pdf_table = Table(table_data, colWidths=col_widths, repeatRows=1)
     pdf_table.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), rl_colors.HexColor('#0284c7')),
+        ('BACKGROUND', (0, 0), (-1, 0), rl_colors.HexColor('#1e293b')),
         ('TEXTCOLOR', (0, 0), (-1, 0), rl_colors.white),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
         ('FONTSIZE', (0, 0), (-1, 0), 8),
@@ -3926,11 +4005,14 @@ def export_purchase_orders_pdf():
         ('ROWBACKGROUNDS', (0, 1), (-1, -1), [rl_colors.white, rl_colors.HexColor('#f8fafc')]),
         ('GRID', (0, 0), (-1, -1), 0.5, rl_colors.HexColor('#cbd5e1')),
         ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-        ('ALIGN', (1, 0), (-1, -1), 'LEFT'),
-        ('ALIGN', (6, 1), (7, -1), 'RIGHT'),
+        ('ALIGN', (1, 0), (1, -1), 'CENTER'),
+        ('ALIGN', (2, 0), (4, -1), 'LEFT'),
+        ('ALIGN', (5, 0), (5, -1), 'CENTER'),
+        ('ALIGN', (6, 0), (7, -1), 'RIGHT'),
+        ('ALIGN', (8, 0), (8, -1), 'CENTER'),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
-        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4.5),
+        ('TOPPADDING', (0, 0), (-1, -1), 4.5),
     ]))
     elements.append(pdf_table)
 

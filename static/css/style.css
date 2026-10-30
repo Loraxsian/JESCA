@@ -356,6 +356,7 @@ footer {
     align-items: center;
     justify-content: center;
     font-size: 0.88rem;
+    flex-shrink: 0;
 }
 
 .avatar-circle-sm {
@@ -366,6 +367,45 @@ footer {
     align-items: center;
     justify-content: center;
     font-size: 0.78rem;
+    flex-shrink: 0;
+}
+
+/* Solid high-contrast user avatar that stays crisp in ALL themes */
+.user-avatar-solid {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+}
+
+.role-badge-nav {
+    background-color: var(--primary-subtle) !important;
+    color: var(--primary-color) !important;
+    border: 1px solid var(--border-color) !important;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .role-badge-nav {
+    background-color: rgba(59, 130, 246, 0.25) !important;
+    color: #93c5fd !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+[data-theme="pink"] .user-avatar-solid {
+    background: linear-gradient(135deg, #ec4899 0%, #be185d 100%) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="forest"] .user-avatar-solid {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%) !important;
+    color: #ffffff !important;
+}
+
+[data-theme="ocean"] .user-avatar-solid {
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%) !important;
+    color: #ffffff !important;
 }
 
 /* Login Page Styling */

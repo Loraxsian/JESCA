@@ -40,9 +40,13 @@
                         <!-- Avatar & Full Name -->
                         <td class="ps-4">
                             <div class="d-flex align-items-center gap-2">
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                    {{ user.username[0]|upper }}
-                                </div>
+                                {% if user.profile_image %}
+                                    <img src="{{ url_for('static', filename='uploads/avatars/' + user.profile_image) }}" alt="Avatar" class="rounded-circle object-fit-cover border shadow-sm" style="width: 36px; height: 36px;">
+                                {% else %}
+                                    <div class="user-avatar-solid rounded-circle fw-bold d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; font-size: 0.95rem;">
+                                        {{ user.username[0]|upper }}
+                                    </div>
+                                {% endif %}
                                 <div>
                                     <div class="fw-semibold text-dark">{{ user.full_name }}</div>
                                     {% if user.id == current_user.id %}
@@ -182,7 +186,8 @@
                 <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Data Akun</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="" id="editAccountForm">
+            <form method="POST" action="" id="editAccountForm" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Username</label>
@@ -200,9 +205,18 @@
                             {% endfor %}
                         </select>
                     </div>
-                    <div class="form-check form-switch">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Foto Profil (Opsional)</label>
+                        <input type="file" class="form-control" name="avatar_file" accept="image/png, image/jpeg, image/webp">
+                        <small class="text-muted" style="font-size: 0.72rem;">Unggah gambar baru untuk mengganti foto pengguna.</small>
+                    </div>
+                    <div class="form-check form-switch mb-2">
                         <input class="form-check-input" type="checkbox" name="is_active" id="editAccountIsActive" value="1">
                         <label class="form-check-label small fw-semibold" for="editAccountIsActive">Akun Aktif</label>
+                    </div>
+                    <div class="form-check mb-0">
+                        <input class="form-check-input" type="checkbox" name="remove_avatar" id="editAccountRemoveAvatar" value="1">
+                        <label class="form-check-label small text-danger" for="editAccountRemoveAvatar">Hapus foto profil pengguna (gunakan avatar inisial)</label>
                     </div>
                 </div>
                 <div class="modal-footer border-top px-4 py-3">
@@ -275,6 +289,8 @@
         document.getElementById('editAccountFullName').value = fullName;
         document.getElementById('editAccountRole').value = role;
         document.getElementById('editAccountIsActive').checked = isActive;
+        const rmCheck = document.getElementById('editAccountRemoveAvatar');
+        if (rmCheck) rmCheck.checked = false;
         bootstrap.Modal.getOrCreateInstance(document.getElementById('editAccountModal')).show();
     }
 
