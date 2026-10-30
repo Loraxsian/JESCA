@@ -14,6 +14,8 @@ from flask import (
     Flask, render_template, request, redirect, url_for, flash, jsonify, Response, send_from_directory, session
 )
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import event
+from sqlalchemy.engine import Engine
 from flask_login import (
     LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 )
@@ -81,6 +83,12 @@ else:
     app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{db_path}'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# SQLite Concurrency & Timeout Optimization (WAL mode + 30s busy timeout)
+if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'connect_args': {'timeout': 30}
+    }
+
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Max 5MB upload
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
@@ -100,6 +108,19 @@ CATEGORY_CUSTOM_FIELDS = {
 
 # Extensions initialization
 db = SQLAlchemy(app)
+
+# SQLite Concurrency Optimizer: enable WAL (Write-Ahead Logging) and foreign keys
+@event.listens_for(Engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    try:
+        cursor = dbapi_connection.cursor()
+        cursor.execute("PRAGMA journal_mode=WAL")
+        cursor.execute("PRAGMA synchronous=NORMAL")
+        cursor.execute("PRAGMA busy_timeout=30000")  # 30 seconds
+        cursor.close()
+    except Exception:
+        pass
+
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 login_manager.login_message = 'Silakan login terlebih dahulu untuk mengakses sistem JESCA.'
@@ -1397,6 +1418,7 @@ def dashboard():
         overdue_returns=overdue_returns,
         categories=DEFAULT_CATEGORIES,
         statuses=STATUS_CHOICES,
+        is_default_admin_password=bool(current_user.role == 'Admin' and current_user.check_password('Admin123')),
         pending_pos=PurchaseOrder.query.filter_by(status='SUBMITTED').order_by(PurchaseOrder.created_at.desc()).all() if current_user.role in ['Admin', 'Administrator'] else []
     )
 

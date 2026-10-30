@@ -11,6 +11,30 @@
 {% block content %}
 <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
 
+<!-- Alert: Default Admin Password Warning (Security Best Practice) -->
+{% if is_default_admin_password %}
+<div class="row g-2 mb-2">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); border-left: 5px solid #f59e0b !important;">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning text-dark rounded-circle d-flex align-items-center justify-content-center shadow-sm fw-bold" style="width: 40px; height: 40px; flex-shrink: 0;">
+                        <i class="bi bi-shield-exclamation fs-5"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark small">Peringatan Keamanan: Password Administrator Bawaan Masih Aktif</div>
+                        <small class="text-secondary">Akun Administrator masih menggunakan password default (<code>Admin123</code>). Segera ubah password untuk melindungi sistem inventaris Anda.</small>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold flex-shrink-0 shadow-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <i class="bi bi-key-fill me-1"></i>Ganti Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <!-- Alert: Maintenance & Overdue Returns & Underutilization & Pending POs -->
 {% if overdue_returns or maintenance_alerts or underutilized or (pending_pos and pending_pos|length > 0) %}
 <div class="row g-2 mb-2">
