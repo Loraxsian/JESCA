@@ -218,7 +218,11 @@
                                 <i class="bi bi-paperclip"></i>
                             </button>
                             <!-- Circulation History -->
-                            <button type="button" class="btn btn-outline-secondary" onclick="openCirculationModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name|replace(\"'\", \"\\\\'\") }}')" title="Riwayat Peminjaman">
+                            <button type="button" class="btn btn-outline-secondary btn-circulation-history" 
+                                data-id="{{ a.id }}" 
+                                data-code="{{ a.asset_code }}" 
+                                data-name="{{ a.name }}" 
+                                title="Riwayat Peminjaman">
                                 <i class="bi bi-clock-history"></i>
                             </button>
                             <!-- Transfer -->
@@ -1072,6 +1076,12 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         updateCustomFields('add', document.getElementById('addCategorySelect').value);
+
+        document.querySelectorAll('.btn-circulation-history').forEach(btn => {
+            btn.addEventListener('click', function() {
+                openCirculationModal(this.dataset.id, this.dataset.code, this.dataset.name);
+            });
+        });
     });
 
     function openCirculationModal(id, code, name) {
