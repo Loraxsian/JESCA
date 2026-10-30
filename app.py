@@ -10,6 +10,7 @@ import smtplib
 import threading
 import base64
 import hashlib
+import ipaddress
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
@@ -51,6 +52,12 @@ try:
     HAVE_SCHEDULER = True
 except ImportError:
     HAVE_SCHEDULER = False
+
+# ==========================================
+# Application Version
+# ==========================================
+APP_VERSION = '2.3.0'
+GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
 # Application Configuration
@@ -172,6 +179,11 @@ class SystemSetting(db.Model):
     mail_password = db.Column(db.String(255), nullable=True)
     mail_sender_name = db.Column(db.String(100), default='JESCA Notification')
     mail_target_admins = db.Column(db.Text, nullable=True)  # Comma separated
+    # v2.3: Network & Custom Domain Protections
+    app_base_url = db.Column(db.String(255), default='http://localhost:5000')
+    enforce_https = db.Column(db.Boolean, default=False)
+    ip_whitelist_enabled = db.Column(db.Boolean, default=False)
+    allowed_ip_ranges = db.Column(db.Text, nullable=True)  # Comma separated IPs or CIDR
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     @classmethod
@@ -186,7 +198,10 @@ class SystemSetting(db.Model):
                 mail_port=587,
                 mail_use_tls=True,
                 mail_use_ssl=False,
-                mail_sender_name='JESCA Notification'
+                mail_sender_name='JESCA Notification',
+                app_base_url='http://localhost:5000',
+                enforce_https=False,
+                ip_whitelist_enabled=False
             )
             db.session.add(setting)
             db.session.commit()
@@ -1292,12 +1307,91 @@ def check_and_update_schema():
                 if col_name not in cols_po:
                     conn.execute(db.text(f"ALTER TABLE purchase_orders ADD COLUMN {col_name} {col_type}"))
 
+            # Check system_settings columns
+            res_ss = conn.execute(db.text("PRAGMA table_info(system_settings)"))
+            cols_ss = [row[1] for row in res_ss.fetchall()]
+            ss_additions = [
+                ('app_base_url', "VARCHAR(255) DEFAULT 'http://localhost:5000'"),
+                ('enforce_https', 'BOOLEAN DEFAULT 0'),
+                ('ip_whitelist_enabled', 'BOOLEAN DEFAULT 0'),
+                ('allowed_ip_ranges', 'TEXT')
+            ]
+            for col_name, col_type in ss_additions:
+                if col_name not in cols_ss:
+                    conn.execute(db.text(f"ALTER TABLE system_settings ADD COLUMN {col_name} {col_type}"))
+
             conn.commit()
 
         # Create any newly defined tables
         db.create_all()
     except Exception as e:
         app.logger.warning(f"Schema update notice: {e}")
+
+
+# ==========================================
+# Helpers: Network & IP Protection
+# ==========================================
+def get_client_ip():
+    """Extract real client IP taking proxies/load balancers into account."""
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+    if request.headers.get('X-Real-IP'):
+        return request.headers.get('X-Real-IP').strip()
+    return request.remote_addr or '127.0.0.1'
+
+
+def is_ip_allowed(client_ip_str: str, allowed_rules_str: str) -> bool:
+    """Check if client IP matches allowed list (single IPs or CIDR subnets)."""
+    if not allowed_rules_str:
+        return True
+    try:
+        client_ip = ipaddress.ip_address(client_ip_str)
+    except ValueError:
+        return False
+
+    for rule in allowed_rules_str.split(','):
+        rule = rule.strip()
+        if not rule:
+            continue
+        try:
+            if '/' in rule:
+                network = ipaddress.ip_network(rule, strict=False)
+                if client_ip in network:
+                    return True
+            else:
+                target_ip = ipaddress.ip_address(rule)
+                if client_ip == target_ip:
+                    return True
+        except ValueError:
+            continue
+    return False
+
+
+# ==========================================
+# Middleware: Security, IP Whitelist & HTTPS
+# ==========================================
+@app.before_request
+def enforce_network_and_security():
+    # 1. Enforce HTTPS if configured
+    try:
+        setting = SystemSetting.query.get(1)
+    except Exception:
+        setting = None
+
+    if setting and setting.enforce_https:
+        if request.headers.get('X-Forwarded-Proto', request.scheme) == 'http':
+            https_url = request.url.replace('http://', 'https://', 1)
+            return redirect(https_url, code=301)
+
+    # 2. IP Whitelisting / VPN Restriction Check
+    if setting and setting.ip_whitelist_enabled and setting.allowed_ip_ranges:
+        exempt_endpoints = {'static', 'health', 'scan_asset_summary'}
+        if request.endpoint and request.endpoint not in exempt_endpoints:
+            client_ip = get_client_ip()
+            # Always permit localhost/loopback
+            if client_ip not in ['127.0.0.1', '::1']:
+                if not is_ip_allowed(client_ip, setting.allowed_ip_ranges):
+                    return render_template('403_network.html', client_ip=client_ip), 403
 
 
 # ==========================================
@@ -2959,7 +3053,11 @@ def api_asset_qrcode(asset_id):
     if not asset:
         return jsonify({'error': 'Not found'}), 404
 
-    scan_url = url_for('scan_asset_summary', asset_code=asset.asset_code, _external=True)
+    setting = SystemSetting.query.get(1)
+    if setting and setting.app_base_url:
+        scan_url = f"{setting.app_base_url.rstrip('/')}{url_for('scan_asset_summary', asset_code=asset.asset_code)}"
+    else:
+        scan_url = url_for('scan_asset_summary', asset_code=asset.asset_code, _external=True)
 
     if HAVE_QRCODE:
         qr = qrcode.QRCode(
@@ -3299,12 +3397,20 @@ def system_settings():
         setting.mail_sender_name = mail_sender_name or 'JESCA Notification'
         setting.mail_target_admins = mail_target_admins
 
+        # Network & Domain settings
+        app_base_url = request.form.get('app_base_url', '').strip()
+        if app_base_url:
+            setting.app_base_url = app_base_url.rstrip('/')
+        setting.enforce_https = (request.form.get('enforce_https') == '1')
+        setting.ip_whitelist_enabled = (request.form.get('ip_whitelist_enabled') == '1')
+        setting.allowed_ip_ranges = request.form.get('allowed_ip_ranges', '').strip()
+
         if mail_password_input:
             setting.mail_password = encrypt_smtp_password(mail_password_input)
 
         db.session.commit()
-        log_activity('EDIT_SETTINGS', details=f"Pengaturan sistem & SMTP diperbarui oleh {current_user.username}. Status Email: {'Aktif' if mail_enabled else 'Nonaktif'}.")
-        flash('Pengaturan sistem dan SMTP berhasil disimpan!', 'success')
+        log_activity('EDIT_SETTINGS', details=f"Pengaturan sistem diperbarui oleh {current_user.username}. SMTP: {'Aktif' if mail_enabled else 'Nonaktif'}, Whitelist: {'Aktif' if setting.ip_whitelist_enabled else 'Nonaktif'}.")
+        flash('Pengaturan sistem, jaringan, dan SMTP berhasil disimpan!', 'success')
         return redirect(url_for('system_settings'))
 
     # Calculate system diagnostic metrics
@@ -3328,6 +3434,7 @@ def system_settings():
         'platform': platform.platform(),
         'is_docker': os.path.exists('/.dockerenv'),
         'db_size': db_size_str,
+        'client_ip': get_client_ip(),
         'counts': {
             'assets': total_assets,
             'users': total_users,
@@ -3341,7 +3448,9 @@ def system_settings():
         'settings.html',
         setting=setting,
         has_password=bool(setting.mail_password),
-        runtime=runtime_info
+        runtime=runtime_info,
+        app_version=APP_VERSION,
+        github_repo=GITHUB_REPO
     )
 
 
@@ -3423,6 +3532,171 @@ def test_smtp_connection():
         flash(f'Koneksi SMTP gagal: {str(e)}', 'danger')
 
     return redirect(url_for('system_settings'))
+
+
+# ==========================================
+# Routes: System Update Checker & Safe Updater
+# ==========================================
+@app.route('/api/system/check-update')
+@login_required
+@role_required('Admin')
+def api_check_update():
+    """
+    Check GitHub Releases API for the latest version.
+    Returns JSON with comparison against APP_VERSION.
+    Runs in a try-except so any network error returns gracefully.
+    """
+    import urllib.request
+    import json as _json
+    try:
+        api_url = f'https://api.github.com/repos/{GITHUB_REPO}/releases/latest'
+        req = urllib.request.Request(
+            api_url,
+            headers={
+                'User-Agent': f'JESCA-UpdateChecker/{APP_VERSION}',
+                'Accept': 'application/vnd.github+json'
+            }
+        )
+        with urllib.request.urlopen(req, timeout=8) as response:
+            data = _json.loads(response.read().decode())
+
+        latest_tag = data.get('tag_name', '').lstrip('v')
+        release_name = data.get('name', latest_tag)
+        release_body = data.get('body', '')
+        release_url = data.get('html_url', f'https://github.com/{GITHUB_REPO}/releases')
+        published_at = data.get('published_at', '')
+
+        # Simple semver comparison: split by . and compare numerically
+        def semver_tuple(v):
+            try:
+                parts = v.lstrip('v').split('.')
+                return tuple(int(x) for x in parts[:3])
+            except Exception:
+                return (0, 0, 0)
+
+        current_tuple = semver_tuple(APP_VERSION)
+        latest_tuple = semver_tuple(latest_tag)
+        update_available = latest_tuple > current_tuple
+
+        return jsonify({
+            'status': 'ok',
+            'current_version': APP_VERSION,
+            'latest_version': latest_tag,
+            'release_name': release_name,
+            'release_notes': release_body[:500] if release_body else '',
+            'release_url': release_url,
+            'published_at': published_at,
+            'update_available': update_available
+        })
+
+    except urllib.error.URLError as e:
+        return jsonify({'status': 'error', 'message': f'Tidak dapat terhubung ke GitHub: {str(e)}', 'update_available': False}), 503
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': str(e), 'update_available': False}), 500
+
+
+@app.route('/system/update', methods=['POST'])
+@login_required
+@role_required('Admin')
+def system_self_update():
+    """
+    Safe self-update route:
+    1. git pull origin main
+    2. pip install -r requirements.txt --quiet
+    3. Signal Gunicorn master to graceful reload (kill -HUP $GUNICORN_PID)
+       OR touch a restart trigger file if running under Docker compose restart policy.
+    All output is captured and returned to the UI.
+    Runs ONLY if the JESCA deployment is a git repo (/.git exists OR ../jesca-assets/.git exists).
+    """
+    import subprocess
+
+    base = os.path.abspath(os.path.dirname(__file__))
+    git_dir = os.path.join(base, '.git')
+
+    if not os.path.exists(git_dir):
+        return jsonify({
+            'status': 'error',
+            'message': 'Direktori .git tidak ditemukan. Update otomatis hanya bekerja pada instalasi Git clone. Silakan update manual melalui: git pull && pip install -r requirements.txt'
+        }), 400
+
+    log_lines = []
+
+    def run_cmd(cmd, cwd=None):
+        result = subprocess.run(
+            cmd, capture_output=True, text=True,
+            cwd=cwd or base, timeout=120
+        )
+        stdout = result.stdout.strip()
+        stderr = result.stderr.strip()
+        if stdout:
+            log_lines.append(stdout)
+        if stderr:
+            log_lines.append(f'[stderr] {stderr}')
+        return result.returncode
+
+    try:
+        log_lines.append('🔄 Memulai proses update JESCA...')
+
+        # Step 1: git pull
+        log_lines.append('📦 [1/3] Menarik perubahan terbaru dari GitHub...')
+        rc = run_cmd(['git', 'pull', 'origin', 'main'])
+        if rc != 0:
+            return jsonify({'status': 'error', 'message': 'git pull gagal.', 'log': '\n'.join(log_lines)}), 500
+
+        # Step 2: pip install requirements
+        log_lines.append('📦 [2/3] Memperbarui dependensi Python...')
+        rc = run_cmd(['pip', 'install', '-r', os.path.join(base, 'requirements.txt'), '--quiet', '--no-cache-dir'])
+        if rc != 0:
+            log_lines.append('[WARNING] pip install ada warning, lanjutkan restart...')
+
+        # Step 3: Graceful restart
+        log_lines.append('♻️ [3/3] Mengirim sinyal graceful reload ke Gunicorn...')
+        restarted = False
+
+        # Try gunicorn HUP signal via PID file
+        gunicorn_pid_file = '/tmp/gunicorn.pid'
+        if os.path.exists(gunicorn_pid_file):
+            try:
+                with open(gunicorn_pid_file) as f:
+                    pid = int(f.read().strip())
+                os.kill(pid, 1)  # SIGHUP = 1
+                log_lines.append(f'✅ SIGHUP terkirim ke Gunicorn PID {pid}.')
+                restarted = True
+            except Exception as e:
+                log_lines.append(f'[WARNING] Gagal mengirim SIGHUP: {e}')
+
+        # Fallback: find gunicorn master process
+        if not restarted:
+            try:
+                result = subprocess.run(
+                    ['pgrep', '-f', 'gunicorn.*app:app'],
+                    capture_output=True, text=True, timeout=5
+                )
+                pids = result.stdout.strip().split('\n')
+                master_pid = int(pids[0]) if pids and pids[0] else None
+                if master_pid:
+                    os.kill(master_pid, 1)  # SIGHUP
+                    log_lines.append(f'✅ SIGHUP terkirim ke Gunicorn master PID {master_pid}.')
+                    restarted = True
+            except Exception as e:
+                log_lines.append(f'[WARNING] Tidak bisa menemukan proses Gunicorn: {e}')
+
+        # Fallback: touch uwsgi/gunicorn reload trigger if running in Docker
+        if not restarted:
+            trigger = os.path.join(base, '.reload_trigger')
+            with open(trigger, 'w') as f:
+                f.write(datetime.utcnow().isoformat())
+            log_lines.append(f'ℹ️ File trigger restart dibuat: {trigger}. Container akan auto-reload jika dikonfigurasi.')
+
+        log_activity('SYSTEM_UPDATE', details=f'Update otomatis JESCA berhasil dijalankan oleh {current_user.username}.')
+        log_lines.append('✅ Update selesai! Sistem akan reload dalam beberapa detik.')
+        return jsonify({'status': 'ok', 'message': 'Update berhasil.', 'log': '\n'.join(log_lines)})
+
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'message': 'Update timeout setelah 120 detik.', 'log': '\n'.join(log_lines)}), 500
+    except Exception as e:
+        app.logger.error(f'System self-update error: {e}')
+        return jsonify({'status': 'error', 'message': str(e), 'log': '\n'.join(log_lines)}), 500
 
 
 # ==========================================

@@ -18,11 +18,13 @@ Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*productio
 - **Sesi Otomatis**: Session timeout dengan peringatan dini sebelum sesi berakhir.
 - **Keamanan Kredensial**: Hashing password modern via Werkzeug dan deteksi password default bawaan di dashboard.
 
-### 2. ⚡ Dynamic SMTP & Pengaturan Sistem (`/settings`)
-- **Konfigurasi Email Tanpa Restart**: Pengaturan SMTP (Gmail, Outlook, Mailgun, SMTP internal kantor) dapat diubah langsung dari UI web tanpa menyentuh file server.
+### 2. ⚡ Dynamic SMTP, Keamanan Jaringan &amp; Domain Kustom (`/settings`)
+- **Konfigurasi Email Tanpa Restart**: Pengaturan SMTP (Gmail, Hostinger, Outlook, Mailgun, cPanel, atau SMTP bisnis internal kantor) dapat diubah langsung dari UI web tanpa menyentuh file server atau restart instance.
+- **Proteksi Perimeter IP &amp; VPN Whitelist**: Kunci akses aplikasi ke jaringan kantor atau subnet VPN internal (mendukung single IP seperti `103.160.95.2` dan CIDR subnet seperti `192.168.1.0/24`, `10.8.0.0/24`). User di luar jaringan yang sah akan otomatis diarahkan ke halaman **403 Network Access Denied**.
+- **Domain Kustom &amp; Enforce HTTPS**: Tentukan domain publik resmi (contoh: `https://assets.perusahaan.com`) agar tautan QR Code dan tautan email notifikasi otomatis mengarah ke domain tersebut. Opsi **Enforce HTTPS** otomatis mengalihkan request HTTP biasa ke protokol aman HTTPS (301 Permanent Redirect).
 - **Background Dispatcher (Asinkron)**: Pengiriman notifikasi email berjalan di latar belakang menggunakan *thread* terpisah, sehingga tidak memperlambat respon aplikasi.
 - **Uji Koneksi Instan (Live Test)**: Tombol pengujian koneksi, handshake port TLS/SSL, dan kredensial langsung ke email tujuan.
-- **Diagnostik Kesehatan Sistem**: Pemantauan kapasitas file database SQLite, jumlah baris data, dan informasi runtime (Docker vs Local).
+- **Diagnostik Kesehatan Sistem**: Pemantauan kapasitas file database SQLite, deteksi IP klien real-time, jumlah baris data, dan informasi runtime (Docker vs Local).
 - **Trigger Otomatis**:
   - Peringatan email instan saat status aset diubah menjadi **Rusak** atau **Afkir**.
   - Notifikasi email otomatis ke Administrator saat ada pengajuan **Purchase Order Baru**.
@@ -159,7 +161,8 @@ jesca-assets/
     ├── purchase_orders.html   # Daftar manajemen Purchase Order
     ├── purchase_order_detail.html # Detail PO, timeline persetujuan, upload bukti & konversi unit
     ├── purchase_order_form.html   # Form pembuatan & pengeditan PO
-    ├── settings.html          # Pengaturan Dynamic SMTP & Diagnostik Sistem
+    ├── settings.html          # Pengaturan Dynamic SMTP, IP Whitelist, HTTPS & Diagnostik Sistem
+    ├── 403_network.html       # Halaman blokir akses jika IP di luar Whitelist / VPN
     ├── accounts.html          # Pengelolaan akun pengguna, peran & REST API key
     ├── audit_report.html      # Laporan audit kepatuhan periode
     ├── history.html           # Riwayat log aktivitas operasional dengan sticky header
