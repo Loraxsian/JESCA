@@ -71,6 +71,17 @@
                             <span>Data Aset</span>
                         </a>
                     </li>
+                    {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Auditor'] %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('purchase_orders') }}" class="nav-link {% if request.endpoint in ['purchase_orders', 'purchase_order_detail', 'create_purchase_order', 'edit_purchase_order'] %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-cart-check"></i>
+                            <span>Purchase Order</span>
+                            {% if current_user.role in ['Admin', 'Administrator'] and pending_po_alerts and pending_po_alerts|length > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ pending_po_alerts|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
                     <li class="nav-item">
                         <a href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-geo-alt"></i>
@@ -187,18 +198,65 @@
                     </div>
 
                     <div class="d-flex align-items-center gap-2 ms-auto">
-                        <!-- Maintenance Bell Notification -->
+                        <!-- Notification Bell Dropdown -->
+                        {% set total_notifs = (maintenance_alerts|length if maintenance_alerts else 0) + (pending_po_alerts|length if pending_po_alerts else 0) + (user_po_alerts|length if user_po_alerts else 0) %}
                         <div class="dropdown me-1">
-                            <button class="btn btn-light position-relative border-0 rounded-circle p-2 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan Maintenance">
+                            <button class="btn btn-light position-relative border-0 rounded-circle p-2 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan & Notifikasi">
                                 <i class="bi bi-bell fs-5 text-secondary"></i>
-                                {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                                {% if total_notifs > 0 %}
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
-                                        {{ maintenance_alerts|length }}
-                                        <span class="visually-hidden">peringatan maintenance</span>
+                                        {{ total_notifs }}
+                                        <span class="visually-hidden">notifikasi</span>
                                     </span>
                                 {% endif %}
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 310px; max-height: 400px; overflow-y: auto;">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 320px; max-height: 420px; overflow-y: auto;">
+                                <!-- Section: Pending PO Approvals (Admin) -->
+                                {% if pending_po_alerts and pending_po_alerts|length > 0 %}
+                                <li class="px-3 py-2 bg-primary bg-opacity-10 border-bottom d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold small text-primary"><i class="bi bi-cart-check me-1"></i> PO Menunggu Approval</span>
+                                    <span class="badge bg-primary rounded-pill font-monospace">{{ pending_po_alerts|length }}</span>
+                                </li>
+                                {% for po_item in pending_po_alerts %}
+                                <li>
+                                    <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('purchase_order_detail', po_id=po_item.id) }}">
+                                        <i class="bi bi-clock-history text-primary mt-1"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge bg-light text-primary font-monospace border" style="font-size: 0.7rem;">{{ po_item.po_number }}</span>
+                                                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.68rem;">Review</span>
+                                            </div>
+                                            <div class="fw-semibold small text-dark text-truncate mt-1" style="max-width: 220px;">{{ po_item.title }}</div>
+                                            <small class="text-muted d-block" style="font-size: 0.72rem;">Diajukan oleh: {{ po_item.requested_by }}</small>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                                {% endif %}
+
+                                <!-- Section: Staff PO Updates -->
+                                {% if user_po_alerts and user_po_alerts|length > 0 %}
+                                <li class="px-3 py-2 bg-info bg-opacity-10 border-bottom d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold small text-info"><i class="bi bi-bell me-1"></i> Update Status PO Anda</span>
+                                    <span class="badge bg-info text-white rounded-pill font-monospace">{{ user_po_alerts|length }}</span>
+                                </li>
+                                {% for u_po in user_po_alerts %}
+                                <li>
+                                    <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('purchase_order_detail', po_id=u_po.id) }}">
+                                        <i class="bi bi-info-circle text-info mt-1"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="badge bg-light text-dark font-monospace border" style="font-size: 0.7rem;">{{ u_po.po_number }}</span>
+                                                <span class="badge {% if u_po.status == 'APPROVED' %}bg-success-subtle text-success{% elif u_po.status == 'RECEIVED' %}bg-info-subtle text-info{% elif u_po.status == 'REJECTED' %}bg-danger-subtle text-danger{% else %}bg-secondary-subtle text-secondary{% endif %}" style="font-size: 0.68rem;">{{ u_po.status }}</span>
+                                            </div>
+                                            <div class="fw-semibold small text-dark text-truncate mt-1" style="max-width: 220px;">{{ u_po.title }}</div>
+                                        </div>
+                                    </a>
+                                </li>
+                                {% endfor %}
+                                {% endif %}
+
+                                <!-- Section: Maintenance Alerts -->
                                 <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
                                     <span class="fw-bold small text-dark"><i class="bi bi-tools text-warning me-1"></i> Jadwal Maintenance (7 Hari)</span>
                                     <span class="badge bg-light text-secondary border font-monospace">{{ maintenance_alerts|length }} Aset</span>
@@ -227,10 +285,12 @@
                                         </a>
                                     </li>
                                 {% else %}
+                                    {% if not pending_po_alerts and not user_po_alerts %}
                                     <li class="p-3 text-center text-muted small">
                                         <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
                                         Tidak ada jadwal maintenance dalam 7 hari ke depan. Semua perangkat beroperasi normal!
                                     </li>
+                                    {% endif %}
                                 {% endif %}
                             </ul>
                         </div>

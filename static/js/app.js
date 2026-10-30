@@ -252,6 +252,8 @@ function openCommandPalette() {
 
     var commands = [
         { label: 'Dashboard', icon: 'bi-grid-1x2', action: function() { window.location.href = '/dashboard'; } },
+        { label: 'Purchase Order (Pengadaan)', icon: 'bi-cart-check', action: function() { window.location.href = '/purchase-orders'; } },
+        { label: 'Buat Purchase Order Baru', icon: 'bi-file-earmark-plus', action: function() { window.location.href = '/purchase-orders/create'; } },
         { label: 'Kelola Inventaris Aset', icon: 'bi-boxes', action: function() { window.location.href = '/assets'; } },
         { label: 'Tambah Aset Baru', icon: 'bi-plus-circle', action: function() { var m = document.getElementById('addAssetModal'); if (m) bootstrap.Modal.getOrCreateInstance(m).show(); else window.location.href = '/assets'; } },
         { label: 'Scan QR Code Kamera', icon: 'bi-camera', action: function() { JescaQRScanner.open(); } },

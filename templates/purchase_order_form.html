@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Edit PO {{ po.po_number }}{% else %}Buat Purchase Order Baru{% endif %} - JESCA v2{% endblock %}
+{% block page_heading %}{% if is_edit %}Edit Purchase Order{% else %}Buat Purchase Order Baru{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-xl-10">
+        <!-- Back Navigation -->
+        <div class="mb-3">
+            <a href="{% if is_edit %}{{ url_for('purchase_order_detail', po_id=po.id) }}{% else %}{{ url_for('purchase_orders') }}{% endif %}" class="btn btn-light border btn-sm rounded-pill px-3 text-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Kembali
+            </a>
+        </div>
+
+        <form method="POST" action="{% if is_edit %}{{ url_for('edit_purchase_order', po_id=po.id) }}{% else %}{{ url_for('create_purchase_order') }}{% endif %}" id="poForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Header Card: General Information -->
+            <div class="card border-0 shadow-sm rounded-4 mb-3">
+                <div class="card-header bg-white border-bottom p-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                            <i class="bi bi-file-earmark-text fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1 text-dark">
+                                {% if is_edit %}
+                                Edit Purchase Order <span class="font-monospace text-primary">#{{ po.po_number }}</span>
+                                {% else %}
+                                Form Permohonan Pengadaan Barang Baru
+                                {% endif %}
+                            </h5>
+                            <p class="text-muted small mb-0">Isi data permohonan belanja, rincian barang, dan vendor penyedia.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label small fw-bold text-secondary">Judul Pengadaan / Keperluan <span class="text-danger">*</span></label>
+                            <input type="text" name="title" class="form-control" placeholder="Contoh: Pengadaan Laptop & Monitor Divisi IT Kuartal 4" value="{% if is_edit %}{{ po.title }}{% endif %}" required autofocus>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-bold text-secondary">Mitra Vendor / Supplier</label>
+                            <select name="vendor_id" class="form-select">
+                                <option value="">-- Pilih Vendor (Opsional) --</option>
+                                {% for v in vendors %}
+                                <option value="{{ v.id }}" {% if is_edit and po.vendor_id == v.id %}selected{% endif %}>
+                                    {{ v.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-bold text-secondary">Catatan / Justifikasi Pengadaan (Opsional)</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="Jelaskan latar belakang atau peruntukan barang yang diajukan...">{% if is_edit %}{{ po.notes }}{% endif %}</textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Items Table Card -->
+            <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
+                <div class="card-header bg-white border-bottom p-4 d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-boxes me-2 text-primary"></i>Rincian Barang yang Diajukan</h6>
+                        <small class="text-muted">Masukkan daftar item barang yang ingin dibeli beserta estimasi harga satuannya.</small>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-none" id="addRowBtn">
+                        <i class="bi bi-plus-lg me-1"></i> Tambah Baris
+                    </button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0" id="itemsTable">
+                        <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.75rem;">
+                            <tr>
+                                <th style="width: 30%;">Nama Barang <span class="text-danger">*</span></th>
+                                <th style="width: 18%;">Kategori</th>
+                                <th style="width: 12%;">Qty <span class="text-danger">*</span></th>
+                                <th style="width: 18%;">Harga Satuan (IDR) <span class="text-danger">*</span></th>
+                                <th style="width: 16%;">Subtotal</th>
+                                <th style="width: 6%;" class="text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsTableBody">
+                            {% if is_edit and po.items and po.items|length > 0 %}
+                                {% for itm in po.items %}
+                                <tr class="item-row">
+                                    <td>
+                                        <input type="text" name="item_name[]" class="form-control form-control-sm mb-1 fw-semibold" placeholder="Nama barang..." value="{{ itm.item_name }}" required>
+                                        <input type="text" name="specification[]" class="form-control form-control-sm text-muted" placeholder="Spesifikasi / tipe / catatan..." value="{{ itm.specification or '' }}">
+                                    </td>
+                                    <td>
+                                        <select name="category[]" class="form-select form-select-sm">
+                                            {% for cat in categories %}
+                                            <option value="{{ cat }}" {% if cat == itm.category %}selected{% endif %}>{{ cat }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantity[]" class="form-control form-control-sm text-center font-monospace item-qty" min="1" value="{{ itm.quantity }}" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="any" name="unit_price[]" class="form-control form-control-sm text-end font-monospace item-price" min="0" value="{{ itm.unit_price }}" required>
+                                    </td>
+                                    <td class="text-end font-monospace fw-bold text-dark item-subtotal">
+                                        Rp {{ "{:,.0f}".format(itm.total_price).replace(',', '.') }}
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-light btn-sm text-danger border-0 remove-row-btn" title="Hapus Baris">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Initial Blank Row -->
+                                <tr class="item-row">
+                                    <td>
+                                        <input type="text" name="item_name[]" class="form-control form-control-sm mb-1 fw-semibold" placeholder="Contoh: Laptop Dell Latitude 5420" required>
+                                        <input type="text" name="specification[]" class="form-control form-control-sm text-muted" placeholder="Spesifikasi: Intel i5, RAM 16GB, SSD 512GB">
+                                    </td>
+                                    <td>
+                                        <select name="category[]" class="form-select form-select-sm">
+                                            {% for cat in categories %}
+                                            <option value="{{ cat }}" {% if cat == 'Tech' %}selected{% endif %}>{{ cat }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="number" name="quantity[]" class="form-control form-control-sm text-center font-monospace item-qty" min="1" value="1" required>
+                                    </td>
+                                    <td>
+                                        <input type="number" step="any" name="unit_price[]" class="form-control form-control-sm text-end font-monospace item-price" min="0" value="0" required>
+                                    </td>
+                                    <td class="text-end font-monospace fw-bold text-dark item-subtotal">
+                                        Rp 0
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-light btn-sm text-danger border-0 remove-row-btn" title="Hapus Baris">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="4" class="text-end fw-bold py-3">TOTAL ESTIMASI BIAYA:</td>
+                                <td class="text-end fw-bold font-monospace text-primary fs-5 py-3" id="grandTotalDisplay">
+                                    Rp 0
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Form Action Footer -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
+                    <a href="{% if is_edit %}{{ url_for('purchase_order_detail', po_id=po.id) }}{% else %}{{ url_for('purchase_orders') }}{% endif %}" class="btn btn-light border btn-sm rounded-pill px-4">
+                        Batal
+                    </a>
+                    <div class="d-flex align-items-center gap-2">
+                        <button type="submit" name="action" value="save_draft" class="btn btn-light border btn-sm rounded-pill px-4 shadow-none">
+                            <i class="bi bi-save me-1"></i> Simpan Draft
+                        </button>
+                        <button type="submit" name="action" value="submit_now" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-semibold">
+                            <i class="bi bi-send-check me-1"></i> Simpan & Langsung Ajukan
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Category options data for dynamic rows -->
+<template id="categoryOptionsTemplate">
+    {% for cat in categories %}
+    <option value="{{ cat }}">{{ cat }}</option>
+    {% endfor %}
+</template>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var tableBody = document.getElementById('itemsTableBody');
+    var addBtn = document.getElementById('addRowBtn');
+    var grandTotalEl = document.getElementById('grandTotalDisplay');
+    var catOptions = document.getElementById('categoryOptionsTemplate').innerHTML;
+
+    function formatRupiah(num) {
+        return 'Rp ' + Math.round(num).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    }
+
+    function calculateTotals() {
+        var total = 0;
+        var rows = tableBody.querySelectorAll('.item-row');
+        rows.forEach(function(row) {
+            var qtyInput = row.querySelector('.item-qty');
+            var priceInput = row.querySelector('.item-price');
+            var subtotalEl = row.querySelector('.item-subtotal');
+
+            var qty = parseFloat(qtyInput.value) || 0;
+            var price = parseFloat(priceInput.value) || 0;
+            var subtotal = qty * price;
+            total += subtotal;
+
+            if (subtotalEl) {
+                subtotalEl.textContent = formatRupiah(subtotal);
+            }
+        });
+        if (grandTotalEl) {
+            grandTotalEl.textContent = formatRupiah(total);
+        }
+    }
+
+    // Attach listeners to input changes
+    tableBody.addEventListener('input', function(e) {
+        if (e.target.classList.contains('item-qty') || e.target.classList.contains('item-price')) {
+            calculateTotals();
+        }
+    });
+
+    // Remove row listener
+    tableBody.addEventListener('click', function(e) {
+        var btn = e.target.closest('.remove-row-btn');
+        if (btn) {
+            var rows = tableBody.querySelectorAll('.item-row');
+            if (rows.length <= 1) {
+                alert('Purchase Order harus memiliki minimal satu item barang.');
+                return;
+            }
+            btn.closest('.item-row').remove();
+            calculateTotals();
+        }
+    });
+
+    // Add new row listener
+    if (addBtn) {
+        addBtn.addEventListener('click', function() {
+            var tr = document.createElement('tr');
+            tr.className = 'item-row';
+            tr.innerHTML = '<td>' +
+                '<input type="text" name="item_name[]" class="form-control form-control-sm mb-1 fw-semibold" placeholder="Nama barang..." required>' +
+                '<input type="text" name="specification[]" class="form-control form-control-sm text-muted" placeholder="Spesifikasi / catatan...">' +
+                '</td>' +
+                '<td><select name="category[]" class="form-select form-select-sm">' + catOptions + '</select></td>' +
+                '<td><input type="number" name="quantity[]" class="form-control form-control-sm text-center font-monospace item-qty" min="1" value="1" required></td>' +
+                '<td><input type="number" step="any" name="unit_price[]" class="form-control form-control-sm text-end font-monospace item-price" min="0" value="0" required></td>' +
+                '<td class="text-end font-monospace fw-bold text-dark item-subtotal">Rp 0</td>' +
+                '<td class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm text-danger border-0 remove-row-btn" title="Hapus Baris"><i class="bi bi-trash"></i></button>' +
+                '</td>';
+            tableBody.appendChild(tr);
+            calculateTotals();
+            tr.querySelector('input[name="item_name[]"]').focus();
+        });
+    }
+
+    // Initial calculation
+    calculateTotals();
+});
+</script>
+{% endblock %}

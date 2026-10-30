@@ -11,9 +11,28 @@
 {% block content %}
 <div class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
 
-<!-- Alert: Maintenance & Overdue Returns & Underutilization -->
-{% if overdue_returns or maintenance_alerts or underutilized %}
+<!-- Alert: Maintenance & Overdue Returns & Underutilization & Pending POs -->
+{% if overdue_returns or maintenance_alerts or underutilized or (pending_pos and pending_pos|length > 0) %}
 <div class="row g-2 mb-2">
+    {% if pending_pos and pending_pos|length > 0 %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-left: 5px solid #0284c7 !important;">
+            <div class="card-body p-3 d-flex align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" style="width: 40px; height: 40px; flex-shrink: 0;">
+                        <i class="bi bi-cart-check-fill"></i>
+                    </div>
+                    <div>
+                        <div class="fw-bold text-dark small">Pengajuan Purchase Order Menunggu Approval</div>
+                        <small class="text-primary fw-semibold">{{ pending_pos|length }} pengadaan belanja baru perlu ditinjau dan disetujui Administrator.</small>
+                    </div>
+                </div>
+                <a href="{{ url_for('purchase_orders', status='SUBMITTED') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Tinjau PO</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     {% if overdue_returns and overdue_returns|length > 0 %}
     <div class="col-md-6">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border-left: 5px solid #dc3545 !important;">

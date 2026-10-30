@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+{% block title %}Purchase Order (Pengadaan) - JESCA v2{% endblock %}
+{% block page_heading %}Purchase Order & Pengadaan Aset{% endblock %}
+
+{% block content %}
+<!-- Top Header & Action Controls -->
+<div class="row g-3 align-items-center mb-3">
+    <div class="col-md-6">
+        <h5 class="fw-bold mb-1">Pengadaan & Purchase Order (PO)</h5>
+        <p class="text-muted small mb-0">Digitalisasi alur permohonan belanja barang, approval bertingkat, hingga penerimaan & otomatisasi penomoran aset.</p>
+    </div>
+    <div class="col-md-6 text-md-end d-flex flex-wrap align-items-center justify-content-md-end gap-2">
+        {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
+        <div class="dropdown">
+            <button class="btn btn-light border btn-sm rounded-pill px-3 dropdown-toggle shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-download me-1 text-primary"></i> Ekspor Laporan
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-2">
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 small" href="{{ url_for('export_purchase_orders_pdf') }}">
+                        <i class="bi bi-file-earmark-pdf text-danger fs-6"></i>
+                        <span>Ekspor Laporan PDF</span>
+                    </a>
+                </li>
+                <li>
+                    <a class="dropdown-item py-2 d-flex align-items-center gap-2 small" href="{{ url_for('export_purchase_orders_csv') }}">
+                        <i class="bi bi-file-earmark-spreadsheet text-success fs-6"></i>
+                        <span>Ekspor Format CSV</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if current_user.role in ['Admin', 'Administrator', 'Staff'] %}
+        <a href="{{ url_for('create_purchase_order') }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center gap-1">
+            <i class="bi bi-plus-lg"></i>
+            <span>Buat PO Baru</span>
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Status Summary Pills (Quick Filters) -->
+<div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-3" style="white-space: nowrap;">
+    <a href="{{ url_for('purchase_orders') }}" class="btn btn-sm rounded-pill px-3 {% if not current_status %}btn-dark{% else %}btn-light border text-secondary{% endif %}">
+        Semua <span class="badge bg-secondary ms-1">{{ counts.total }}</span>
+    </a>
+    <a href="{{ url_for('purchase_orders', status='DRAFT') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'DRAFT' %}btn-secondary{% else %}btn-light border text-secondary{% endif %}">
+        Draft <span class="badge bg-secondary-subtle text-secondary ms-1">{{ counts.draft }}</span>
+    </a>
+    <a href="{{ url_for('purchase_orders', status='SUBMITTED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'SUBMITTED' %}btn-primary{% else %}btn-light border text-primary{% endif %}">
+        Menunggu Approval <span class="badge bg-primary-subtle text-primary ms-1">{{ counts.submitted }}</span>
+    </a>
+    <a href="{{ url_for('purchase_orders', status='APPROVED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'APPROVED' %}btn-success{% else %}btn-light border text-success{% endif %}">
+        Disetujui <span class="badge bg-success-subtle text-success ms-1">{{ counts.approved }}</span>
+    </a>
+    <a href="{{ url_for('purchase_orders', status='ORDERED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'ORDERED' %}btn-warning text-dark{% else %}btn-light border text-warning{% endif %}">
+        Dipesan ke Vendor <span class="badge bg-warning-subtle text-dark ms-1">{{ counts.ordered }}</span>
+    </a>
+    <a href="{{ url_for('purchase_orders', status='RECEIVED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'RECEIVED' %}btn-info text-white{% else %}btn-light border text-info{% endif %}">
+        Barang Tiba (Siap Convert) <span class="badge bg-info-subtle text-info ms-1">{{ counts.received }}</span>
+    </a>
+    <a href="{{ url_for('purchase_orders', status='CLOSED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'CLOSED' %}btn-dark{% else %}btn-light border text-dark{% endif %}">
+        Selesai (Closed) <span class="badge bg-light text-dark border ms-1">{{ counts.closed }}</span>
+    </a>
+    {% if counts.rejected > 0 %}
+    <a href="{{ url_for('purchase_orders', status='REJECTED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'REJECTED' %}btn-danger{% else %}btn-light border text-danger{% endif %}">
+        Ditolak <span class="badge bg-danger-subtle text-danger ms-1">{{ counts.rejected }}</span>
+    </a>
+    {% endif %}
+</div>
+
+<!-- Search & Date Filter Bar -->
+<div class="card border-0 shadow-sm rounded-4 mb-3">
+    <div class="card-body p-3">
+        <form method="GET" action="{{ url_for('purchase_orders') }}" class="row g-2 align-items-center">
+            {% if current_status %}
+            <input type="hidden" name="status" value="{{ current_status }}">
+            {% endif %}
+            <div class="col-md-5">
+                <div class="input-group input-group-sm">
+                    <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="search" class="form-control border-start-0 ps-0" placeholder="Cari No. PO, judul pengadaan, atau pemohon..." value="{{ search_query }}">
+                </div>
+            </div>
+            <div class="col-md-2 col-6">
+                <input type="date" name="from" class="form-control form-control-sm" title="Dari Tanggal" value="{{ from_date }}">
+            </div>
+            <div class="col-md-2 col-6">
+                <input type="date" name="to" class="form-control form-control-sm" title="Sampai Tanggal" value="{{ to_date }}">
+            </div>
+            <div class="col-md-3 d-flex gap-2 justify-content-end">
+                <button type="submit" class="btn btn-primary btn-sm rounded-pill px-3">
+                    <i class="bi bi-funnel me-1"></i> Filter
+                </button>
+                {% if search_query or from_date or to_date or current_status %}
+                <a href="{{ url_for('purchase_orders') }}" class="btn btn-light border btn-sm rounded-pill px-2" title="Reset Filter">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
+                <tr>
+                    <th class="ps-4">No. PO</th>
+                    <th>Judul & Vendor</th>
+                    <th>Status</th>
+                    <th>Pemohon</th>
+                    <th>Item & Unit</th>
+                    <th class="text-end">Estimasi Total</th>
+                    <th>Tanggal</th>
+                    <th class="text-end pe-4">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if orders and orders|length > 0 %}
+                    {% for po in orders %}
+                    <tr>
+                        <td class="ps-4">
+                            <a href="{{ url_for('purchase_order_detail', po_id=po.id) }}" class="fw-bold font-monospace text-primary text-decoration-none">
+                                {{ po.po_number }}
+                            </a>
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark text-truncate" style="max-width: 260px;">{{ po.title }}</div>
+                            <small class="text-muted d-block text-truncate" style="max-width: 260px;">
+                                <i class="bi bi-building me-1"></i>
+                                {% if po.vendor %}{{ po.vendor.name }}{% else %}<span class="fst-italic">Vendor belum ditentukan</span>{% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if po.status == 'DRAFT' %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-2 py-1">
+                                    <i class="bi bi-pencil-square me-1"></i>Draft
+                                </span>
+                            {% elif po.status == 'SUBMITTED' %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2 py-1">
+                                    <i class="bi bi-send-check me-1"></i>Menunggu Review
+                                </span>
+                            {% elif po.status == 'APPROVED' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-1">
+                                    <i class="bi bi-check-circle me-1"></i>Disetujui
+                                </span>
+                            {% elif po.status == 'ORDERED' %}
+                                <span class="badge bg-warning-subtle text-dark border border-warning-subtle rounded-pill px-2 py-1">
+                                    <i class="bi bi-truck me-1"></i>Dipesan ke Vendor
+                                </span>
+                            {% elif po.status == 'RECEIVED' %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2 py-1">
+                                    <i class="bi bi-box-seam me-1"></i>Barang Tiba
+                                </span>
+                            {% elif po.status == 'CLOSED' %}
+                                <span class="badge bg-light text-dark border rounded-pill px-2 py-1">
+                                    <i class="bi bi-check-all me-1"></i>Selesai (Closed)
+                                </span>
+                            {% elif po.status == 'REJECTED' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2 py-1" title="{{ po.rejection_reason }}">
+                                    <i class="bi bi-x-circle me-1"></i>Ditolak
+                                </span>
+                            {% elif po.status == 'CANCELLED' %}
+                                <span class="badge bg-light text-muted border rounded-pill px-2 py-1">
+                                    <i class="bi bi-slash-circle me-1"></i>Dibatalkan
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="small fw-semibold text-dark">{{ po.requested_by }}</div>
+                            {% if po.approved_by %}
+                            <small class="text-muted d-block" style="font-size: 0.72rem;">
+                                Appr: {{ po.approved_by }}
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border font-monospace">
+                                {{ po.items|length }} Item &bull; {{ po.total_items_quantity }} Unit
+                            </span>
+                            {% if po.status in ['RECEIVED', 'CLOSED'] %}
+                            <small class="text-success d-block fw-semibold mt-1" style="font-size: 0.72rem;">
+                                <i class="bi bi-check2-circle me-1"></i>{{ po.total_converted_assets }}/{{ po.total_items_quantity }} Aset dibuat
+                            </small>
+                            {% endif %}
+                        </td>
+                        <td class="text-end font-monospace fw-bold text-dark">
+                            Rp {{ "{:,.0f}".format(po.total_calculated).replace(',', '.') }}
+                        </td>
+                        <td>
+                            <div class="small text-muted">{{ po.created_at.strftime('%d/%m/%Y') if po.created_at else '-' }}</div>
+                            <small class="text-muted d-block" style="font-size: 0.7rem;">{{ po.created_at.strftime('%H:%M') if po.created_at else '' }}</small>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('purchase_order_detail', po_id=po.id) }}" class="btn btn-light border" title="Lihat Rincian & Timeline">
+                                    <i class="bi bi-eye text-primary"></i>
+                                </a>
+                                {% if po.status in ['DRAFT', 'REJECTED'] or (current_user.role in ['Admin', 'Administrator'] and po.status == 'SUBMITTED') %}
+                                <a href="{{ url_for('edit_purchase_order', po_id=po.id) }}" class="btn btn-light border" title="Edit Purchase Order">
+                                    <i class="bi bi-pencil text-secondary"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{{ url_for('print_purchase_order_pdf', po_id=po.id) }}" target="_blank" class="btn btn-light border" title="Cetak / Unduh Dokumen PO Resmi (PDF)">
+                                    <i class="bi bi-printer text-muted"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-clipboard-x fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                            <div class="fw-bold">Belum ada Purchase Order</div>
+                            <small class="text-muted d-block mb-3">Mulai buat pengajuan pembelian barang baru untuk mendigitalisasi approval dan aset.</small>
+                            {% if current_user.role in ['Admin', 'Administrator', 'Staff'] %}
+                            <a href="{{ url_for('create_purchase_order') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                                <i class="bi bi-plus-lg me-1"></i> Buat PO Pertama
+                            </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
