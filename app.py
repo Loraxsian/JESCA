@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.4.1'
+APP_VERSION = '2.4.2'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -4316,24 +4316,24 @@ def api_check_update():
 @sudo_required
 def system_self_update():
     """
-    Safe self-update route:
-    1. git pull origin main
-    2. pip install -r requirements.txt --quiet
-    3. Signal Gunicorn master to graceful reload (kill -HUP $GUNICORN_PID)
-       OR touch a restart trigger file if running under Docker compose restart policy.
-    All output is captured and returned to the UI.
-    Runs ONLY if the JESCA deployment is a git repo (/.git exists OR ../jesca-assets/.git exists).
+    Safe self-update route with Hybrid Git / Direct Archive Fallback:
+    1. If .git directory exists: attempts `git pull origin main`.
+    2. If .git is missing (e.g. downloaded as ZIP) or git pull fails:
+       Automatically downloads the latest codebase archive from GitHub,
+       safely extracts updated files while strictly preserving data/,
+       uploads/, attachments/, backups/, and .env.
+    3. Runs `pip install -r requirements.txt --quiet --no-cache-dir`.
+    4. Triggers graceful reload on Gunicorn.
     """
     import subprocess
+    import shutil
+    import tarfile
+    import tempfile
+    import urllib.request
 
     base = os.path.abspath(os.path.dirname(__file__))
     git_dir = os.path.join(base, '.git')
-
-    if not os.path.exists(git_dir):
-        return jsonify({
-            'status': 'error',
-            'message': 'Direktori .git tidak ditemukan. Update otomatis hanya bekerja pada instalasi Git clone. Silakan update manual melalui: git pull && pip install -r requirements.txt'
-        }), 400
+    has_git = os.path.exists(git_dir) and (shutil.which('git') is not None)
 
     log_lines = []
 
@@ -4351,19 +4351,81 @@ def system_self_update():
         return result.returncode
 
     try:
-        log_lines.append('🔄 Memulai proses update JESCA...')
+        log_lines.append('🔄 Memulai proses update otomatis JESCA...')
+        update_success = False
 
-        # Step 1: git pull
-        log_lines.append('📦 [1/3] Menarik perubahan terbaru dari GitHub...')
-        rc = run_cmd(['git', 'pull', 'origin', 'main'])
-        if rc != 0:
-            return jsonify({'status': 'error', 'message': 'git pull gagal.', 'log': '\n'.join(log_lines)}), 500
+        # Attempt 1: Git Pull (jika folder .git ada dan binary git terpasang)
+        if has_git:
+            log_lines.append('📦 [1/3] Menarik perubahan terbaru dari repositori Git...')
+            rc = run_cmd(['git', 'pull', 'origin', 'main'])
+            if rc == 0:
+                update_success = True
+                log_lines.append('✅ Git pull berhasil.')
+            else:
+                log_lines.append('⚠️ Git pull mengalami kendala. Beralih ke mode Auto-Download langsung dari GitHub...')
+
+        # Attempt 2: Fallback ke Direct Archive Download (jika bukan git clone / download ZIP)
+        if not update_success:
+            log_lines.append('📦 [1/3] Mengunduh arsip rilis terbaru langsung dari GitHub (Mode Tanpa Git)...')
+            archive_url = f'https://codeload.github.com/{GITHUB_REPO}/tar.gz/main'
+            req = urllib.request.Request(
+                archive_url,
+                headers={'User-Agent': f'JESCA-Updater/{APP_VERSION}'}
+            )
+
+            with tempfile.NamedTemporaryFile(suffix='.tar.gz', delete=False) as tmp_archive:
+                tmp_archive_path = tmp_archive.name
+                try:
+                    with urllib.request.urlopen(req, timeout=60) as resp:
+                        tmp_archive.write(resp.read())
+                    tmp_archive.flush()
+
+                    log_lines.append('📥 Arsip rilis berhasil diunduh. Mengekstrak pembaruan sistem secara aman...')
+                    with tarfile.open(tmp_archive_path, 'r:gz') as tar:
+                        for member in tar.getmembers():
+                            # Path format: JESCA-main/<relative_path>
+                            rel_path = member.name.partition('/')[2]
+                            if not rel_path:
+                                continue
+
+                            # Proteksi ketat: JANGAN PERNAH menimpa data pengguna
+                            protected_prefixes = ('data/', 'static/uploads/', 'static/attachments/', 'backups/', '.env')
+                            if any(rel_path == p.rstrip('/') or rel_path.startswith(p) for p in protected_prefixes):
+                                continue
+
+                            target_path = os.path.join(base, rel_path)
+                            if member.isdir():
+                                os.makedirs(target_path, exist_ok=True)
+                            else:
+                                os.makedirs(os.path.dirname(target_path), exist_ok=True)
+                                with tar.extractfile(member) as src_f, open(target_path, 'wb') as dst_f:
+                                    shutil.copyfileobj(src_f, dst_f)
+
+                    update_success = True
+                    log_lines.append('✅ Seluruh berkas pembaruan berhasil diekstrak (database dan berkas unggahan tetap aman).')
+                finally:
+                    if os.path.exists(tmp_archive_path):
+                        try:
+                            os.remove(tmp_archive_path)
+                        except Exception:
+                            pass
+
+        if not update_success:
+            return jsonify({
+                'status': 'error',
+                'message': 'Gagal mengunduh pembaruan dari GitHub.',
+                'log': '\n'.join(log_lines)
+            }), 500
 
         # Step 2: pip install requirements
-        log_lines.append('📦 [2/3] Memperbarui dependensi Python...')
-        rc = run_cmd(['pip', 'install', '-r', os.path.join(base, 'requirements.txt'), '--quiet', '--no-cache-dir'])
-        if rc != 0:
-            log_lines.append('[WARNING] pip install ada warning, lanjutkan restart...')
+        log_lines.append('📦 [2/3] Memeriksa & memperbarui dependensi Python...')
+        req_file = os.path.join(base, 'requirements.txt')
+        if os.path.exists(req_file):
+            rc = run_cmd(['pip', 'install', '-r', req_file, '--quiet', '--no-cache-dir'])
+            if rc != 0:
+                log_lines.append('[WARNING] pip install ada catatan peringatan, melanjutkan proses reload...')
+            else:
+                log_lines.append('✅ Dependensi Python terverifikasi mutakhir.')
 
         # Step 3: Graceful restart
         log_lines.append('♻️ [3/3] Mengirim sinyal graceful reload ke Gunicorn...')
@@ -4397,16 +4459,25 @@ def system_self_update():
             except Exception as e:
                 log_lines.append(f'[WARNING] Tidak bisa menemukan proses Gunicorn: {e}')
 
-        # Fallback: touch uwsgi/gunicorn reload trigger if running in Docker
+        # Fallback: touch reload trigger
         if not restarted:
             trigger = os.path.join(base, '.reload_trigger')
-            with open(trigger, 'w') as f:
-                f.write(datetime.utcnow().isoformat())
-            log_lines.append(f'ℹ️ File trigger restart dibuat: {trigger}. Container akan auto-reload jika dikonfigurasi.')
+            try:
+                with open(trigger, 'w') as f:
+                    f.write(datetime.utcnow().isoformat())
+                log_lines.append(f'ℹ️ File trigger restart dibuat: {trigger}.')
+            except Exception:
+                pass
 
         log_activity('SYSTEM_UPDATE', details=f'Update otomatis JESCA berhasil dijalankan oleh {current_user.username}.')
-        log_lines.append('✅ Update selesai! Sistem akan reload dalam beberapa detik.')
-        return jsonify({'status': 'ok', 'message': 'Update berhasil.', 'log': '\n'.join(log_lines)})
+        log_lines.append('✅ Update selesai dengan sukses! Sistem siap digunakan.')
+        return jsonify({'status': 'ok', 'message': 'Pembaruan sistem berhasil.', 'log': '\n'.join(log_lines)})
+
+    except subprocess.TimeoutExpired:
+        return jsonify({'status': 'error', 'message': 'Update timeout setelah 120 detik.', 'log': '\n'.join(log_lines)}), 500
+    except Exception as e:
+        app.logger.error(f'System self-update error: {e}')
+        return jsonify({'status': 'error', 'message': str(e), 'log': '\n'.join(log_lines)}), 500
 
     except subprocess.TimeoutExpired:
         return jsonify({'status': 'error', 'message': 'Update timeout setelah 120 detik.', 'log': '\n'.join(log_lines)}), 500
