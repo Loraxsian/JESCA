@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.4.3'
+APP_VERSION = '2.4.4'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -187,6 +187,14 @@ class SystemSetting(db.Model):
     enforce_https = db.Column(db.Boolean, default=False)
     ip_whitelist_enabled = db.Column(db.Boolean, default=False)
     allowed_ip_ranges = db.Column(db.Text, nullable=True)  # Comma separated IPs or CIDR
+    # v2.4.4: Remote Backup Destination (FTP/SFTP)
+    remote_backup_enabled = db.Column(db.Boolean, default=False)
+    remote_backup_protocol = db.Column(db.String(10), default='ftp')  # ftp / sftp
+    remote_backup_host = db.Column(db.String(150), nullable=True)
+    remote_backup_port = db.Column(db.Integer, default=21)
+    remote_backup_user = db.Column(db.String(100), nullable=True)
+    remote_backup_pass = db.Column(db.String(255), nullable=True)
+    remote_backup_path = db.Column(db.String(255), default='/')
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     @classmethod
@@ -1352,7 +1360,14 @@ def check_and_update_schema():
                 ('app_base_url', "VARCHAR(255) DEFAULT 'http://localhost:5000'"),
                 ('enforce_https', 'BOOLEAN DEFAULT 0'),
                 ('ip_whitelist_enabled', 'BOOLEAN DEFAULT 0'),
-                ('allowed_ip_ranges', 'TEXT')
+                ('allowed_ip_ranges', 'TEXT'),
+                ('remote_backup_enabled', 'BOOLEAN DEFAULT 0'),
+                ('remote_backup_protocol', "VARCHAR(10) DEFAULT 'ftp'"),
+                ('remote_backup_host', 'VARCHAR(150)'),
+                ('remote_backup_port', 'INTEGER DEFAULT 21'),
+                ('remote_backup_user', 'VARCHAR(100)'),
+                ('remote_backup_pass', 'VARCHAR(255)'),
+                ('remote_backup_path', "VARCHAR(255) DEFAULT '/'")
             ]
             for col_name, col_type in ss_additions:
                 if col_name not in cols_ss:
@@ -3366,26 +3381,177 @@ def admin_backups():
                 })
     show_modal = session.pop('show_import_modal', False)
     import_report = session.get('import_report')
+    setting = SystemSetting.get_settings()
     return render_template(
         'admin_backups.html',
         backups=backup_files,
         import_report=import_report,
-        show_import_modal=show_modal
+        show_import_modal=show_modal,
+        setting=setting
     )
+
+
+def upload_to_remote_backup(local_file_path, setting=None):
+    """Uploads backup snapshot file to remote FTP/SFTP server in background."""
+    if setting is None:
+        setting = SystemSetting.get_settings()
+    if not setting or not setting.remote_backup_enabled or not setting.remote_backup_host:
+        return False, "Remote backup tidak aktif."
+
+    protocol = (setting.remote_backup_protocol or 'ftp').lower()
+    host = setting.remote_backup_host.strip()
+    port = int(setting.remote_backup_port or (22 if protocol == 'sftp' else 21))
+    user = (setting.remote_backup_user or '').strip()
+    passwd = setting.remote_backup_pass or ''
+    remote_path = (setting.remote_backup_path or '/').strip()
+    filename = os.path.basename(local_file_path)
+
+    try:
+        if protocol == 'ftp':
+            import ftplib
+            ftp = ftplib.FTP()
+            ftp.connect(host, port, timeout=20)
+            ftp.login(user, passwd)
+            if remote_path and remote_path != '/':
+                for part in remote_path.strip('/').split('/'):
+                    if not part:
+                        continue
+                    try:
+                        ftp.cwd(part)
+                    except Exception:
+                        try:
+                            ftp.mkd(part)
+                            ftp.cwd(part)
+                        except Exception:
+                            pass
+            with open(local_file_path, 'rb') as f:
+                ftp.storbinary(f"STOR {filename}", f)
+            ftp.quit()
+            log_activity('REMOTE_BACKUP', details=f"Salinan backup '{filename}' berhasil diunggah ke FTP {host}:{port}{remote_path}")
+            return True, f"Berhasil diunggah ke FTP {host}:{port}"
+
+        elif protocol == 'sftp':
+            try:
+                import paramiko
+            except ImportError:
+                return False, "Library paramiko belum terpasang untuk SFTP."
+            transport = paramiko.Transport((host, port))
+            transport.connect(username=user, password=passwd)
+            sftp = paramiko.SFTPClient.from_transport(transport)
+            if remote_path and remote_path != '/':
+                try:
+                    sftp.chdir(remote_path)
+                except Exception:
+                    sftp.mkdir(remote_path)
+                    sftp.chdir(remote_path)
+            sftp.put(local_file_path, filename)
+            sftp.close()
+            transport.close()
+            log_activity('REMOTE_BACKUP', details=f"Salinan backup '{filename}' berhasil diunggah ke SFTP {host}:{port}{remote_path}")
+            return True, f"Berhasil diunggah ke SFTP {host}:{port}"
+        else:
+            return False, f"Protokol {protocol} tidak didukung."
+    except Exception as e:
+        app.logger.error(f"Remote backup upload failed: {e}")
+        log_activity('REMOTE_BACKUP_FAIL', details=f"Gagal mengunggah backup '{filename}' ke {host}: {str(e)}")
+        return False, str(e)
 
 
 @app.route('/admin/backup', methods=['POST'])
 @login_required
 @admin_required
 def manual_backup():
-    """Create manual snapshot backup of SQLite database."""
+    """Create manual snapshot backup of SQLite database with optional remote copy."""
     filename = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
     dst = os.path.join(BACKUP_FOLDER, filename)
     shutil.copy2(db_path, dst)
 
-    log_activity('BACKUP', details=f"Manual backup database dibuat: {filename}")
-    flash(f'Backup database berhasil dibuat: {filename}', 'success')
+    remote_msg = ""
+    setting = SystemSetting.get_settings()
+    if setting.remote_backup_enabled and setting.remote_backup_host:
+        ok, r_info = upload_to_remote_backup(dst, setting)
+        remote_msg = f" Salinan remote: {r_info}."
+
+    log_activity('BACKUP', details=f"Manual backup database dibuat: {filename}.{remote_msg}")
+    flash(f'Backup database berhasil dibuat: {filename}.{remote_msg}', 'success')
     return redirect(url_for('admin_backups'))
+
+
+@app.route('/admin/backup-remote/config', methods=['POST'])
+@login_required
+@admin_required
+@sudo_required
+def save_remote_backup_config():
+    """Save remote backup configuration (FTP/SFTP) from Backup & Restore page."""
+    setting = SystemSetting.get_settings()
+    setting.remote_backup_enabled = (request.form.get('remote_backup_enabled') == '1')
+    setting.remote_backup_protocol = request.form.get('remote_backup_protocol', 'ftp').strip().lower()
+    setting.remote_backup_host = request.form.get('remote_backup_host', '').strip()
+
+    port_str = request.form.get('remote_backup_port', '').strip()
+    default_port = 22 if setting.remote_backup_protocol == 'sftp' else 21
+    setting.remote_backup_port = int(port_str) if port_str.isdigit() else default_port
+
+    setting.remote_backup_user = request.form.get('remote_backup_user', '').strip()
+    new_pass = request.form.get('remote_backup_pass', '').strip()
+    if new_pass:
+        setting.remote_backup_pass = new_pass
+
+    path_val = request.form.get('remote_backup_path', '').strip() or '/'
+    setting.remote_backup_path = path_val
+
+    db.session.commit()
+    log_activity(
+        'CONFIG_REMOTE_BACKUP',
+        details=f"Pengaturan remote backup diperbarui: {setting.remote_backup_protocol.upper()} ke {setting.remote_backup_host} (Aktif: {setting.remote_backup_enabled})"
+    )
+    flash('Pengaturan remote backup berhasil disimpan.', 'success')
+    return redirect(url_for('admin_backups'))
+
+
+@app.route('/admin/backup-remote/test', methods=['POST'])
+@login_required
+@admin_required
+@sudo_required
+def test_remote_backup_connection():
+    """AJAX test connection to FTP/SFTP remote backup destination."""
+    protocol = request.form.get('protocol', 'ftp').strip().lower()
+    host = request.form.get('host', '').strip()
+    port_str = request.form.get('port', '').strip()
+    default_port = 22 if protocol == 'sftp' else 21
+    port = int(port_str) if port_str.isdigit() else default_port
+    user = request.form.get('user', '').strip()
+    password = request.form.get('password', '').strip()
+
+    if not password:
+        setting = SystemSetting.get_settings()
+        password = setting.remote_backup_pass or ''
+
+    if not host:
+        return jsonify({'status': 'error', 'message': 'Host / IP server tujuan wajib diisi.'}), 400
+
+    try:
+        if protocol == 'ftp':
+            import ftplib
+            ftp = ftplib.FTP()
+            ftp.connect(host, port, timeout=10)
+            ftp.login(user, password)
+            welcome = ftp.getwelcome()
+            ftp.quit()
+            return jsonify({'status': 'ok', 'message': f'Koneksi FTP berhasil terhubung ke {host}:{port}! Server: {welcome[:50]}'})
+        elif protocol == 'sftp':
+            try:
+                import paramiko
+            except ImportError:
+                return jsonify({'status': 'error', 'message': "Modul SFTP (paramiko) belum terpasang. Gunakan protokol FTP."}), 400
+            transport = paramiko.Transport((host, port))
+            transport.connect(username=user, password=password)
+            transport.close()
+            return jsonify({'status': 'ok', 'message': f'Koneksi SFTP berhasil terhubung ke {host}:{port}!'})
+        else:
+            return jsonify({'status': 'error', 'message': f'Protokol {protocol} tidak didukung.'}), 400
+    except Exception as e:
+        return jsonify({'status': 'error', 'message': f'Uji koneksi gagal: {str(e)}'}), 400
 
 
 @app.route('/admin/restore/<filename>', methods=['POST'])
@@ -3948,7 +4114,7 @@ def optimize_database():
 
 
 def auto_backup_job():
-    """Daily scheduled auto-backup (2:00 AM) keeping last 30 days retention."""
+    """Daily scheduled auto-backup (2:00 AM) keeping last 30 days retention and optional remote upload."""
     with app.app_context():
         try:
             today_str = datetime.now().strftime('%Y%m%d')
@@ -3956,6 +4122,8 @@ def auto_backup_job():
             dst = os.path.join(BACKUP_FOLDER, filename)
             if not os.path.exists(dst) and os.path.exists(db_path):
                 shutil.copy2(db_path, dst)
+                # Upload to remote FTP/SFTP destination if configured
+                upload_to_remote_backup(dst)
 
             # Prune backups older than 30 days
             cutoff = datetime.now() - timedelta(days=30)

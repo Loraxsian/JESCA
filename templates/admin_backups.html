@@ -23,12 +23,22 @@
                         Sistem mencadangkan otomatis tiap hari pukul <strong>02:00 WIB</strong> (retensi 30 hari). Snapshot manual dapat dibuat kapan pun.
                     </p>
                 </div>
-                <form method="POST" action="{{ url_for('manual_backup') }}">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm">
-                        <i class="bi bi-hdd me-2"></i>Buat Backup
+                <div>
+                    <form method="POST" action="{{ url_for('manual_backup') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm mb-2">
+                            <i class="bi bi-hdd me-2"></i>Buat Backup
+                        </button>
+                    </form>
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100 rounded-pill py-1.5 fw-semibold" data-bs-toggle="modal" data-bs-target="#editBackupModal">
+                        <i class="bi bi-gear me-1"></i>Edit Backup &amp; Destinasi
                     </button>
-                </form>
+                    {% if setting and setting.remote_backup_enabled and setting.remote_backup_host %}
+                    <div class="badge bg-success-subtle text-success border mt-2 py-1 px-2 text-truncate w-100 text-start" title="{{ setting.remote_backup_host }}" style="font-size:0.68rem;">
+                        <i class="bi bi-cloud-check me-1"></i>Remote: {{ setting.remote_backup_protocol|upper }} ({{ setting.remote_backup_host }})
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -216,6 +226,180 @@
         </table>
     </div>
 </div>
+
+<!-- MODAL: Konfigurasi Destinasi Backup (Edit Backup) -->
+<div class="modal fade" id="editBackupModal" tabindex="-1" aria-labelledby="editBackupModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4 bg-light bg-opacity-50">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+                        <i class="bi bi-gear-wide-connected fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-dark" id="editBackupModalLabel">Edit Jadwal &amp; Destinasi Remote Backup</h6>
+                        <small class="text-muted">Konfigurasikan pengiriman salinan snapshot otomatis ke server FTP/SFTP eksternal</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form method="POST" action="{{ url_for('save_remote_backup_config') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <!-- Info Alert -->
+                    <div class="alert alert-light border rounded-3 p-3 mb-4 small text-secondary">
+                        <div class="d-flex align-items-center gap-2 mb-1 fw-bold text-dark">
+                            <i class="bi bi-clock-history text-primary"></i>
+                            Jadwal Background Scheduler Otomatis
+                        </div>
+                        Pencadangan lokal tetap berjalan otomatis setiap hari pukul <strong>02:00 WIB</strong> di latar belakang (retensi 30 hari). Jika destinasi remote diaktifkan, sistem akan mengunggah salinan file <code>.db</code> ke server remote secara otomatis.
+                    </div>
+
+                    <!-- Toggle Remote Backup -->
+                    <div class="form-check form-switch mb-4 p-3 bg-light rounded-3 border ps-5">
+                        <input class="form-check-input" type="checkbox" role="switch" id="remoteBackupToggle" name="remote_backup_enabled" value="1" {% if setting and setting.remote_backup_enabled %}checked{% endif %} onchange="toggleRemoteFields()">
+                        <label class="form-check-label fw-bold text-dark ms-2" for="remoteBackupToggle">
+                            Aktifkan Salinan Cadangan Remote (Off-site Backup)
+                        </label>
+                        <small class="d-block text-muted ms-2 mt-1">Salin berkas backup otomatis ke server FTP/SFTP eksternal untuk pencegahan risiko hardware failure.</small>
+                    </div>
+
+                    <!-- Remote Config Fields Container -->
+                    <div id="remoteFieldsContainer" class="{% if not setting or not setting.remote_backup_enabled %}d-none{% endif %}">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-bold text-secondary">Protokol Transfer <span class="text-danger">*</span></label>
+                                <select class="form-select form-select-sm rounded-pill" name="remote_backup_protocol" id="remoteProtocol" onchange="updateDefaultPort()">
+                                    <option value="ftp" {% if not setting or setting.remote_backup_protocol == 'ftp' %}selected{% endif %}>FTP (Standar Port 21)</option>
+                                    <option value="sftp" {% if setting and setting.remote_backup_protocol == 'sftp' %}selected{% endif %}>SFTP (SSH Port 22)</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label small fw-bold text-secondary">Host / IP Server Remote <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control form-control-sm rounded-pill" name="remote_backup_host" id="remoteHost" value="{{ setting.remote_backup_host or '' if setting else '' }}" placeholder="misal: 192.168.1.50 atau backup.kantor.com">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-bold text-secondary">Port Server</label>
+                                <input type="number" class="form-control form-control-sm rounded-pill" name="remote_backup_port" id="remotePort" value="{{ setting.remote_backup_port or 21 if setting else 21 }}">
+                            </div>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Username Akun</label>
+                                <input type="text" class="form-control form-control-sm rounded-pill" name="remote_backup_user" id="remoteUser" value="{{ setting.remote_backup_user or '' if setting else '' }}" placeholder="Username FTP/SFTP">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-secondary">Password Akun</label>
+                                <input type="password" class="form-control form-control-sm rounded-pill" name="remote_backup_pass" id="remotePass" placeholder="{% if setting and setting.remote_backup_pass %}&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull; (Tersimpan, isi jika ingin ubah){% else %}Masukkan password{% endif %}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">Direktori Tujuan Remote (Folder Path)</label>
+                            <input type="text" class="form-control form-control-sm rounded-pill" name="remote_backup_path" id="remotePath" value="{{ setting.remote_backup_path or '/' if setting else '/' }}" placeholder="/ atau /backups/jesca">
+                            <small class="text-muted" style="font-size:0.75rem;">Folder pada server remote tempat file <code>.db</code> akan disimpan.</small>
+                        </div>
+
+                        <!-- Test Connection Result Banner -->
+                        <div id="testConnAlert" class="d-none alert py-2 px-3 small rounded-3 mb-2"></div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top py-3 px-4 bg-light bg-opacity-50 d-flex justify-content-between align-items-center">
+                    <div>
+                        <button type="button" class="btn btn-outline-info btn-sm rounded-pill px-3" id="btnTestRemoteConn" onclick="testRemoteBackupConnection()">
+                            <i class="bi bi-broadcast me-1"></i>Uji Koneksi Server
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold shadow-sm">
+                            <i class="bi bi-save me-1"></i>Simpan Konfigurasi
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleRemoteFields() {
+    var toggle = document.getElementById('remoteBackupToggle');
+    var container = document.getElementById('remoteFieldsContainer');
+    if (toggle && container) {
+        if (toggle.checked) {
+            container.classList.remove('d-none');
+        } else {
+            container.classList.add('d-none');
+        }
+    }
+}
+
+function updateDefaultPort() {
+    var proto = document.getElementById('remoteProtocol').value;
+    var portInput = document.getElementById('remotePort');
+    if (proto === 'sftp') {
+        if (portInput.value === '21' || !portInput.value) portInput.value = '22';
+    } else {
+        if (portInput.value === '22' || !portInput.value) portInput.value = '21';
+    }
+}
+
+function testRemoteBackupConnection() {
+    var btn = document.getElementById('btnTestRemoteConn');
+    var alertBox = document.getElementById('testConnAlert');
+    var proto = document.getElementById('remoteProtocol').value;
+    var host = document.getElementById('remoteHost').value.trim();
+    var port = document.getElementById('remotePort').value.trim();
+    var user = document.getElementById('remoteUser').value.trim();
+    var pass = document.getElementById('remotePass').value;
+
+    if (!host) {
+        alertBox.className = 'alert alert-warning py-2 px-3 small rounded-3 mb-2';
+        alertBox.innerHTML = '<i class="bi bi-exclamation-triangle me-1"></i>Masukkan Host / IP server terlebih dahulu.';
+        alertBox.classList.remove('d-none');
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menguji...';
+    alertBox.classList.add('d-none');
+
+    var formData = new FormData();
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    formData.append('csrf_token', csrfMeta ? csrfMeta.getAttribute('content') : '');
+    formData.append('protocol', proto);
+    formData.append('host', host);
+    formData.append('port', port);
+    formData.append('user', user);
+    formData.append('password', pass);
+
+    fetch('/admin/backup-remote/test', { method: 'POST', body: formData })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-broadcast me-1"></i>Uji Koneksi Server';
+        alertBox.classList.remove('d-none');
+        if (res.status === 'ok') {
+            alertBox.className = 'alert alert-success py-2 px-3 small rounded-3 mb-2';
+            alertBox.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>' + res.message;
+        } else {
+            alertBox.className = 'alert alert-danger py-2 px-3 small rounded-3 mb-2';
+            alertBox.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>' + (res.message || 'Koneksi gagal.');
+        }
+    })
+    .catch(function(err) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-broadcast me-1"></i>Uji Koneksi Server';
+        alertBox.className = 'alert alert-danger py-2 px-3 small rounded-3 mb-2';
+        alertBox.innerHTML = '<i class="bi bi-x-circle-fill me-1"></i>Kesalahan jaringan: ' + err.message;
+        alertBox.classList.remove('d-none');
+    });
+}
+</script>
 
 <!-- MODAL: Laporan Rekonsiliasi Impor Basis Data -->
 {% if import_report %}
