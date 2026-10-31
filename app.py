@@ -725,6 +725,39 @@ def api_key_required(f):
     return decorated
 
 
+def is_sudo_active():
+    """Check if current session has an active, unexpired sudo verification (valid 15 minutes)."""
+    sudo_until = session.get('sudo_mode_until')
+    if not sudo_until:
+        return False
+    try:
+        expiry = datetime.fromisoformat(sudo_until)
+        return datetime.utcnow() < expiry
+    except Exception:
+        return False
+
+
+def sudo_required(f):
+    """
+    Step-Up Authentication (Sudo Mode) Decorator.
+    Requires password re-verification within the last 15 minutes
+    before accessing sensitive administrative actions.
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not current_user.is_authenticated:
+            return redirect(url_for('login'))
+        if not is_sudo_active():
+            if request.is_json or request.path.startswith('/api/'):
+                return jsonify({
+                    'error': 'sudo_required',
+                    'message': 'Konfirmasi sandi administrator diperlukan (Sudo Mode).'
+                }), 403
+            return redirect(url_for('confirm_sudo', next=request.url))
+        return f(*args, **kwargs)
+    return decorated
+
+
 # ==========================================
 # Activity Logging & Helper Functions
 # ==========================================
@@ -845,6 +878,7 @@ def inject_alerts():
             'overdue_returns': overdue_returns,
             'pending_po_alerts': pending_po_alerts,
             'user_po_alerts': user_po_alerts,
+            'is_sudo_active': is_sudo_active(),
             'csrf_token': lambda: ''
         }
     return {
@@ -853,6 +887,7 @@ def inject_alerts():
         'overdue_returns': [],
         'pending_po_alerts': [],
         'user_po_alerts': [],
+        'is_sudo_active': False,
         'csrf_token': lambda: ''
     }
 
@@ -1216,7 +1251,7 @@ def seed_database():
             username='Admin',
             full_name='Jessica (Admin JESCA)',
             role='Admin',
-            force_password_change=False
+            force_password_change=True
         )
         admin_user.set_password('Admin123')
         db.session.add(admin_user)
@@ -1401,7 +1436,8 @@ def enforce_network_and_security():
 def check_force_password_change():
     exempt_endpoints = {
         'login', 'logout', 'change_password_page', 'static',
-        'scan_asset_summary', 'health', 'api_asset_qrcode'
+        'scan_asset_summary', 'health', 'api_asset_qrcode',
+        'confirm_sudo', 'lock_sudo'
     }
     if current_user.is_authenticated and getattr(current_user, 'force_password_change', False):
         if request.endpoint and request.endpoint not in exempt_endpoints:
@@ -3369,11 +3405,46 @@ def auto_backup_job():
 
 
 # ==========================================
-# Routes: System Settings & SMTP Diagnostic
+# Routes: System Settings, Sudo Mode & SMTP Diagnostic
 # ==========================================
+@app.route('/confirm-sudo', methods=['GET', 'POST'])
+@login_required
+@role_required('Admin')
+def confirm_sudo():
+    """Sudo mode step-up verification before accessing /settings."""
+    next_url = request.args.get('next') or request.form.get('next') or url_for('system_settings')
+    if is_sudo_active():
+        return redirect(next_url)
+
+    if request.method == 'POST':
+        password = request.form.get('password', '')
+        if current_user.check_password(password):
+            session['sudo_mode_until'] = (datetime.utcnow() + timedelta(minutes=15)).isoformat()
+            log_activity('SUDO_ACCESS', details=f"Sudo Mode diverifikasi oleh {current_user.username} (valid 15 menit).")
+            flash('Autentikasi Sudo Mode berhasil! Anda memiliki akses aman selama 15 menit.', 'success')
+            return redirect(next_url)
+        else:
+            log_activity('SUDO_FAILED', details=f"Percobaan sandi Sudo Mode gagal oleh {current_user.username}.")
+            flash('Kata sandi administrator salah. Silakan coba kembali.', 'danger')
+
+    return render_template('confirm_sudo.html', next_url=next_url)
+
+
+@app.route('/settings/lock-sudo', methods=['POST'])
+@login_required
+@role_required('Admin')
+def lock_sudo():
+    """Manually lock sudo mode session immediately."""
+    session.pop('sudo_mode_until', None)
+    log_activity('SUDO_LOCKED', details=f"Sudo Mode dikunci secara manual oleh {current_user.username}.")
+    flash('Sesi Sudo Mode telah dikunci demi keamanan. Sandi akan diminta kembali saat membuka Pengaturan.', 'info')
+    return redirect(url_for('dashboard'))
+
+
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 @role_required('Admin')
+@sudo_required
 def system_settings():
     """System settings, system health diagnostics, and dynamic SMTP setup."""
     setting = SystemSetting.get_settings()
@@ -3457,6 +3528,7 @@ def system_settings():
 @app.route('/settings/test-smtp', methods=['POST'])
 @login_required
 @role_required('Admin')
+@sudo_required
 def test_smtp_connection():
     """Send test email to test recipient to verify SMTP credentials and handshake."""
     test_target = request.form.get('test_email', '').strip()
@@ -3540,16 +3612,26 @@ def test_smtp_connection():
 @app.route('/api/system/check-update')
 @login_required
 @role_required('Admin')
+@sudo_required
 def api_check_update():
     """
-    Check GitHub Releases API for the latest version.
-    Returns JSON with comparison against APP_VERSION.
-    Runs in a try-except so any network error returns gracefully.
+    Check GitHub API for the latest version.
+    Supports /releases/latest, fallback to /releases, and fallback to /tags
+    so it works even if a GitHub Release has not been formally published yet.
     """
     import urllib.request
+    import urllib.error
     import json as _json
-    try:
-        api_url = f'https://api.github.com/repos/{GITHUB_REPO}/releases/latest'
+
+    def semver_tuple(v):
+        try:
+            parts = re.findall(r'\d+', str(v))
+            return tuple(int(x) for x in parts[:3]) if parts else (0, 0, 0)
+        except Exception:
+            return (0, 0, 0)
+
+    def fetch_github_endpoint(endpoint):
+        api_url = f'https://api.github.com/repos/{GITHUB_REPO}/{endpoint}'
         req = urllib.request.Request(
             api_url,
             headers={
@@ -3557,22 +3639,70 @@ def api_check_update():
                 'Accept': 'application/vnd.github+json'
             }
         )
-        with urllib.request.urlopen(req, timeout=8) as response:
-            data = _json.loads(response.read().decode())
+        with urllib.request.urlopen(req, timeout=10) as response:
+            return _json.loads(response.read().decode())
 
-        latest_tag = data.get('tag_name', '').lstrip('v')
-        release_name = data.get('name', latest_tag)
-        release_body = data.get('body', '')
-        release_url = data.get('html_url', f'https://github.com/{GITHUB_REPO}/releases')
-        published_at = data.get('published_at', '')
+    latest_tag = ''
+    release_name = ''
+    release_body = ''
+    release_url = f'https://github.com/{GITHUB_REPO}/releases'
+    published_at = ''
 
-        # Simple semver comparison: split by . and compare numerically
-        def semver_tuple(v):
-            try:
-                parts = v.lstrip('v').split('.')
-                return tuple(int(x) for x in parts[:3])
-            except Exception:
-                return (0, 0, 0)
+    try:
+        # Step 1: Try /releases/latest first
+        try:
+            data = fetch_github_endpoint('releases/latest')
+            latest_tag = data.get('tag_name', '').lstrip('v')
+            release_name = data.get('name', f"JESCA v{latest_tag}")
+            release_body = data.get('body', '')
+            release_url = data.get('html_url', release_url)
+            published_at = data.get('published_at', '')
+        except urllib.error.HTTPError as http_err:
+            if http_err.code == 404:
+                # Step 2: Fallback to list of all releases (e.g. if latest is pre-release)
+                try:
+                    releases = fetch_github_endpoint('releases')
+                    if releases and isinstance(releases, list):
+                        rel = releases[0]
+                        latest_tag = rel.get('tag_name', '').lstrip('v')
+                        release_name = rel.get('name', f"JESCA v{latest_tag}")
+                        release_body = rel.get('body', '')
+                        release_url = rel.get('html_url', release_url)
+                        published_at = rel.get('published_at', '')
+                except urllib.error.HTTPError:
+                    pass
+
+            if not latest_tag:
+                # Step 3: Fallback to /tags (pushed git tags like v2.3.0)
+                try:
+                    tags = fetch_github_endpoint('tags')
+                    if tags and isinstance(tags, list):
+                        # Sort by semver descending
+                        sorted_tags = sorted(
+                            tags,
+                            key=lambda t: semver_tuple(t.get('name', '')),
+                            reverse=True
+                        )
+                        top_tag = sorted_tags[0]
+                        tag_name = top_tag.get('name', '')
+                        latest_tag = tag_name.lstrip('v')
+                        release_name = f"JESCA Rilis Tag {tag_name}"
+                        release_body = f"Pembaruan versi {tag_name} tersedia di repositori GitHub."
+                        release_url = f"https://github.com/{GITHUB_REPO}/tree/{tag_name}"
+                except urllib.error.HTTPError as tag_err:
+                    if tag_err.code == 403:
+                        return jsonify({
+                            'status': 'error',
+                            'message': 'Batas pengecekan GitHub API tercapai (Rate Limit). Silakan coba lagi beberapa saat.',
+                            'update_available': False
+                        }), 429
+                    raise tag_err
+
+        if not latest_tag:
+            # If no tags or releases found on GitHub, current version is up to date
+            latest_tag = APP_VERSION
+            release_name = f"JESCA v{APP_VERSION} (Rilis Stabil)"
+            release_body = "Sistem telah menggunakan versi codebase saat ini."
 
         current_tuple = semver_tuple(APP_VERSION)
         latest_tuple = semver_tuple(latest_tag)
@@ -3583,21 +3713,43 @@ def api_check_update():
             'current_version': APP_VERSION,
             'latest_version': latest_tag,
             'release_name': release_name,
-            'release_notes': release_body[:500] if release_body else '',
+            'release_notes': release_body[:600] if release_body else '',
             'release_url': release_url,
             'published_at': published_at,
             'update_available': update_available
         })
 
+    except urllib.error.HTTPError as e:
+        if e.code == 403:
+            return jsonify({
+                'status': 'error',
+                'message': 'Batas pengecekan GitHub API tercapai (Rate Limit 60 req/jam). Silakan tunggu beberapa menit.',
+                'update_available': False
+            }), 429
+        return jsonify({
+            'status': 'error',
+            'message': f'Respons GitHub ({e.code}): {e.reason}',
+            'update_available': False
+        }), 502
     except urllib.error.URLError as e:
-        return jsonify({'status': 'error', 'message': f'Tidak dapat terhubung ke GitHub: {str(e)}', 'update_available': False}), 503
+        return jsonify({
+            'status': 'error',
+            'message': f'Koneksi internet server terputus: {str(e.reason)}',
+            'update_available': False
+        }), 503
     except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e), 'update_available': False}), 500
+        app.logger.error(f"Check update error: {e}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e),
+            'update_available': False
+        }), 500
 
 
 @app.route('/system/update', methods=['POST'])
 @login_required
 @role_required('Admin')
+@sudo_required
 def system_self_update():
     """
     Safe self-update route:

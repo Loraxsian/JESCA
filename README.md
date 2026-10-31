@@ -16,15 +16,21 @@ Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*productio
   - **Teknisi**: Workbench pemeliharaan aset (`/maintenance`), eksekusi perbaikan, dan upload bukti servis.
 - **Proteksi Brute-force & Rate Limiting**: Penguncian akun otomatis setelah percobaan login gagal berturut-turut.
 - **Sesi Otomatis**: Session timeout dengan peringatan dini sebelum sesi berakhir.
+- **Sudo Mode (Step-Up Authentication)**: Konfirmasi kata sandi ulang otomatis saat mengakses menu Pengaturan Sistem (`/settings`). Sesi verifikasi aktif selama 15 menit dengan tombol kunci manual instan demi mencegah akses tidak sah jika laptop ditinggalkan tanpa pengawasan (*unattended laptop*).
 - **Keamanan Kredensial**: Hashing password modern via Werkzeug dan deteksi password default bawaan di dashboard.
 
-### 2. ⚡ Dynamic SMTP, Keamanan Jaringan &amp; Domain Kustom (`/settings`)
+### 2. ⚡ Dynamic SMTP, Jaringan, Domain &amp; Pembaruan Otomatis (`/settings`)
+- **Pembaruan Sistem Mandiri (Safe Self-Updater)**:
+  - Pengecekan versi rilis terbaru dari repositori GitHub secara otomatis (mendukung 3-layer fallback: GitHub Releases &rarr; Tags &rarr; SemVer comparator).
+  - Eksekusi pembaruan 1-klik (*One-Click Update*): Menjalankan `git pull`, update pustaka `pip install`, dan *graceful reload* proses Gunicorn (`SIGHUP`) tanpa *downtime*.
+  - Jaminan *Safe Mode*: Database SQLite (`jesca.db`) dan seluruh file bukti lampiran/foto tetap utuh dan aman.
+  - Log proses *real-time* ditampilkan di terminal mini web.
 - **Konfigurasi Email Tanpa Restart**: Pengaturan SMTP (Gmail, Hostinger, Outlook, Mailgun, cPanel, atau SMTP bisnis internal kantor) dapat diubah langsung dari UI web tanpa menyentuh file server atau restart instance.
 - **Proteksi Perimeter IP &amp; VPN Whitelist**: Kunci akses aplikasi ke jaringan kantor atau subnet VPN internal (mendukung single IP seperti `103.160.95.2` dan CIDR subnet seperti `192.168.1.0/24`, `10.8.0.0/24`). User di luar jaringan yang sah akan otomatis diarahkan ke halaman **403 Network Access Denied**.
 - **Domain Kustom &amp; Enforce HTTPS**: Tentukan domain publik resmi (contoh: `https://assets.perusahaan.com`) agar tautan QR Code dan tautan email notifikasi otomatis mengarah ke domain tersebut. Opsi **Enforce HTTPS** otomatis mengalihkan request HTTP biasa ke protokol aman HTTPS (301 Permanent Redirect).
 - **Background Dispatcher (Asinkron)**: Pengiriman notifikasi email berjalan di latar belakang menggunakan *thread* terpisah, sehingga tidak memperlambat respon aplikasi.
-- **Uji Koneksi Instan (Live Test)**: Tombol pengujian koneksi, handshake port TLS/SSL, dan kredensial langsung ke email tujuan.
-- **Diagnostik Kesehatan Sistem**: Pemantauan kapasitas file database SQLite, deteksi IP klien real-time, jumlah baris data, dan informasi runtime (Docker vs Local).
+- **Uji Koneksi Instan (Live Test)**: Tombol pengujian koneksi, handshake port TLS/SSL, dan kredensial langsung ke email tujuan di tab yang sama.
+- **Diagnostik Kesehatan Sistem**: Pemantauan kapasitas file database SQLite, deteksi IP klien real-time, jumlah baris data relasional, dan informasi runtime (Docker vs Local).
 - **Trigger Otomatis**:
   - Peringatan email instan saat status aset diubah menjadi **Rusak** atau **Afkir**.
   - Notifikasi email otomatis ke Administrator saat ada pengajuan **Purchase Order Baru**.
@@ -117,16 +123,17 @@ docker compose down
 
 ---
 
-## 🔑 Kredensial Pengujian Bawaan
+## 🔑 Inisialisasi Akun Awal (Clean Install)
 
-| Username | Password Default | Peran (Role) | Hak Akses |
-|---|---|---|---|
-| `Admin` | `Admin123` | **Admin** | Akses penuh (Pengaturan sistem, backup, akun, PO) |
-| `staff1` | `staff123` | **Staff** | Input aset, pinjam barang, pengajuan PO |
-| `auditor` | `audit123` | **Auditor** | Laporan audit, ekspor inventaris (read-only) |
-| `teknisi` | `teknisi123` | **Teknisi** | Pemeliharaan & servis aset (`/maintenance`) |
+Repositori ini hadir dalam kondisi **bersih (*clean slate*) tanpa data dummy, sampel aset, atau akun uji coba** agar siap langsung digunakan untuk inventaris resmi instansi/perusahaan Anda.
 
-> **Catatan Keamanan:** Segera ganti password akun Administrator setelah instalasi awal melalui menu profil di pojok kanan atas.
+Saat aplikasi pertama kali dijalankan, sistem secara otomatis menginisialisasi satu akun Administrator awal:
+- **Username**: `Admin`
+- **Password Bawaan**: `Admin123`
+
+> 🛡️ **Wajib Ganti Password (Force Password Change)**:  
+> Demi keamanan, saat pertama kali login menggunakan akun bawaan, sistem akan secara otomatis mewajibkan Administrator membuat kata sandi baru yang aman sebelum dapat mengakses menu aplikasi.  
+> Akun staf, teknisi, maupun auditor dapat ditambahkan secara mandiri sesuai kebutuhan melalui menu **Kelola Akun** (`/accounts`).
 
 ---
 
@@ -162,6 +169,7 @@ jesca-assets/
     ├── purchase_order_detail.html # Detail PO, timeline persetujuan, upload bukti & konversi unit
     ├── purchase_order_form.html   # Form pembuatan & pengeditan PO
     ├── settings.html          # Pengaturan Dynamic SMTP, IP Whitelist, HTTPS & Diagnostik Sistem
+    ├── confirm_sudo.html      # Halaman verifikasi kata sandi Sudo Mode (15 menit)
     ├── 403_network.html       # Halaman blokir akses jika IP di luar Whitelist / VPN
     ├── accounts.html          # Pengelolaan akun pengguna, peran & REST API key
     ├── audit_report.html      # Laporan audit kepatuhan periode
@@ -178,4 +186,4 @@ jesca-assets/
 Dikembangkan dengan dedikasi untuk sistem inventaris aset yang modern, transparan, dan akuntabel.
 
 &copy; 2026 **JESCA** &bull; Jessica Assets Management System  
-*Contributors: Loraxsian &amp; Jessica Nova Lya Mendrofa*
+*Contributors: Loraxsian &amp; And Jessica Nova Lya Mendrofa*
