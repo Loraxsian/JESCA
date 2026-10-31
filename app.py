@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.4.0'
+APP_VERSION = '2.4.1'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -3883,6 +3883,68 @@ def import_report_csv():
         mimetype='text/csv',
         headers={'Content-Disposition': f'attachment; filename={filename}'}
     )
+
+
+@app.route('/admin/optimize-db', methods=['POST'])
+@login_required
+@admin_required
+@sudo_required
+def optimize_database():
+    """Optimize SQLite database via VACUUM, PRAGMA optimize, and Integrity Check."""
+    import sqlite3 as _sqlite3
+
+    if not os.path.exists(db_path):
+        flash('Berkas basis data tidak ditemukan.', 'danger')
+        return redirect(url_for('admin_backups'))
+
+    try:
+        size_before = os.path.getsize(db_path)
+
+        # Connect to SQLite for integrity check and vacuum
+        conn = _sqlite3.connect(db_path)
+        cur = conn.cursor()
+
+        # Step 1: Integrity check
+        integrity_rows = cur.execute("PRAGMA integrity_check").fetchall()
+        integrity_ok = all(row[0] == 'ok' for row in integrity_rows)
+        if not integrity_ok:
+            error_details = "; ".join(row[0] for row in integrity_rows)
+            conn.close()
+            log_activity('OPTIMIZE_DB_FAIL', details=f"Integritas database bermasalah: {error_details}")
+            flash(f'Pemeriksaan integritas gagal: {error_details}', 'danger')
+            return redirect(url_for('admin_backups'))
+
+        # Step 2: PRAGMA optimize
+        cur.execute("PRAGMA optimize")
+        conn.commit()
+
+        # Step 3: VACUUM in autocommit mode
+        conn.isolation_level = None
+        cur.execute("VACUUM")
+        conn.close()
+
+        size_after = os.path.getsize(db_path)
+        saved_bytes = max(0, size_before - size_after)
+        saved_kb = round(saved_bytes / 1024, 2)
+        final_size_kb = round(size_after / 1024, 2)
+
+        log_activity(
+            'OPTIMIZE_DB',
+            details=(
+                f"Optimasi basis data selesai. Status integritas: Sehat (OK). "
+                f"Ukuran akhir: {final_size_kb} KB. Ruang dibebaskan: {saved_kb} KB."
+            )
+        )
+        flash(
+            f"Optimasi berhasil! Status integritas: Sehat (OK). "
+            f"Ukuran database: {final_size_kb} KB (ruang dibebaskan: {saved_kb} KB).",
+            'success'
+        )
+    except Exception as e:
+        app.logger.exception(f"optimize_database error: {e}")
+        flash(f'Gagal melakukan optimasi basis data: {str(e)}', 'danger')
+
+    return redirect(url_for('admin_backups'))
 
 
 def auto_backup_job():
