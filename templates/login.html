@@ -6,7 +6,7 @@
 <style>
 /* ========================================================
    JESCA v2.5.0 — Vibrant Geometric Interactive Login
-   Sesuai Desain Sketsa Referensi (Smart Tracking Seamless Assets)
+   Presisi 100% Sesuai Sketsa: Tipografi Jelas, Bold & Proporsional
    ======================================================== */
 
 * {
@@ -17,7 +17,8 @@ body, html {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    background: #ffffff;
 }
 
 .login-viewport {
@@ -34,7 +35,7 @@ body, html {
 }
 
 /* ========================================================
-   SISI KIRI: HERO PANEL & ANIMASI GEOMETRIS
+   SISI KIRI: HERO PANEL (DESAIN & TIPOGRAFI DOMINAN)
    ======================================================== */
 .hero-panel {
     position: relative;
@@ -45,7 +46,7 @@ body, html {
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 3.5rem 4rem;
+    padding: 4rem 4.5rem;
     color: #ffffff;
     z-index: 1;
 }
@@ -53,45 +54,45 @@ body, html {
 /* Background Soft Glow Circles */
 .hero-bg-glow-1 {
     position: absolute;
-    width: 480px;
-    height: 480px;
+    width: 520px;
+    height: 520px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
-    top: -120px;
-    left: -120px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 70%);
+    top: -140px;
+    left: -140px;
     pointer-events: none;
     z-index: 1;
 }
 
 .hero-bg-glow-2 {
     position: absolute;
-    width: 380px;
-    height: 380px;
+    width: 420px;
+    height: 420px;
     border-radius: 50%;
-    background: radial-gradient(circle, rgba(6, 182, 212, 0.22) 0%, rgba(6, 182, 212, 0) 70%);
-    bottom: -80px;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, rgba(6, 182, 212, 0) 70%);
+    bottom: -100px;
     left: 20%;
     pointer-events: none;
     z-index: 1;
 }
 
-/* Header Brand (Logo Baru + Nama) */
+/* 1. Header Brand (Logo Baru + Nama) */
 .brand-header {
     position: relative;
     z-index: 10;
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: 16px;
 }
 
 .brand-logo-svg {
-    width: 38px;
-    height: 38px;
-    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+    width: 42px;
+    height: 42px;
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.22));
 }
 
 .brand-text {
-    font-size: 1.45rem;
+    font-size: 1.75rem; /* 28px */
     font-weight: 800;
     letter-spacing: 2px;
     color: #ffffff;
@@ -99,70 +100,71 @@ body, html {
     text-transform: uppercase;
 }
 
-/* Main Center Content */
+/* 2. Main Center Content (Smart Tracking Seamless Assets) */
 .hero-center-content {
     position: relative;
     z-index: 10;
     margin-top: auto;
     margin-bottom: auto;
-    padding: 2rem 0;
-    max-width: 480px;
+    padding: 2.5rem 0;
+    max-width: 540px;
 }
 
 .hero-badge-subtitle {
-    font-size: 0.82rem;
+    font-size: 0.95rem; /* 15px */
     font-weight: 700;
-    letter-spacing: 2.2px;
-    color: rgba(255, 255, 255, 0.85);
+    letter-spacing: 2.5px;
+    color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
     margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
 }
 
 .hero-main-title {
-    font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+    font-size: clamp(2.4rem, 4vw, 3.4rem); /* 42px - 54px */
     font-weight: 800;
-    line-height: 1.18;
+    line-height: 1.16;
     color: #ffffff;
     letter-spacing: -0.5px;
-    margin-bottom: 1.5rem;
-    text-shadow: 0 4px 20px rgba(25, 10, 80, 0.25);
+    margin-bottom: 1.75rem;
+    text-shadow: 0 4px 24px rgba(25, 10, 80, 0.3);
 }
 
 .hero-accent-line {
-    width: 140px;
-    height: 3.5px;
+    width: 160px;
+    height: 4px;
     background: #ffffff;
     border-radius: 4px;
-    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.4);
 }
 
-/* Footer Info Kiri */
+/* 3. Footer Info Kiri */
 .hero-footer {
     position: relative;
     z-index: 10;
-    font-size: 0.78rem;
-    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.8);
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 /* ========================================================
-   ELEMEN-ELEMEN ANIMASI GEOMETRIS (REAL MOTION CSS)
+   ELEMEN-ELEMEN ANIMASI GEOMETRIS PERSIS SKETSA
    ======================================================== */
 
-/* 1. Silinder Gradien Vertikal Melayang (Pill Capsule) */
+/* Kapsul Silinder Gradien Vertikal (Pill Shape) */
 .anim-capsule-pill {
     position: absolute;
     top: 0;
     right: 28%;
-    width: 44px;
-    height: 140px;
-    border-radius: 0 0 28px 28px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(165, 180, 252, 0.25) 60%, rgba(255, 255, 255, 0.05) 100%);
+    width: 50px;
+    height: 155px;
+    border-radius: 0 0 32px 32px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(165, 180, 252, 0.3) 60%, rgba(255, 255, 255, 0.05) 100%);
     backdrop-filter: blur(8px);
     z-index: 3;
     animation: floatPill 5.5s ease-in-out infinite;
@@ -174,68 +176,68 @@ body, html {
     50% { transform: translateY(18px); }
 }
 
-/* 2. Cincin Putih Berputar Lembut (Hollow Circle Ring) */
+/* Cincin Putih (Hollow Circle Ring) */
 .anim-hollow-ring {
     position: absolute;
-    top: 135px;
+    top: 145px;
     right: 22%;
-    width: 22px;
-    height: 22px;
+    width: 26px;
+    height: 26px;
     border-radius: 50%;
-    border: 3px solid rgba(255, 255, 255, 0.85);
+    border: 3.5px solid rgba(255, 255, 255, 0.9);
     z-index: 4;
     animation: floatRing 4.8s ease-in-out infinite alternate;
 }
 
 @keyframes floatRing {
-    0% { transform: translateY(0) scale(1); opacity: 0.7; }
+    0% { transform: translateY(0) scale(1); opacity: 0.75; }
     100% { transform: translateY(-12px) scale(1.15); opacity: 1; }
 }
 
-/* 3. Dot Matrix Grid (Kanan Atas & Kiri Bawah) */
+/* Dot Matrix Grid (Kanan Atas & Kiri Bawah) */
 .dot-grid {
     position: absolute;
     display: grid;
-    grid-template-columns: repeat(5, 7px);
-    grid-gap: 8px;
+    grid-template-columns: repeat(5, 8px);
+    grid-gap: 9px;
     z-index: 3;
-    opacity: 0.7;
+    opacity: 0.75;
     animation: pulseDots 4s ease-in-out infinite alternate;
 }
 
 .dot-grid span {
-    width: 5px;
-    height: 5px;
+    width: 6px;
+    height: 6px;
     background: #ffffff;
     border-radius: 50%;
     display: block;
 }
 
 .dot-grid-top-right {
-    top: 165px;
+    top: 185px;
     right: 10%;
 }
 
 .dot-grid-bottom-left {
-    bottom: 80px;
+    bottom: 90px;
     left: 8%;
 }
 
 @keyframes pulseDots {
-    0% { opacity: 0.4; transform: scale(0.95); }
-    100% { opacity: 0.95; transform: scale(1.05); }
+    0% { opacity: 0.45; transform: scale(0.95); }
+    100% { opacity: 1; transform: scale(1.05); }
 }
 
-/* 4. Bola Cyan Toska Menyala (Glowing Orb) */
+/* Bola Cyan Toska Menyala */
 .anim-cyan-orb {
     position: absolute;
-    bottom: 155px;
+    bottom: 170px;
     left: 7%;
-    width: 44px;
-    height: 44px;
+    width: 48px;
+    height: 48px;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #67e8f9 0%, #06b6d4 60%, #0891b2 100%);
-    box-shadow: 0 0 25px rgba(6, 182, 212, 0.7);
+    box-shadow: 0 0 30px rgba(6, 182, 212, 0.75);
     z-index: 5;
     animation: floatOrb 5s ease-in-out infinite;
 }
@@ -245,13 +247,13 @@ body, html {
     50% { transform: translateY(-16px) rotate(10deg); }
 }
 
-/* 5. Tanda Silang Putih (Cross X) */
+/* Tanda Silang Putih (Cross X) */
 .anim-cross-icon {
     position: absolute;
-    bottom: 125px;
+    bottom: 135px;
     left: 17%;
-    color: rgba(255, 255, 255, 0.85);
-    font-size: 1.3rem;
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.5rem;
     font-weight: 300;
     z-index: 4;
     animation: spinCross 14s linear infinite;
@@ -262,13 +264,13 @@ body, html {
     100% { transform: rotate(360deg); }
 }
 
-/* 6. Planet & Orbit Toska di Bagian Bawah */
+/* Orbit Planet Toska di Bagian Bawah */
 .orbit-system-container {
     position: absolute;
     bottom: -110px;
-    right: 10%;
-    width: 320px;
-    height: 320px;
+    right: 8%;
+    width: 340px;
+    height: 340px;
     z-index: 2;
     pointer-events: none;
 }
@@ -277,11 +279,11 @@ body, html {
     position: absolute;
     bottom: 0;
     right: 40px;
-    width: 220px;
-    height: 220px;
+    width: 240px;
+    height: 240px;
     border-radius: 50%;
     background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0284c7 100%);
-    box-shadow: 0 0 50px rgba(6, 182, 212, 0.45);
+    box-shadow: 0 0 60px rgba(6, 182, 212, 0.5);
     animation: pulsePlanet 6s ease-in-out infinite alternate;
 }
 
@@ -294,10 +296,10 @@ body, html {
     position: absolute;
     bottom: -20px;
     right: 15px;
-    width: 270px;
-    height: 270px;
+    width: 290px;
+    height: 290px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.35);
+    border: 2px solid rgba(255, 255, 255, 0.4);
     animation: rotateOrbit 12s linear infinite;
 }
 
@@ -305,18 +307,17 @@ body, html {
     position: absolute;
     top: 25px;
     right: 25px;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     background: #67e8f9;
-    box-shadow: 0 0 12px #22d3ee;
+    box-shadow: 0 0 14px #22d3ee;
 }
 
 @keyframes rotateOrbit {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
-
 
 /* ========================================================
    KONEKTOR TENGAH (FLOATING CIRCLE WITH ARROW)
@@ -327,15 +328,15 @@ body, html {
     left: 52%;
     transform: translate(-50%, -50%);
     z-index: 30;
-    width: 66px;
-    height: 66px;
+    width: 72px;
+    height: 72px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 0 10px 30px rgba(79, 50, 232, 0.22);
-    border: 4px solid #ffffff;
+    border: 5px solid #ffffff;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
@@ -346,32 +347,31 @@ body, html {
 }
 
 .connector-inner-circle {
-    width: 48px;
-    height: 48px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    font-size: 1.35rem;
-    box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    font-size: 1.5rem;
+    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.45);
     animation: pulseArrow 2.2s ease-in-out infinite;
 }
 
 @keyframes pulseArrow {
     0%, 100% { transform: translateX(0); }
-    50% { transform: translateX(4px); }
+    50% { transform: translateX(5px); }
 }
 
 .split-connector-btn:hover {
     transform: translate(-50%, -50%) scale(1.12);
-    box-shadow: 0 14px 35px rgba(79, 50, 232, 0.35);
+    box-shadow: 0 14px 38px rgba(79, 50, 232, 0.38);
 }
 
-
 /* ========================================================
-   SISI KANAN: FORMULIR LOGIN MODERN
+   SISI KANAN: FORMULIR LOGIN (JELAS, TEBAL & LAPANG)
    ======================================================== */
 .form-panel {
     position: relative;
@@ -381,7 +381,7 @@ body, html {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 3rem 4rem;
+    padding: 3.5rem 4rem;
     background: #ffffff;
     z-index: 2;
 }
@@ -393,16 +393,17 @@ body, html {
 
 .form-wrapper {
     width: 100%;
-    max-width: 420px;
+    max-width: 460px; /* Lebih lapang dan proporsional */
 }
 
-/* Judul Formulir: Silahkan Masuk */
+/* Judul Formulir: Silahkan Masuk (BESAR & TEBAL) */
 .form-title {
-    font-size: 2.15rem;
+    font-size: 2.5rem; /* 40px */
     font-weight: 800;
     color: #553af6;
-    letter-spacing: -0.5px;
-    margin-bottom: 2rem;
+    letter-spacing: -0.6px;
+    margin-bottom: 2.25rem;
+    line-height: 1.2;
 }
 
 [data-theme="dark"] .form-title {
@@ -411,15 +412,15 @@ body, html {
 
 /* Label & Input Pill */
 .custom-input-group {
-    margin-bottom: 1.4rem;
+    margin-bottom: 1.5rem;
 }
 
 .custom-input-label {
     display: block;
-    font-size: 0.95rem;
+    font-size: 1.05rem; /* 16.8px */
     font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.55rem;
+    color: #0f172a;
+    margin-bottom: 0.65rem;
 }
 
 [data-theme="dark"] .custom-input-label {
@@ -432,25 +433,27 @@ body, html {
 
 .pill-input {
     width: 100%;
-    height: 52px;
+    height: 56px; /* Tinggi input proporsional */
     border-radius: 50px;
-    border: 1.5px solid #e2e8f0;
-    padding: 0 24px;
-    font-size: 0.92rem;
+    border: 1.8px solid #cbd5e1;
+    padding: 0 26px;
+    font-size: 1rem; /* 16px */
     background: #ffffff;
-    color: #1e293b;
+    color: #0f172a;
     transition: all 0.25s ease;
     outline: none;
+    font-family: inherit;
 }
 
 .pill-input::placeholder {
     color: #94a3b8;
-    font-size: 0.88rem;
+    font-size: 0.95rem; /* 15px */
+    font-weight: 400;
 }
 
 .pill-input:focus {
     border-color: #553af6;
-    box-shadow: 0 0 0 4px rgba(85, 58, 246, 0.12);
+    box-shadow: 0 0 0 4px rgba(85, 58, 246, 0.14);
 }
 
 [data-theme="dark"] .pill-input {
@@ -461,13 +464,13 @@ body, html {
 
 [data-theme="dark"] .pill-input:focus {
     border-color: #818cf8;
-    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
+    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.18);
 }
 
 /* Password Toggle Eye Button */
 .pass-toggle-btn {
     position: absolute;
-    right: 18px;
+    right: 20px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -475,7 +478,7 @@ body, html {
     color: #94a3b8;
     cursor: pointer;
     padding: 0;
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     line-height: 1;
 }
 
@@ -487,22 +490,23 @@ body, html {
 .remember-wrapper {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-bottom: 1.75rem;
+    gap: 12px;
+    margin-bottom: 2rem;
 }
 
 .custom-checkbox {
-    width: 18px;
-    height: 18px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    border: 1.5px solid #cbd5e1;
+    border: 2px solid #94a3b8;
     cursor: pointer;
     accent-color: #553af6;
 }
 
 .remember-label {
-    font-size: 0.88rem;
-    color: #64748b;
+    font-size: 0.95rem; /* 15.2px */
+    font-weight: 500;
+    color: #475569;
     cursor: pointer;
     user-select: none;
     margin: 0;
@@ -512,29 +516,30 @@ body, html {
     color: #94a3b8;
 }
 
-/* Tombol Login Pill Ungu */
+/* Tombol Login Pill Ungu (BESAR & TEBAL) */
 .btn-pill-login {
     width: 100%;
-    height: 52px;
+    height: 56px;
     border-radius: 50px;
     background: linear-gradient(135deg, #5b3cf5 0%, #6d4bf8 100%);
     border: none;
     color: #ffffff;
-    font-size: 1rem;
+    font-size: 1.125rem; /* 18px */
     font-weight: 700;
     letter-spacing: 0.3px;
     cursor: pointer;
-    box-shadow: 0 10px 24px rgba(91, 60, 245, 0.32);
+    box-shadow: 0 10px 26px rgba(91, 60, 245, 0.35);
     transition: all 0.25s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 10px;
+    font-family: inherit;
 }
 
 .btn-pill-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 30px rgba(91, 60, 245, 0.45);
+    box-shadow: 0 14px 32px rgba(91, 60, 245, 0.48);
     background: linear-gradient(135deg, #5132ec 0%, #623ef0 100%);
     color: #ffffff;
 }
@@ -544,12 +549,12 @@ body, html {
 }
 
 /* ========================================================
-   SEPARATOR: ── Auto -fill & Bantuan ──
+   SEPARATOR: ── Auto -fill ──
    ======================================================== */
 .autofill-divider {
     display: flex;
     align-items: center;
-    margin: 2rem 0 1.35rem 0;
+    margin: 2.25rem 0 1.5rem 0;
     text-align: center;
 }
 
@@ -566,40 +571,40 @@ body, html {
 }
 
 .autofill-divider span {
-    padding: 0 14px;
-    font-size: 0.8rem;
+    padding: 0 16px;
+    font-size: 0.9rem; /* 14.5px */
     font-weight: 600;
     color: #94a3b8;
     letter-spacing: 0.5px;
 }
 
 /* ========================================================
-   2 KOLOM DI BAWAH AUTOFILL
-   (1: Auto-fill Admin | 2: Laporan / Saran)
-   Dengan Animasi Gerak Aktif
+   2 KOLOM DI BAWAH AUTOFILL (PILL KAPSUL SESUAI SKETSA)
+   (Kolom 1: Auto-fill Admin | Kolom 2: Laporan / Saran)
    ======================================================== */
 .autofill-grid-2 {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 14px;
-    margin-bottom: 1.5rem;
+    gap: 16px;
+    margin-bottom: 1.75rem;
 }
 
 .autofill-pill-btn-2 {
     position: relative;
-    height: 52px;
+    height: 58px;
     background: #ffffff;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 16px;
+    border: 1.8px solid #e2e8f0;
+    border-radius: 50px; /* Bentuk pill kapsul penuh persis sketsa */
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
-    padding: 0 16px;
+    padding: 0 20px;
     text-decoration: none;
+    font-family: inherit;
 }
 
 [data-theme="dark"] .autofill-pill-btn-2 {
@@ -607,7 +612,7 @@ body, html {
     border-color: #334155;
 }
 
-/* Animasi Mengambang Idle Kolom 1 & Kolom 2 */
+/* Animasi Mengambang Idle */
 .autofill-card-admin {
     animation: idleFloatCard1 4.5s ease-in-out infinite;
 }
@@ -645,8 +650,8 @@ body, html {
 
 /* Ikon & Teks di dalam 2 Kolom */
 .btn-col-icon {
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     flex-shrink: 0;
     transition: transform 0.3s ease;
 }
@@ -662,9 +667,9 @@ body, html {
 }
 
 .btn-col-main-title {
-    font-size: 0.82rem;
+    font-size: 0.92rem; /* 14.8px - jelas & terbaca */
     font-weight: 700;
-    color: #1e293b;
+    color: #0f172a;
     line-height: 1.2;
 }
 
@@ -673,7 +678,7 @@ body, html {
 }
 
 .btn-col-sub-desc {
-    font-size: 0.68rem;
+    font-size: 0.72rem; /* 11.5px */
     color: #64748b;
     line-height: 1.1;
     margin-top: 2px;
@@ -682,9 +687,9 @@ body, html {
 /* Footer Copyright */
 .form-footer-info {
     text-align: center;
-    font-size: 0.74rem;
+    font-size: 0.82rem;
     color: #94a3b8;
-    margin-top: 1rem;
+    margin-top: 1.25rem;
 }
 
 /* ========================================================
@@ -697,7 +702,7 @@ body, html {
     .hero-panel {
         width: 100%;
         min-height: auto;
-        padding: 2.5rem 1.75rem 3.5rem 1.75rem;
+        padding: 3rem 2rem 4rem 2rem;
     }
     .split-connector-btn {
         display: none;
@@ -705,12 +710,15 @@ body, html {
     .form-panel {
         width: 100%;
         min-height: auto;
-        padding: 3rem 1.5rem 2.5rem 1.5rem;
+        padding: 3.5rem 1.75rem 3rem 1.75rem;
         border-radius: 28px 28px 0 0;
         margin-top: -24px;
         box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
     }
     .hero-main-title {
+        font-size: 2.2rem;
+    }
+    .form-title {
         font-size: 2rem;
     }
     .orbit-system-container,
@@ -800,7 +808,7 @@ body, html {
         <!-- 4. Footer Kiri -->
         <div class="hero-footer">
             <span>Enterprise Asset Management System</span>
-            <span class="font-monospace">v2.5.0</span>
+            <span class="font-monospace fw-bold">v2.5.0</span>
         </div>
 
     </div><!-- /hero-panel -->
@@ -822,7 +830,7 @@ body, html {
     <div class="form-panel">
         <div class="form-wrapper">
 
-            <!-- Judul Form Sesuai Gambar -->
+            <!-- Judul Form Sesuai Gambar: Silahkan Masuk -->
             <h2 class="form-title">Silahkan Masuk</h2>
 
             <!-- Flash Error/Success Messages -->
@@ -868,7 +876,7 @@ body, html {
                                placeholder="Enter your password" 
                                required 
                                autocomplete="current-password" 
-                               style="padding-right: 48px;">
+                               style="padding-right: 52px;">
                         <button type="button" class="pass-toggle-btn" id="togglePasswordBtn" title="Tampilkan / Sembunyikan Password">
                             <i class="bi bi-eye" id="togglePasswordIcon"></i>
                         </button>
@@ -887,13 +895,13 @@ body, html {
                 </button>
             </form>
 
-            <!-- Separator: ── Auto -fill & Bantuan ── -->
+            <!-- Separator: ── Auto -fill ── -->
             <div class="autofill-divider">
-                <span>Auto -fill &amp; Bantuan</span>
+                <span>Auto -fill</span>
             </div>
 
             <!-- ========================================================
-                 2 KOLOM DI BAWAH AUTOFILL
+                 2 KOLOM DI BAWAH AUTOFILL (PILL KAPSUL SESUAI SKETSA)
                  (1: Auto-fill Admin | 2: Laporan / Saran)
                  ======================================================== -->
             <div class="autofill-grid-2">
@@ -906,9 +914,9 @@ body, html {
                         data-user="Admin" 
                         data-pass="Admin123">
                     <div class="btn-col-icon d-flex align-items-center justify-content-center text-primary">
-                        <svg viewBox="0 0 28 28" fill="none" style="width: 24px; height: 24px;">
-                            <path d="M14 2L23 7V14C23 19.5 19.1 23.8 14 25C8.9 23.8 5 19.5 5 14V7L14 2Z" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M14 8V18M10 12L14 8L18 12" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <svg viewBox="0 0 28 28" fill="none" style="width: 26px; height: 26px;">
+                            <path d="M14 2L23 7V14C23 19.5 19.1 23.8 14 25C8.9 23.8 5 19.5 5 14V7L14 2Z" stroke="#553af6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 8V18M10 12L14 8L18 12" stroke="#553af6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
                     <div class="btn-col-text-wrapper">
@@ -925,9 +933,9 @@ body, html {
                         data-bs-toggle="modal" 
                         data-bs-target="#feedbackModal">
                     <div class="btn-col-icon d-flex align-items-center justify-content-center" style="color: #06b6d4;">
-                        <svg viewBox="0 0 28 28" fill="none" style="width: 24px; height: 24px;">
-                            <path d="M23 15C23 19.4183 18.9706 23 14 23C12.3533 23 10.8037 22.6074 9.4754 21.9161L4 23L5.47895 18.5632C4.54426 17.5178 4 16.3025 4 15C4 10.5817 8.02944 7 13 7H14C18.9706 7 23 10.5817 23 15Z" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M10 14H18M10 17H15" stroke="#06b6d4" stroke-width="2" stroke-linecap="round"/>
+                        <svg viewBox="0 0 28 28" fill="none" style="width: 26px; height: 26px;">
+                            <path d="M23 15C23 19.4183 18.9706 23 14 23C12.3533 23 10.8037 22.6074 9.4754 21.9161L4 23L5.47895 18.5632C4.54426 17.5178 4 16.3025 4 15C4 10.5817 8.02944 7 13 7H14C18.9706 7 23 10.5817 23 15Z" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 14H18M10 17H15" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round"/>
                         </svg>
                     </div>
                     <div class="btn-col-text-wrapper">
