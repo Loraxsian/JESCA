@@ -106,6 +106,8 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # Max 5MB upload
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=30)
 app.config['SESSION_REFRESH_EACH_REQUEST'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 ALLOWED_ATTACHMENT_EXTENSIONS = {'pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png', 'xlsx', 'xls', 'txt'}
@@ -122,7 +124,7 @@ CATEGORY_CUSTOM_FIELDS = {
 # Extensions initialization
 db = SQLAlchemy(app)
 
-# SQLite Concurrency Optimizer: enable WAL (Write-Ahead Logging) and foreign keys
+# SQLite Concurrency & Integrity Optimizer: WAL mode, 30s timeout & foreign keys
 @event.listens_for(Engine, "connect")
 def set_sqlite_pragma(dbapi_connection, connection_record):
     try:
@@ -130,6 +132,7 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
         cursor.execute("PRAGMA journal_mode=WAL")
         cursor.execute("PRAGMA synchronous=NORMAL")
         cursor.execute("PRAGMA busy_timeout=30000")  # 30 seconds
+        cursor.execute("PRAGMA foreign_keys=ON")
         cursor.close()
     except Exception:
         pass
@@ -1420,13 +1423,26 @@ def enforce_network_and_security():
 
     # 2. IP Whitelisting / VPN Restriction Check
     if setting and setting.ip_whitelist_enabled and setting.allowed_ip_ranges:
-        exempt_endpoints = {'static', 'health', 'scan_asset_summary'}
+        exempt_endpoints = {'static', 'health', 'scan_asset_summary', 'robots'}
         if request.endpoint and request.endpoint not in exempt_endpoints:
             client_ip = get_client_ip()
             # Always permit localhost/loopback
             if client_ip not in ['127.0.0.1', '::1']:
                 if not is_ip_allowed(client_ip, setting.allowed_ip_ranges):
                     return render_template('403_network.html', client_ip=client_ip), 403
+
+
+# ==========================================
+# Middleware: Security Headers
+# ==========================================
+@app.after_request
+def add_security_headers(response):
+    """Enforce defense-in-depth HTTP security headers."""
+    response.headers['X-Content-Type-Options'] = 'nosniff'
+    response.headers['X-Frame-Options'] = 'SAMEORIGIN'
+    response.headers['X-XSS-Protection'] = '1; mode=block'
+    response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+    return response
 
 
 # ==========================================
@@ -1437,7 +1453,7 @@ def check_force_password_change():
     exempt_endpoints = {
         'login', 'logout', 'change_password_page', 'static',
         'scan_asset_summary', 'health', 'api_asset_qrcode',
-        'confirm_sudo', 'lock_sudo'
+        'confirm_sudo', 'lock_sudo', 'robots'
     }
     if current_user.is_authenticated and getattr(current_user, 'force_password_change', False):
         if request.endpoint and request.endpoint not in exempt_endpoints:
@@ -1445,13 +1461,19 @@ def check_force_password_change():
 
 
 # ==========================================
-# Routes: Health & Auth
+# Routes: Health, Robots & Auth
 # ==========================================
+@app.route('/robots.txt')
+def robots():
+    """Prevent web crawlers from indexing internal inventory data."""
+    return Response("User-agent: *\nDisallow: /\n", mimetype="text/plain")
+
+
 @app.route('/health')
 def health():
     return jsonify({
         'status': 'ok',
-        'version': '2.0',
+        'version': APP_VERSION,
         'app': 'JESCA Asset Management System',
         'timestamp': datetime.utcnow().isoformat()
     })
