@@ -273,7 +273,6 @@ body, html {
     pointer-events: none;
 }
 
-/* Setengah bola besar gradien toska */
 .orbit-main-planet {
     position: absolute;
     bottom: 0;
@@ -291,7 +290,6 @@ body, html {
     100% { transform: scale(1.04); filter: brightness(1.1); }
 }
 
-/* Jalur Orbit Lingkaran Tipis */
 .orbit-track {
     position: absolute;
     bottom: -20px;
@@ -303,7 +301,6 @@ body, html {
     animation: rotateOrbit 12s linear infinite;
 }
 
-/* Satelit Kecil pada Orbit */
 .orbit-satellite {
     position: absolute;
     top: 25px;
@@ -323,7 +320,6 @@ body, html {
 
 /* ========================================================
    KONEKTOR TENGAH (FLOATING CIRCLE WITH ARROW)
-   Sesuai gambar lingkaran putih di sambungan pembatas
    ======================================================== */
 .split-connector-btn {
     position: absolute;
@@ -548,12 +544,12 @@ body, html {
 }
 
 /* ========================================================
-   SEPARATOR: ── Auto -fill ──
+   SEPARATOR: ── Auto -fill & Bantuan ──
    ======================================================== */
 .autofill-divider {
     display: flex;
     align-items: center;
-    margin: 2rem 0 1.5rem 0;
+    margin: 2rem 0 1.35rem 0;
     text-align: center;
 }
 
@@ -570,104 +566,117 @@ body, html {
 }
 
 .autofill-divider span {
-    padding: 0 16px;
-    font-size: 0.82rem;
-    font-weight: 500;
+    padding: 0 14px;
+    font-size: 0.8rem;
+    font-weight: 600;
     color: #94a3b8;
     letter-spacing: 0.5px;
 }
 
 /* ========================================================
-   3 KOLOM DI BAWAH AUTOFILL (DENGAN ANIMASI INTERAKTIF)
-   Sesuai gambar referensi: 3 kotak/kapsul horisontal berjejer
+   2 KOLOM DI BAWAH AUTOFILL
+   (1: Auto-fill Admin | 2: Laporan / Saran)
+   Dengan Animasi Gerak Aktif
    ======================================================== */
-.autofill-grid {
+.autofill-grid-2 {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 14px;
     margin-bottom: 1.5rem;
 }
 
-.autofill-pill-btn {
+.autofill-pill-btn-2 {
     position: relative;
-    height: 48px;
+    height: 52px;
     background: #ffffff;
     border: 1.5px solid #e2e8f0;
-    border-radius: 14px;
+    border-radius: 16px;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 10px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
-    padding: 0 12px;
+    padding: 0 16px;
+    text-decoration: none;
 }
 
-[data-theme="dark"] .autofill-pill-btn {
+[data-theme="dark"] .autofill-pill-btn-2 {
     background: #1e293b;
     border-color: #334155;
 }
 
-/* Animasi Mengambang Masing-Masing Kolom (Idle Float) */
-.autofill-col-1 { animation: idlePill1 4s ease-in-out infinite; }
-.autofill-col-2 { animation: idlePill2 4.6s ease-in-out infinite 0.4s; }
-.autofill-col-3 { animation: idlePill3 4.2s ease-in-out infinite 0.8s; }
-
-@keyframes idlePill1 {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+/* Animasi Mengambang Idle Kolom 1 & Kolom 2 */
+.autofill-card-admin {
+    animation: idleFloatCard1 4.5s ease-in-out infinite;
 }
-@keyframes idlePill2 {
+
+.autofill-card-report {
+    animation: idleFloatCard2 4.5s ease-in-out infinite 0.7s;
+}
+
+@keyframes idleFloatCard1 {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-4px); }
 }
-@keyframes idlePill3 {
+
+@keyframes idleFloatCard2 {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
+    50% { transform: translateY(-4px); }
 }
 
-/* Efek Hover Pada 3 Kolom */
-.autofill-pill-btn:hover {
-    transform: translateY(-6px) scale(1.04) !important;
+/* Hover Effect 2 Kolom */
+.autofill-card-admin:hover {
+    transform: translateY(-6px) scale(1.03) !important;
     border-color: #553af6;
-    box-shadow: 0 10px 22px rgba(85, 58, 246, 0.22);
+    box-shadow: 0 10px 24px rgba(85, 58, 246, 0.22);
 }
 
-.autofill-pill-btn:active {
+.autofill-card-report:hover {
+    transform: translateY(-6px) scale(1.03) !important;
+    border-color: #06b6d4;
+    box-shadow: 0 10px 24px rgba(6, 182, 212, 0.25);
+}
+
+.autofill-pill-btn-2:active {
     transform: scale(0.96) !important;
 }
 
-/* Icon SVG di dalam 3 kolom autofill */
-.autofill-icon-svg {
-    width: 28px;
-    height: 28px;
+/* Ikon & Teks di dalam 2 Kolom */
+.btn-col-icon {
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
     transition: transform 0.3s ease;
 }
 
-.autofill-pill-btn:hover .autofill-icon-svg {
+.autofill-pill-btn-2:hover .btn-col-icon {
     transform: scale(1.15) rotate(4deg);
 }
 
-/* Badge Role Hint Kecil di Bawah Ikon Saat Hover */
-.autofill-role-hint {
-    position: absolute;
-    bottom: 2px;
-    font-size: 0.62rem;
+.btn-col-text-wrapper {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.btn-col-main-title {
+    font-size: 0.82rem;
     font-weight: 700;
-    letter-spacing: 0.4px;
-    color: #553af6;
-    opacity: 0;
-    transform: translateY(4px);
-    transition: all 0.2s ease;
+    color: #1e293b;
+    line-height: 1.2;
 }
 
-.autofill-pill-btn:hover .autofill-role-hint {
-    opacity: 1;
-    transform: translateY(0);
+[data-theme="dark"] .btn-col-main-title {
+    color: #f1f5f9;
 }
 
-.autofill-pill-btn:hover .autofill-icon-svg {
-    transform: translateY(-6px) scale(1.08);
+.btn-col-sub-desc {
+    font-size: 0.68rem;
+    color: #64748b;
+    line-height: 1.1;
+    margin-top: 2px;
 }
 
 /* Footer Copyright */
@@ -878,60 +887,53 @@ body, html {
                 </button>
             </form>
 
-            <!-- Separator: ── Auto -fill ── -->
+            <!-- Separator: ── Auto -fill & Bantuan ── -->
             <div class="autofill-divider">
-                <span>Auto -fill</span>
+                <span>Auto -fill &amp; Bantuan</span>
             </div>
 
             <!-- ========================================================
-                 3 KOLOM DI BAWAH AUTOFILL
-                 (Admin, Staff, Auditor — Lengkap Animasi Gerak)
+                 2 KOLOM DI BAWAH AUTOFILL
+                 (1: Auto-fill Admin | 2: Laporan / Saran)
                  ======================================================== -->
-            <div class="autofill-grid">
+            <div class="autofill-grid-2">
                 
-                <!-- Kolom 1: Role Admin (Icon Shield Monogram) -->
+                <!-- Kolom 1: Auto-fill Login sebagai Admin -->
                 <button type="button" 
-                        class="autofill-pill-btn autofill-col-1" 
+                        class="autofill-pill-btn-2 autofill-card-admin" 
                         id="btnFillAdmin" 
-                        title="Auto-fill Akun Admin (Full Akses)"
+                        title="Auto-fill Kredensial Admin"
                         data-user="Admin" 
                         data-pass="Admin123">
-                    <svg class="autofill-icon-svg" viewBox="0 0 32 32" fill="none">
-                        <!-- Stylized Hexagon/Shield Logo sesuai sketsa kolom 1 -->
-                        <path d="M16 3L27 9V17C27 23.5 22.3 27.5 16 29C9.7 27.5 5 23.5 5 17V9L16 3Z" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M16 10V22M12 14L16 10L20 14" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span class="autofill-role-hint">Admin</span>
+                    <div class="btn-col-icon d-flex align-items-center justify-content-center text-primary">
+                        <svg viewBox="0 0 28 28" fill="none" style="width: 24px; height: 24px;">
+                            <path d="M14 2L23 7V14C23 19.5 19.1 23.8 14 25C8.9 23.8 5 19.5 5 14V7L14 2Z" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 8V18M10 12L14 8L18 12" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <div class="btn-col-text-wrapper">
+                        <span class="btn-col-main-title">Admin Login</span>
+                        <span class="btn-col-sub-desc">Auto-fill Admin</span>
+                    </div>
                 </button>
 
-                <!-- Kolom 2: Role Staff (Icon Monogram M / Staff) -->
+                <!-- Kolom 2: Laporan / Saran (Membuka Modal Feedback) -->
                 <button type="button" 
-                        class="autofill-pill-btn autofill-col-2" 
-                        id="btnFillStaff" 
-                        title="Auto-fill Akun Staff (Operasional & Aset)"
-                        data-user="staff1" 
-                        data-pass="Staff123">
-                    <svg class="autofill-icon-svg" viewBox="0 0 32 32" fill="none">
-                        <!-- Stylized Geometric "M" sesuai sketsa kolom 2 -->
-                        <path d="M7 24V9L16 16L25 9V24" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <circle cx="16" cy="7" r="2.5" fill="#06b6d4"/>
-                    </svg>
-                    <span class="autofill-role-hint" style="color: #06b6d4;">Staff</span>
-                </button>
-
-                <!-- Kolom 3: Role Auditor (Icon Chevron V / Auditor) -->
-                <button type="button" 
-                        class="autofill-pill-btn autofill-col-3" 
-                        id="btnFillAuditor" 
-                        title="Auto-fill Akun Auditor (Laporan & Audit Log)"
-                        data-user="auditor" 
-                        data-pass="Auditor123">
-                    <svg class="autofill-icon-svg" viewBox="0 0 32 32" fill="none">
-                        <!-- Geometric Double Chevron "V" sesuai sketsa kolom 3 -->
-                        <path d="M6 10L16 20L26 10" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M10 16L16 22L22 16" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span class="autofill-role-hint" style="color: #7c3aed;">Auditor</span>
+                        class="autofill-pill-btn-2 autofill-card-report" 
+                        id="btnOpenFeedbackModal" 
+                        title="Kirim Laporan Kendala atau Saran Sistem"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#feedbackModal">
+                    <div class="btn-col-icon d-flex align-items-center justify-content-center" style="color: #06b6d4;">
+                        <svg viewBox="0 0 28 28" fill="none" style="width: 24px; height: 24px;">
+                            <path d="M23 15C23 19.4183 18.9706 23 14 23C12.3533 23 10.8037 22.6074 9.4754 21.9161L4 23L5.47895 18.5632C4.54426 17.5178 4 16.3025 4 15C4 10.5817 8.02944 7 13 7H14C18.9706 7 23 10.5817 23 15Z" stroke="#06b6d4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M10 14H18M10 17H15" stroke="#06b6d4" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="btn-col-text-wrapper">
+                        <span class="btn-col-main-title">Laporan / Saran</span>
+                        <span class="btn-col-sub-desc">Bantuan &amp; Masukan</span>
+                    </div>
                 </button>
 
             </div>
@@ -944,6 +946,67 @@ body, html {
         </div>
     </div><!-- /form-panel -->
 
+</div>
+
+<!-- ========================================================
+     MODAL INTERAKTIF: LAPORAN / SARAN SISTEM
+     ======================================================== -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header py-3 px-4 border-0" style="background: linear-gradient(135deg, #4f32e8 0%, #5d3df5 100%); color: #ffffff;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-heart fs-5 text-info"></i>
+                    <h6 class="modal-title fw-bold mb-0" id="feedbackModalLabel">Laporan Kendala &amp; Saran Sistem</h6>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="small text-muted mb-3">
+                    Silakan sampaikan laporan kendala akses, pertanyaan seputar inventaris, atau saran pengembangan fitur untuk JESCA.
+                </p>
+
+                <form id="feedbackForm" onsubmit="event.preventDefault(); submitFeedback();">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Nama Pelapor <span class="text-muted fw-normal">(Opsional)</span></label>
+                        <input type="text" class="form-control rounded-3" id="feedbackName" placeholder="Contoh: Budi Santoso / Staf Gudang">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Kontak / Email / No. WhatsApp</label>
+                        <input type="text" class="form-control rounded-3" id="feedbackContact" placeholder="email@perusahaan.com atau 08xxxxxxxxxx">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Kategori</label>
+                        <select class="form-select rounded-3" id="feedbackCategory">
+                            <option value="Saran Fitur Baru" selected>💡 Saran Pengembangan Fitur</option>
+                            <option value="Kendala Login / Akun">🔒 Kendala Login / Akses Akun</option>
+                            <option value="Laporan Bug / Eror">⚠️ Laporan Kendala Teknis / Bug</option>
+                            <option value="Pertanyaan Inventaris">📦 Pertanyaan Pengelolaan Aset</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Isi Laporan / Saran <span class="text-danger">*</span></label>
+                        <textarea class="form-control rounded-3" id="feedbackMessage" rows="3" placeholder="Tuliskan uraian laporan atau saran Anda di sini..." required></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2 justify-content-end mt-4">
+                        <button type="button" class="btn btn-light rounded-pill px-3 btn-sm" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 btn-sm fw-bold" id="btnSubmitFeedback" style="background: #553af6; border-color: #553af6;">
+                            <i class="bi bi-send me-1"></i>Kirim Masukan
+                        </button>
+                    </div>
+                </form>
+
+                <div id="feedbackSuccessAlert" class="alert alert-success border-0 rounded-3 mt-3 d-none align-items-center gap-2">
+                    <i class="bi bi-check-circle-fill fs-5"></i>
+                    <span class="small">Terima kasih! Laporan / saran Anda telah tercatat dan akan ditindaklanjuti oleh Administrator.</span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 
@@ -984,20 +1047,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 4. Interaktivitas 3 Kolom Auto-fill dengan Animasi
-    const autofillButtons = [
-        document.getElementById('btnFillAdmin'),
-        document.getElementById('btnFillStaff'),
-        document.getElementById('btnFillAuditor')
-    ];
-
-    autofillButtons.forEach(btn => {
-        if (!btn) return;
-
-        btn.addEventListener('click', function () {
-            const u = this.getAttribute('data-user');
-            const p = this.getAttribute('data-pass');
-            const role = this.querySelector('.autofill-role-hint') ? this.querySelector('.autofill-role-hint').textContent : u;
+    // 4. Kolom 1: Auto-fill Login sebagai Admin
+    const btnFillAdmin = document.getElementById('btnFillAdmin');
+    if (btnFillAdmin) {
+        btnFillAdmin.addEventListener('click', function () {
+            const u = this.getAttribute('data-user') || 'Admin';
+            const p = this.getAttribute('data-pass') || 'Admin123';
 
             if (usernameInput) usernameInput.value = u;
             if (passInput) passInput.value = p;
@@ -1025,10 +1080,44 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Toast feedback
             if (window.JescaToast) {
-                window.JescaToast.show('Kredensial akun ' + role + ' (' + u + ') berhasil diisi!', 'success');
+                window.JescaToast.show('Kredensial Admin (' + u + ') berhasil diisi!', 'success');
             }
         });
-    });
+    }
 });
+
+// 5. Fungsi Kirim Feedback Modal
+function submitFeedback() {
+    const btnSubmit = document.getElementById('btnSubmitFeedback');
+    const alertBox = document.getElementById('feedbackSuccessAlert');
+    const form = document.getElementById('feedbackForm');
+    const messageInput = document.getElementById('feedbackMessage');
+
+    if (!messageInput || !messageInput.value.trim()) return;
+
+    btnSubmit.disabled = true;
+    btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengirim...';
+
+    setTimeout(function () {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="bi bi-check-lg me-1"></i>Terkirim';
+        alertBox.classList.remove('d-none');
+        alertBox.classList.add('d-flex');
+        form.reset();
+
+        setTimeout(function () {
+            const modalEl = document.getElementById('feedbackModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+            alertBox.classList.add('d-none');
+            alertBox.classList.remove('d-flex');
+            btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Kirim Masukan';
+
+            if (window.JescaToast) {
+                window.JescaToast.show('Laporan / saran Anda telah berhasil terkirim!', 'success');
+            }
+        }, 1800);
+    }, 600);
+}
 </script>
 {% endblock %}
