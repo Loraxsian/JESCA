@@ -5,8 +5,8 @@
 {% block auth_content %}
 <style>
 /* ========================================================
-   JESCA v2.5.0 — Vibrant Geometric Interactive Login
-   Presisi 100% Sesuai Sketsa: Tipografi Jelas, Bold & Proporsional
+   JESCA v2.5.1 — Vibrant Geometric Interactive Login
+   Presisi Penuh Sesuai Sketsa Gambar Pengguna
    ======================================================== */
 
 * {
@@ -23,7 +23,7 @@ body, html {
 
 .login-viewport {
     min-height: 100vh;
-    width: 100%;
+    width: 100vw;
     display: flex;
     background: #ffffff;
     position: relative;
@@ -35,18 +35,18 @@ body, html {
 }
 
 /* ========================================================
-   SISI KIRI: HERO PANEL (DESAIN & TIPOGRAFI DOMINAN)
+   SISI KIRI: HERO PANEL (PERSIS SESUAI SKETSA)
    ======================================================== */
 .hero-panel {
     position: relative;
-    width: 52%;
+    width: 53%;
     min-height: 100vh;
     background: linear-gradient(135deg, #4f32e8 0%, #5d3df5 45%, #7655fa 100%);
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 4rem 4.5rem;
+    justify-content: center; /* Posisikan konten tepat di tengah vertikal */
+    padding: 3.5rem 4rem 3.5rem 5rem;
     color: #ffffff;
     z-index: 1;
 }
@@ -54,20 +54,20 @@ body, html {
 /* Background Soft Glow Circles */
 .hero-bg-glow-1 {
     position: absolute;
-    width: 520px;
-    height: 520px;
+    width: 550px;
+    height: 550px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 70%);
-    top: -140px;
-    left: -140px;
+    top: -150px;
+    left: -150px;
     pointer-events: none;
     z-index: 1;
 }
 
 .hero-bg-glow-2 {
     position: absolute;
-    width: 420px;
-    height: 420px;
+    width: 450px;
+    height: 450px;
     border-radius: 50%;
     background: radial-gradient(circle, rgba(6, 182, 212, 0.25) 0%, rgba(6, 182, 212, 0) 70%);
     bottom: -100px;
@@ -76,9 +76,11 @@ body, html {
     z-index: 1;
 }
 
-/* 1. Header Brand (Logo Baru + Nama) */
+/* 1. Header Brand (Logo Baru + Nama) - Pojok Kiri Atas */
 .brand-header {
-    position: relative;
+    position: absolute;
+    top: 3.5rem;
+    left: 5rem;
     z-index: 10;
     display: flex;
     align-items: center;
@@ -86,17 +88,17 @@ body, html {
 }
 
 .brand-logo-svg {
-    width: 42px;
-    height: 42px;
-    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.22));
+    width: 44px;
+    height: 44px;
+    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.25));
 }
 
 .brand-text {
-    font-size: 1.75rem; /* 28px */
-    font-weight: 800;
-    letter-spacing: 2px;
-    color: #ffffff;
-    margin: 0;
+    font-size: 1.85rem !important; /* ~30px */
+    font-weight: 800 !important;
+    letter-spacing: 2px !important;
+    color: #ffffff !important;
+    margin: 0 !important;
     text-transform: uppercase;
 }
 
@@ -104,56 +106,48 @@ body, html {
 .hero-center-content {
     position: relative;
     z-index: 10;
-    margin-top: auto;
-    margin-bottom: auto;
-    padding: 2.5rem 0;
-    max-width: 540px;
+    width: 100%;
+    max-width: 650px;
+    text-align: left;
+    margin-top: 1rem;
 }
 
+/* Sub-headline: EFEKTIF • AKUNTABEL • INTEGRATIF (Satu Baris, Jelas & Besar) */
 .hero-badge-subtitle {
-    font-size: 0.95rem; /* 15px */
-    font-weight: 700;
-    letter-spacing: 2.5px;
-    color: rgba(255, 255, 255, 0.9);
-    text-transform: uppercase;
-    margin-bottom: 1.25rem;
-    display: flex;
-    align-items: center;
-    gap: 10px;
+    font-size: 1.15rem !important; /* ~18.5px - BESAR & JELAS */
+    font-weight: 700 !important;
+    letter-spacing: 3px !important;
+    color: rgba(255, 255, 255, 0.92) !important;
+    text-transform: uppercase !important;
+    margin-bottom: 1rem !important;
+    white-space: nowrap !important;
+    display: block !important;
+    line-height: 1.4 !important;
 }
 
+/* Headline Besar: Smart Tracking Seamless Assets */
 .hero-main-title {
-    font-size: clamp(2.4rem, 4vw, 3.4rem); /* 42px - 54px */
-    font-weight: 800;
-    line-height: 1.16;
-    color: #ffffff;
-    letter-spacing: -0.5px;
-    margin-bottom: 1.75rem;
-    text-shadow: 0 4px 24px rgba(25, 10, 80, 0.3);
+    font-size: 3.85rem !important; /* ~62px - SANGAT BESAR & DOMINAN */
+    font-weight: 800 !important;
+    line-height: 1.12 !important;
+    color: #ffffff !important;
+    letter-spacing: -0.8px !important;
+    margin: 0 0 1.5rem 0 !important;
+    text-shadow: 0 4px 28px rgba(25, 10, 80, 0.35) !important;
+    white-space: nowrap !important;
 }
 
+/* Garis Aksen Putih di Bawah Judul */
 .hero-accent-line {
-    width: 160px;
-    height: 4px;
-    background: #ffffff;
-    border-radius: 4px;
-    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.4);
-}
-
-/* 3. Footer Info Kiri */
-.hero-footer {
-    position: relative;
-    z-index: 10;
-    font-size: 0.85rem;
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.8);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    width: 200px !important;
+    height: 5px !important;
+    background: #ffffff !important;
+    border-radius: 4px !important;
+    box-shadow: 0 2px 12px rgba(255, 255, 255, 0.45) !important;
 }
 
 /* ========================================================
-   ELEMEN-ELEMEN ANIMASI GEOMETRIS PERSIS SKETSA
+   ELEMEN-ELEMEN ANIMASI GEOMETRIS PERSIS SKETSA GAMBAR
    ======================================================== */
 
 /* Kapsul Silinder Gradien Vertikal (Pill Shape) */
@@ -161,10 +155,10 @@ body, html {
     position: absolute;
     top: 0;
     right: 28%;
-    width: 50px;
-    height: 155px;
-    border-radius: 0 0 32px 32px;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.5) 0%, rgba(165, 180, 252, 0.3) 60%, rgba(255, 255, 255, 0.05) 100%);
+    width: 54px;
+    height: 165px;
+    border-radius: 0 0 35px 35px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.52) 0%, rgba(165, 180, 252, 0.32) 60%, rgba(255, 255, 255, 0.05) 100%);
     backdrop-filter: blur(8px);
     z-index: 3;
     animation: floatPill 5.5s ease-in-out infinite;
@@ -179,10 +173,10 @@ body, html {
 /* Cincin Putih (Hollow Circle Ring) */
 .anim-hollow-ring {
     position: absolute;
-    top: 145px;
+    top: 155px;
     right: 22%;
-    width: 26px;
-    height: 26px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     border: 3.5px solid rgba(255, 255, 255, 0.9);
     z-index: 4;
@@ -199,9 +193,9 @@ body, html {
     position: absolute;
     display: grid;
     grid-template-columns: repeat(5, 8px);
-    grid-gap: 9px;
+    grid-gap: 10px;
     z-index: 3;
-    opacity: 0.75;
+    opacity: 0.8;
     animation: pulseDots 4s ease-in-out infinite alternate;
 }
 
@@ -214,13 +208,13 @@ body, html {
 }
 
 .dot-grid-top-right {
-    top: 185px;
+    top: 195px;
     right: 10%;
 }
 
 .dot-grid-bottom-left {
-    bottom: 90px;
-    left: 8%;
+    bottom: 95px;
+    left: 5rem;
 }
 
 @keyframes pulseDots {
@@ -231,13 +225,13 @@ body, html {
 /* Bola Cyan Toska Menyala */
 .anim-cyan-orb {
     position: absolute;
-    bottom: 170px;
-    left: 7%;
-    width: 48px;
-    height: 48px;
+    bottom: 180px;
+    left: 4.8rem;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
     background: radial-gradient(circle at 30% 30%, #67e8f9 0%, #06b6d4 60%, #0891b2 100%);
-    box-shadow: 0 0 30px rgba(6, 182, 212, 0.75);
+    box-shadow: 0 0 32px rgba(6, 182, 212, 0.75);
     z-index: 5;
     animation: floatOrb 5s ease-in-out infinite;
 }
@@ -250,10 +244,10 @@ body, html {
 /* Tanda Silang Putih (Cross X) */
 .anim-cross-icon {
     position: absolute;
-    bottom: 135px;
-    left: 17%;
+    bottom: 145px;
+    left: 10rem;
     color: rgba(255, 255, 255, 0.9);
-    font-size: 1.5rem;
+    font-size: 1.6rem;
     font-weight: 300;
     z-index: 4;
     animation: spinCross 14s linear infinite;
@@ -279,11 +273,11 @@ body, html {
     position: absolute;
     bottom: 0;
     right: 40px;
-    width: 240px;
-    height: 240px;
+    width: 250px;
+    height: 250px;
     border-radius: 50%;
     background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0284c7 100%);
-    box-shadow: 0 0 60px rgba(6, 182, 212, 0.5);
+    box-shadow: 0 0 65px rgba(6, 182, 212, 0.52);
     animation: pulsePlanet 6s ease-in-out infinite alternate;
 }
 
@@ -296,10 +290,10 @@ body, html {
     position: absolute;
     bottom: -20px;
     right: 15px;
-    width: 290px;
-    height: 290px;
+    width: 300px;
+    height: 300px;
     border-radius: 50%;
-    border: 2px solid rgba(255, 255, 255, 0.4);
+    border: 2px solid rgba(255, 255, 255, 0.45);
     animation: rotateOrbit 12s linear infinite;
 }
 
@@ -325,17 +319,17 @@ body, html {
 .split-connector-btn {
     position: absolute;
     top: 50%;
-    left: 52%;
+    left: 53%;
     transform: translate(-50%, -50%);
     z-index: 30;
-    width: 72px;
-    height: 72px;
+    width: 76px;
+    height: 76px;
     background: #ffffff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 30px rgba(79, 50, 232, 0.22);
+    box-shadow: 0 12px 34px rgba(79, 50, 232, 0.25);
     border: 5px solid #ffffff;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -347,16 +341,16 @@ body, html {
 }
 
 .connector-inner-circle {
-    width: 52px;
-    height: 52px;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffffff;
-    font-size: 1.5rem;
-    box-shadow: 0 4px 16px rgba(6, 182, 212, 0.45);
+    font-size: 1.6rem;
+    box-shadow: 0 4px 18px rgba(6, 182, 212, 0.45);
     animation: pulseArrow 2.2s ease-in-out infinite;
 }
 
@@ -367,7 +361,7 @@ body, html {
 
 .split-connector-btn:hover {
     transform: translate(-50%, -50%) scale(1.12);
-    box-shadow: 0 14px 38px rgba(79, 50, 232, 0.38);
+    box-shadow: 0 16px 42px rgba(79, 50, 232, 0.4);
 }
 
 /* ========================================================
@@ -375,7 +369,7 @@ body, html {
    ======================================================== */
 .form-panel {
     position: relative;
-    width: 48%;
+    width: 47%;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -393,21 +387,21 @@ body, html {
 
 .form-wrapper {
     width: 100%;
-    max-width: 460px; /* Lebih lapang dan proporsional */
+    max-width: 460px;
 }
 
 /* Judul Formulir: Silahkan Masuk (BESAR & TEBAL) */
 .form-title {
-    font-size: 2.5rem; /* 40px */
-    font-weight: 800;
-    color: #553af6;
-    letter-spacing: -0.6px;
-    margin-bottom: 2.25rem;
-    line-height: 1.2;
+    font-size: 2.5rem !important; /* 40px */
+    font-weight: 800 !important;
+    color: #553af6 !important;
+    letter-spacing: -0.6px !important;
+    margin-bottom: 2.25rem !important;
+    line-height: 1.2 !important;
 }
 
 [data-theme="dark"] .form-title {
-    color: #818cf8;
+    color: #818cf8 !important;
 }
 
 /* Label & Input Pill */
@@ -417,14 +411,14 @@ body, html {
 
 .custom-input-label {
     display: block;
-    font-size: 1.05rem; /* 16.8px */
-    font-weight: 700;
-    color: #0f172a;
-    margin-bottom: 0.65rem;
+    font-size: 1.05rem !important; /* 16.8px */
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    margin-bottom: 0.65rem !important;
 }
 
 [data-theme="dark"] .custom-input-label {
-    color: #e2e8f0;
+    color: #e2e8f0 !important;
 }
 
 .pill-input-container {
@@ -433,38 +427,38 @@ body, html {
 
 .pill-input {
     width: 100%;
-    height: 56px; /* Tinggi input proporsional */
-    border-radius: 50px;
-    border: 1.8px solid #cbd5e1;
-    padding: 0 26px;
-    font-size: 1rem; /* 16px */
-    background: #ffffff;
-    color: #0f172a;
+    height: 56px !important;
+    border-radius: 50px !important;
+    border: 1.8px solid #cbd5e1 !important;
+    padding: 0 26px !important;
+    font-size: 1rem !important; /* 16px */
+    background: #ffffff !important;
+    color: #0f172a !important;
     transition: all 0.25s ease;
     outline: none;
     font-family: inherit;
 }
 
 .pill-input::placeholder {
-    color: #94a3b8;
-    font-size: 0.95rem; /* 15px */
+    color: #94a3b8 !important;
+    font-size: 0.95rem !important; /* 15px */
     font-weight: 400;
 }
 
 .pill-input:focus {
-    border-color: #553af6;
-    box-shadow: 0 0 0 4px rgba(85, 58, 246, 0.14);
+    border-color: #553af6 !important;
+    box-shadow: 0 0 0 4px rgba(85, 58, 246, 0.14) !important;
 }
 
 [data-theme="dark"] .pill-input {
-    background: #1e293b;
-    border-color: #334155;
-    color: #f1f5f9;
+    background: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
 }
 
 [data-theme="dark"] .pill-input:focus {
-    border-color: #818cf8;
-    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.18);
+    border-color: #818cf8 !important;
+    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.18) !important;
 }
 
 /* Password Toggle Eye Button */
@@ -504,31 +498,31 @@ body, html {
 }
 
 .remember-label {
-    font-size: 0.95rem; /* 15.2px */
-    font-weight: 500;
-    color: #475569;
+    font-size: 0.95rem !important; /* 15.2px */
+    font-weight: 500 !important;
+    color: #475569 !important;
     cursor: pointer;
     user-select: none;
     margin: 0;
 }
 
 [data-theme="dark"] .remember-label {
-    color: #94a3b8;
+    color: #94a3b8 !important;
 }
 
 /* Tombol Login Pill Ungu (BESAR & TEBAL) */
 .btn-pill-login {
     width: 100%;
-    height: 56px;
-    border-radius: 50px;
-    background: linear-gradient(135deg, #5b3cf5 0%, #6d4bf8 100%);
-    border: none;
-    color: #ffffff;
-    font-size: 1.125rem; /* 18px */
-    font-weight: 700;
-    letter-spacing: 0.3px;
+    height: 56px !important;
+    border-radius: 50px !important;
+    background: linear-gradient(135deg, #5b3cf5 0%, #6d4bf8 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-size: 1.125rem !important; /* 18px */
+    font-weight: 700 !important;
+    letter-spacing: 0.3px !important;
     cursor: pointer;
-    box-shadow: 0 10px 26px rgba(91, 60, 245, 0.35);
+    box-shadow: 0 10px 26px rgba(91, 60, 245, 0.35) !important;
     transition: all 0.25s ease;
     display: flex;
     align-items: center;
@@ -539,9 +533,9 @@ body, html {
 
 .btn-pill-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 32px rgba(91, 60, 245, 0.48);
-    background: linear-gradient(135deg, #5132ec 0%, #623ef0 100%);
-    color: #ffffff;
+    box-shadow: 0 14px 32px rgba(91, 60, 245, 0.48) !important;
+    background: linear-gradient(135deg, #5132ec 0%, #623ef0 100%) !important;
+    color: #ffffff !important;
 }
 
 .btn-pill-login:active {
@@ -572,9 +566,9 @@ body, html {
 
 .autofill-divider span {
     padding: 0 16px;
-    font-size: 0.9rem; /* 14.5px */
-    font-weight: 600;
-    color: #94a3b8;
+    font-size: 0.9rem !important; /* 14.5px */
+    font-weight: 600 !important;
+    color: #94a3b8 !important;
     letter-spacing: 0.5px;
 }
 
@@ -591,10 +585,10 @@ body, html {
 
 .autofill-pill-btn-2 {
     position: relative;
-    height: 58px;
-    background: #ffffff;
-    border: 1.8px solid #e2e8f0;
-    border-radius: 50px; /* Bentuk pill kapsul penuh persis sketsa */
+    height: 58px !important;
+    background: #ffffff !important;
+    border: 1.8px solid #e2e8f0 !important;
+    border-radius: 50px !important;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -602,14 +596,14 @@ body, html {
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     overflow: hidden;
-    padding: 0 20px;
+    padding: 0 20px !important;
     text-decoration: none;
     font-family: inherit;
 }
 
 [data-theme="dark"] .autofill-pill-btn-2 {
-    background: #1e293b;
-    border-color: #334155;
+    background: #1e293b !important;
+    border-color: #334155 !important;
 }
 
 /* Animasi Mengambang Idle */
@@ -634,14 +628,14 @@ body, html {
 /* Hover Effect 2 Kolom */
 .autofill-card-admin:hover {
     transform: translateY(-6px) scale(1.03) !important;
-    border-color: #553af6;
-    box-shadow: 0 10px 24px rgba(85, 58, 246, 0.22);
+    border-color: #553af6 !important;
+    box-shadow: 0 10px 24px rgba(85, 58, 246, 0.22) !important;
 }
 
 .autofill-card-report:hover {
     transform: translateY(-6px) scale(1.03) !important;
-    border-color: #06b6d4;
-    box-shadow: 0 10px 24px rgba(6, 182, 212, 0.25);
+    border-color: #06b6d4 !important;
+    box-shadow: 0 10px 24px rgba(6, 182, 212, 0.25) !important;
 }
 
 .autofill-pill-btn-2:active {
@@ -667,34 +661,68 @@ body, html {
 }
 
 .btn-col-main-title {
-    font-size: 0.92rem; /* 14.8px - jelas & terbaca */
-    font-weight: 700;
-    color: #0f172a;
-    line-height: 1.2;
+    font-size: 0.95rem !important; /* 15.2px - jelas & terbaca */
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    line-height: 1.2 !important;
 }
 
 [data-theme="dark"] .btn-col-main-title {
-    color: #f1f5f9;
+    color: #f1f5f9 !important;
 }
 
 .btn-col-sub-desc {
-    font-size: 0.72rem; /* 11.5px */
-    color: #64748b;
-    line-height: 1.1;
+    font-size: 0.72rem !important; /* 11.5px */
+    color: #64748b !important;
+    line-height: 1.1 !important;
     margin-top: 2px;
 }
 
 /* Footer Copyright */
 .form-footer-info {
     text-align: center;
-    font-size: 0.82rem;
-    color: #94a3b8;
+    font-size: 0.82rem !important;
+    color: #94a3b8 !important;
     margin-top: 1.25rem;
 }
 
 /* ========================================================
-   RESPONSIVITAS MOBILE (< 992px)
+   RESPONSIVITAS MONITOR SEDANG & KECIL
    ======================================================== */
+@media (max-width: 1400px) {
+    .hero-panel {
+        padding: 3rem 3rem 3rem 3.5rem;
+    }
+    .brand-header {
+        top: 2.5rem;
+        left: 3.5rem;
+    }
+    .hero-main-title {
+        font-size: 3.1rem !important; /* ~50px */
+    }
+    .dot-grid-bottom-left {
+        left: 3.5rem;
+    }
+    .anim-cyan-orb {
+        left: 3.5rem;
+    }
+    .anim-cross-icon {
+        left: 8rem;
+    }
+}
+
+@media (max-width: 1199.98px) {
+    .hero-main-title {
+        font-size: 2.6rem !important; /* ~42px */
+    }
+    .hero-badge-subtitle {
+        font-size: 1rem !important;
+    }
+    .form-title {
+        font-size: 2.2rem !important;
+    }
+}
+
 @media (max-width: 991.98px) {
     .login-viewport {
         flex-direction: column;
@@ -702,7 +730,14 @@ body, html {
     .hero-panel {
         width: 100%;
         min-height: auto;
-        padding: 3rem 2rem 4rem 2rem;
+        padding: 6rem 2rem 4rem 2rem;
+    }
+    .brand-header {
+        top: 2rem;
+        left: 2rem;
+    }
+    .hero-center-content {
+        margin-top: 0;
     }
     .split-connector-btn {
         display: none;
@@ -716,10 +751,15 @@ body, html {
         box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
     }
     .hero-main-title {
-        font-size: 2.2rem;
+        font-size: 2.2rem !important;
+        white-space: normal !important;
+    }
+    .hero-badge-subtitle {
+        font-size: 0.95rem !important;
+        white-space: normal !important;
     }
     .form-title {
-        font-size: 2rem;
+        font-size: 2rem !important;
     }
     .orbit-system-container,
     .anim-capsule-pill,
@@ -740,7 +780,7 @@ body, html {
         <div class="hero-bg-glow-1"></div>
         <div class="hero-bg-glow-2"></div>
 
-        <!-- 1. Top Brand Header (Logo Baru + Nama JESCA) -->
+        <!-- 1. Top Brand Header (Logo Baru + Nama JESCA) - Pojok Kiri Atas -->
         <div class="brand-header">
             <!-- Modern Geometric Delta Logo Sesuai Sketsa -->
             <svg class="brand-logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -789,26 +829,16 @@ body, html {
             </div>
         </div>
 
-        <!-- 3. Konten Tengah: Smart Tracking Seamless Assets -->
+        <!-- 3. Konten Tengah: Smart Tracking Seamless Assets (Posisi Tengah & Besar) -->
         <div class="hero-center-content">
             <div class="hero-badge-subtitle">
-                <span>EFEKTIF</span>
-                <span>&bull;</span>
-                <span>AKUNTABEL</span>
-                <span>&bull;</span>
-                <span>INTEGRATIF</span>
+                EFEKTIF &bull; AKUNTABEL &bull; INTEGRATIF
             </div>
             <h2 class="hero-main-title">
                 Smart Tracking<br>
                 Seamless Assets
             </h2>
             <div class="hero-accent-line"></div>
-        </div>
-
-        <!-- 4. Footer Kiri -->
-        <div class="hero-footer">
-            <span>Enterprise Asset Management System</span>
-            <span class="font-monospace fw-bold">v2.5.0</span>
         </div>
 
     </div><!-- /hero-panel -->
