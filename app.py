@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.1'
+APP_VERSION = '2.5.1.1'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -2139,7 +2139,7 @@ def edit_asset(asset_id):
         html_alert = f"""
         <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #fee2e2; border-radius: 8px;">
             <div style="background: #ef4444; color: white; padding: 12px 16px; border-radius: 6px 6px 0 0;">
-                <h3 style="margin: 0; font-size: 16px;">⚠️ PERINGATAN KONDISI ASET BERMASALAH</h3>
+                <h3 style="margin: 0; font-size: 16px;">PERINGATAN KONDISI ASET BERMASALAH</h3>
             </div>
             <div style="padding: 16px; background: #fff;">
                 <p>Status aset telah diubah menjadi <strong>{status}</strong> oleh <strong>{current_user.full_name}</strong>.</p>
@@ -4358,9 +4358,12 @@ def api_check_update():
     def semver_tuple(v):
         try:
             parts = re.findall(r'\d+', str(v))
-            return tuple(int(x) for x in parts[:3]) if parts else (0, 0, 0)
+            nums = [int(x) for x in parts[:4]]
+            while len(nums) < 4:
+                nums.append(0)
+            return tuple(nums)
         except Exception:
-            return (0, 0, 0)
+            return (0, 0, 0, 0)
 
     def fetch_github_endpoint(endpoint):
         api_url = f'https://api.github.com/repos/{GITHUB_REPO}/{endpoint}'
@@ -4519,22 +4522,22 @@ def system_self_update():
         return result.returncode
 
     try:
-        log_lines.append('🔄 Memulai proses update otomatis JESCA...')
+        log_lines.append('[INFO] Memulai proses update otomatis JESCA...')
         update_success = False
 
         # Attempt 1: Git Pull (jika folder .git ada dan binary git terpasang)
         if has_git:
-            log_lines.append('📦 [1/3] Menarik perubahan terbaru dari repositori Git...')
+            log_lines.append('[STEP 1/3] Menarik perubahan terbaru dari repositori Git...')
             rc = run_cmd(['git', 'pull', 'origin', 'main'])
             if rc == 0:
                 update_success = True
-                log_lines.append('✅ Git pull berhasil.')
+                log_lines.append('[SUCCESS] Git pull berhasil.')
             else:
-                log_lines.append('⚠️ Git pull mengalami kendala. Beralih ke mode Auto-Download langsung dari GitHub...')
+                log_lines.append('[WARNING] Git pull mengalami kendala. Beralih ke mode Auto-Download langsung dari GitHub...')
 
         # Attempt 2: Fallback ke Direct Archive Download (jika bukan git clone / download ZIP)
         if not update_success:
-            log_lines.append('📦 [1/3] Mengunduh arsip rilis terbaru langsung dari GitHub (Mode Tanpa Git)...')
+            log_lines.append('[STEP 1/3] Mengunduh arsip rilis terbaru langsung dari GitHub (Mode Tanpa Git)...')
             archive_url = f'https://codeload.github.com/{GITHUB_REPO}/tar.gz/main'
             req = urllib.request.Request(
                 archive_url,
@@ -4548,7 +4551,7 @@ def system_self_update():
                         tmp_archive.write(resp.read())
                     tmp_archive.flush()
 
-                    log_lines.append('📥 Arsip rilis berhasil diunduh. Mengekstrak pembaruan sistem secara aman...')
+                    log_lines.append('[INFO] Arsip rilis berhasil diunduh. Mengekstrak pembaruan sistem secara aman...')
                     with tarfile.open(tmp_archive_path, 'r:gz') as tar:
                         for member in tar.getmembers():
                             # Path format: JESCA-main/<relative_path>
@@ -4570,7 +4573,7 @@ def system_self_update():
                                     shutil.copyfileobj(src_f, dst_f)
 
                     update_success = True
-                    log_lines.append('✅ Seluruh berkas pembaruan berhasil diekstrak (database dan berkas unggahan tetap aman).')
+                    log_lines.append('[SUCCESS] Seluruh berkas pembaruan berhasil diekstrak (database dan berkas unggahan tetap aman).')
                 finally:
                     if os.path.exists(tmp_archive_path):
                         try:
@@ -4586,17 +4589,17 @@ def system_self_update():
             }), 500
 
         # Step 2: pip install requirements
-        log_lines.append('📦 [2/3] Memeriksa & memperbarui dependensi Python...')
+        log_lines.append('[STEP 2/3] Memeriksa & memperbarui dependensi Python...')
         req_file = os.path.join(base, 'requirements.txt')
         if os.path.exists(req_file):
             rc = run_cmd(['pip', 'install', '-r', req_file, '--quiet', '--no-cache-dir'])
             if rc != 0:
                 log_lines.append('[WARNING] pip install ada catatan peringatan, melanjutkan proses reload...')
             else:
-                log_lines.append('✅ Dependensi Python terverifikasi mutakhir.')
+                log_lines.append('[SUCCESS] Dependensi Python terverifikasi mutakhir.')
 
         # Step 3: Graceful restart
-        log_lines.append('♻️ [3/3] Mengirim sinyal graceful reload ke Gunicorn...')
+        log_lines.append('[STEP 3/3] Mengirim sinyal graceful reload ke Gunicorn...')
         restarted = False
 
         # Try gunicorn HUP signal via PID file
@@ -4606,7 +4609,7 @@ def system_self_update():
                 with open(gunicorn_pid_file) as f:
                     pid = int(f.read().strip())
                 os.kill(pid, 1)  # SIGHUP = 1
-                log_lines.append(f'✅ SIGHUP terkirim ke Gunicorn PID {pid}.')
+                log_lines.append(f'[SUCCESS] SIGHUP terkirim ke Gunicorn PID {pid}.')
                 restarted = True
             except Exception as e:
                 log_lines.append(f'[WARNING] Gagal mengirim SIGHUP: {e}')
@@ -4622,7 +4625,7 @@ def system_self_update():
                 master_pid = int(pids[0]) if pids and pids[0] else None
                 if master_pid:
                     os.kill(master_pid, 1)  # SIGHUP
-                    log_lines.append(f'✅ SIGHUP terkirim ke Gunicorn master PID {master_pid}.')
+                    log_lines.append(f'[SUCCESS] SIGHUP terkirim ke Gunicorn master PID {master_pid}.')
                     restarted = True
             except Exception as e:
                 log_lines.append(f'[WARNING] Tidak bisa menemukan proses Gunicorn: {e}')
@@ -4633,12 +4636,12 @@ def system_self_update():
             try:
                 with open(trigger, 'w') as f:
                     f.write(datetime.utcnow().isoformat())
-                log_lines.append(f'ℹ️ File trigger restart dibuat: {trigger}.')
+                log_lines.append(f'[INFO] File trigger restart dibuat: {trigger}.')
             except Exception:
                 pass
 
         log_activity('SYSTEM_UPDATE', details=f'Update otomatis JESCA berhasil dijalankan oleh {current_user.username}.')
-        log_lines.append('✅ Update selesai dengan sukses! Sistem siap digunakan.')
+        log_lines.append('[SUCCESS] Update selesai dengan sukses! Sistem siap digunakan.')
         return jsonify({'status': 'ok', 'message': 'Pembaruan sistem berhasil.', 'log': '\n'.join(log_lines)})
 
     except subprocess.TimeoutExpired:
@@ -5207,7 +5210,7 @@ def submit_purchase_order(po_id):
     html_po = f"""
     <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #bae6fd; border-radius: 8px;">
         <div style="background: #0284c7; color: white; padding: 12px 16px; border-radius: 6px 6px 0 0;">
-            <h3 style="margin: 0; font-size: 16px;">📋 PENGAJUAN PURCHASE ORDER BARU</h3>
+            <h3 style="margin: 0; font-size: 16px;">PENGAJUAN PURCHASE ORDER BARU</h3>
         </div>
         <div style="padding: 16px; background: #fff;">
             <p>Purchase Order baru memerlukan persetujuan Administrator:</p>

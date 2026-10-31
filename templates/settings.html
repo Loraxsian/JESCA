@@ -850,7 +850,7 @@ function checkForUpdate() {
             btnUpdate.classList.remove('d-none');
             btnView.classList.remove('d-none');
             if (_latestReleaseUrl) btnView.href = _latestReleaseUrl;
-            JescaToast.show('🎉 JESCA v' + data.latest_version + ' tersedia! Klik "Update & Restart" untuk update otomatis.', 'success');
+            JescaToast.show('JESCA v' + data.latest_version + ' tersedia! Klik "Update & Restart" untuk update otomatis.', 'success');
         } else {
             resultBox.className = 'mb-3 p-3 rounded-4 border border-secondary-subtle bg-light';
             resultBox.innerHTML =
@@ -862,7 +862,7 @@ function checkForUpdate() {
             btnUpdate.classList.add('d-none');
             btnView.classList.remove('d-none');
             if (_latestReleaseUrl) btnView.href = _latestReleaseUrl;
-            JescaToast.show('✅ JESCA v' + data.current_version + ' sudah versi terbaru!', 'info');
+            JescaToast.show('JESCA v' + data.current_version + ' sudah versi terbaru!', 'info');
         }
     })
     .catch(function(err) {
@@ -885,7 +885,7 @@ function doSelfUpdate() {
         '1. Menarik pembaruan kode terbaru dari GitHub (Hybrid: Git / Direct Archive Fallback)\n' +
         '2. Memeriksa dan memperbarui dependensi Python yang dibutuhkan\n' +
         '3. Melakukan graceful reload server Gunicorn tanpa downtime\n\n' +
-        '✅ Seluruh data inventaris dan basis data SQLite dijamin AMAN dan TIDAK akan terhapus.\n\n' +
+        '• Seluruh data inventaris dan basis data SQLite dijamin AMAN dan TIDAK akan terhapus.\n\n' +
         'Lanjutkan proses update ke versi terbaru sekarang?'
     );
     if (!confirmed) return;
@@ -905,22 +905,22 @@ function doSelfUpdate() {
         logEl.textContent = data.log || '';
         if (data.status === 'ok') {
             btnUpdate.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i>Update Berhasil!';
-            JescaToast.show('✅ Update JESCA berhasil! Halaman akan dimuat ulang dalam 7 detik.', 'success');
+            JescaToast.show('Update JESCA berhasil! Halaman akan dimuat ulang dalam 7 detik.', 'success');
             setTimeout(function() {
-                JescaToast.show('🔄 Memuat ulang halaman...', 'info');
+                JescaToast.show('Memuat ulang halaman...', 'info');
                 setTimeout(function() { location.reload(); }, 2000);
             }, 5000);
         } else {
             btnUpdate.disabled = false;
             btnUpdate.innerHTML = '<i class="bi bi-download me-1"></i>Update &amp; Restart Otomatis';
-            JescaToast.show('❌ Update gagal: ' + (data.message || 'Error tidak diketahui'), 'danger');
+            JescaToast.show('Update gagal: ' + (data.message || 'Error tidak diketahui'), 'danger');
         }
     })
     .catch(function(err) {
         btnUpdate.disabled = false;
         btnUpdate.innerHTML = '<i class="bi bi-download me-1"></i>Update &amp; Restart Otomatis';
         logEl.textContent += '\nError: ' + err.message;
-        JescaToast.show('❌ Koneksi ke server gagal saat proses update.', 'danger');
+        JescaToast.show('Koneksi ke server gagal saat proses update.', 'danger');
     });
 }
 </script>
