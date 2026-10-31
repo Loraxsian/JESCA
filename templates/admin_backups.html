@@ -271,12 +271,15 @@
                     </div>
                 </div>
 
-                <!-- Input Pencarian Cepat di Modal -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="fw-bold mb-0 text-dark">
-                        <i class="bi bi-list-check me-2 text-primary"></i>Rincian Penyesuaian Data ({{ import_report.changes|length }} Item)
-                    </h6>
-                    <div style="max-width: 260px;">
+                <!-- Input Pencarian Cepat & Filter Status di Modal -->
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                    <div class="btn-group btn-group-sm rounded-pill p-1 bg-light border" role="group" id="reportStatusFilters">
+                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 active fw-semibold" onclick="setReportStatusFilter('all', this)">Semua ({{ import_report.changes|length }})</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 text-warning fw-semibold" onclick="setReportStatusFilter('renumbered', this)">Direnomor ({{ import_report.summary.assets_renumbered }})</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 text-success fw-semibold" onclick="setReportStatusFilter('kept', this)">Dipertahankan ({{ import_report.summary.assets_kept_code }})</button>
+                        <button type="button" class="btn btn-sm btn-light rounded-pill px-3 text-info fw-semibold" onclick="setReportStatusFilter('new', this)">Data Baru</button>
+                    </div>
+                    <div style="max-width: 260px;" class="w-100">
                         <input type="text" id="reportSearchInput" class="form-control form-control-sm rounded-pill" placeholder="Cari nama atau kode..." onkeyup="filterReportTable()">
                     </div>
                 </div>
@@ -296,7 +299,7 @@
                         </thead>
                         <tbody class="small">
                             {% for c in import_report.changes %}
-                            <tr class="report-row">
+                            <tr class="report-row" data-status="{{ c.status }}">
                                 <td class="ps-3">
                                     {% if c.type == 'Aset' %}
                                     <span class="badge bg-primary-subtle text-primary border font-monospace">Aset</span>
@@ -364,20 +367,43 @@
 </div>
 
 <script>
+var currentStatusFilter = 'all';
+
+function setReportStatusFilter(status, btn) {
+    currentStatusFilter = status;
+    var group = document.getElementById('reportStatusFilters');
+    if (group) {
+        group.querySelectorAll('button').forEach(function(b) {
+            b.classList.remove('btn-primary', 'active');
+            b.classList.add('btn-light');
+        });
+    }
+    btn.classList.remove('btn-light');
+    btn.classList.add('btn-primary', 'active');
+    filterReportTable();
+}
+
 function filterReportTable() {
     var input = document.getElementById("reportSearchInput");
-    var filter = input.value.toLowerCase();
+    var filter = input ? input.value.toLowerCase() : "";
     var rows = document.querySelectorAll(".report-row");
 
     rows.forEach(function(row) {
-        var targets = row.querySelectorAll(".search-target");
-        var match = false;
-        targets.forEach(function(t) {
-            if (t.textContent.toLowerCase().indexOf(filter) > -1) {
-                match = true;
-            }
-        });
-        row.style.display = match ? "" : "none";
+        var rowStatus = row.getAttribute("data-status") || "";
+        var statusMatches = (currentStatusFilter === 'all') || (rowStatus === currentStatusFilter);
+
+        var textMatches = true;
+        if (filter) {
+            var targets = row.querySelectorAll(".search-target");
+            textMatches = false;
+            targets.forEach(function(t) {
+                if (t.textContent.toLowerCase().indexOf(filter) > -1) {
+                    textMatches = true;
+                }
+            });
+        }
+
+        row.style.display = (statusMatches && textMatches) ? "" : "none";
     });
 }
 

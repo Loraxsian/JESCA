@@ -880,13 +880,13 @@ function doSelfUpdate() {
     var logEl = document.getElementById('updateLog');
 
     var confirmed = confirm(
-        'KONFIRMASI UPDATE SISTEM JESCA\n\n' +
-        'Proses ini akan:\n' +
-        '1. git pull origin main (unduh pembaruan terbaru)\n' +
-        '2. pip install -r requirements.txt (update library)\n' +
-        '3. Graceful Gunicorn reload (restart proses tanpa downtime)\n\n' +
-        '✅ Data aset dan database SQLite TIDAK akan terhapus.\n\n' +
-        'Lanjutkan proses update?'
+        'KONFIRMASI PEMBARUAN SISTEM JESCA\n\n' +
+        'Sistem akan otomatis:\n' +
+        '1. Menarik pembaruan kode terbaru dari GitHub (Hybrid: Git / Direct Archive Fallback)\n' +
+        '2. Memeriksa dan memperbarui dependensi Python yang dibutuhkan\n' +
+        '3. Melakukan graceful reload server Gunicorn tanpa downtime\n\n' +
+        '✅ Seluruh data inventaris dan basis data SQLite dijamin AMAN dan TIDAK akan terhapus.\n\n' +
+        'Lanjutkan proses update ke versi terbaru sekarang?'
     );
     if (!confirmed) return;
 
