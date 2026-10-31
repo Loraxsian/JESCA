@@ -1,184 +1,477 @@
 {% extends "base.html" %}
 
-{% block title %}Login - JESCA Enterprise Asset Management{% endblock %}
+{% block title %}Silahkan Masuk - JESCA Enterprise Asset Management{% endblock %}
 
 {% block auth_content %}
 <style>
 /* ========================================================
-   JESCA v2.5.0 — Split-Screen Animated Login Experience
+   JESCA v2.5.0 — Vibrant Geometric Interactive Login
+   Sesuai Desain Sketsa Referensi (Smart Tracking Seamless Assets)
    ======================================================== */
-.login-split-container {
-    min-height: 100vh;
-    width: 100%;
+
+* {
+    box-sizing: border-box;
+}
+
+body, html {
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    background: #0f172a;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* Sisi Kiri: Scene Animasi Hero */
-.login-hero-side {
-    position: relative;
-    background: radial-gradient(circle at 15% 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
-    overflow: hidden;
+.login-viewport {
     min-height: 100vh;
-    padding: 3.5rem 3rem;
+    width: 100%;
+    display: flex;
+    background: #ffffff;
+    position: relative;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .login-viewport {
+    background: #0b0f19;
+}
+
+/* ========================================================
+   SISI KIRI: HERO PANEL & ANIMASI GEOMETRIS
+   ======================================================== */
+.hero-panel {
+    position: relative;
+    width: 52%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #4f32e8 0%, #5d3df5 45%, #7655fa 100%);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 3.5rem 4rem;
+    color: #ffffff;
+    z-index: 1;
 }
 
-.login-hero-grid {
+/* Background Soft Glow Circles */
+.hero-bg-glow-1 {
     position: absolute;
-    inset: 0;
-    background-image: radial-gradient(rgba(99, 102, 241, 0.15) 1.2px, transparent 1.2px);
-    background-size: 28px 28px;
+    width: 480px;
+    height: 480px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0) 70%);
+    top: -120px;
+    left: -120px;
     pointer-events: none;
-    opacity: 0.7;
+    z-index: 1;
 }
 
-/* Sisi Kanan: Form Card */
-.login-form-side {
-    min-height: 100vh;
-    background: #ffffff;
+.hero-bg-glow-2 {
+    position: absolute;
+    width: 380px;
+    height: 380px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(6, 182, 212, 0.22) 0%, rgba(6, 182, 212, 0) 70%);
+    bottom: -80px;
+    left: 20%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Header Brand (Logo Baru + Nama) */
+.brand-header {
+    position: relative;
+    z-index: 10;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 3rem 4rem;
+    align-items: center;
+    gap: 14px;
 }
 
-[data-theme="dark"] .login-form-side {
-    background: #0b1120;
-    color: #f8fafc;
+.brand-logo-svg {
+    width: 38px;
+    height: 38px;
+    filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
 }
 
-/* Brand Header */
-.login-brand-logo {
-    width: 48px;
-    height: 48px;
-    border-radius: 14px;
-    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+.brand-text {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: 2px;
+    color: #ffffff;
+    margin: 0;
+    text-transform: uppercase;
+}
+
+/* Main Center Content */
+.hero-center-content {
+    position: relative;
+    z-index: 10;
+    margin-top: auto;
+    margin-bottom: auto;
+    padding: 2rem 0;
+    max-width: 480px;
+}
+
+.hero-badge-subtitle {
+    font-size: 0.82rem;
+    font-weight: 700;
+    letter-spacing: 2.2px;
+    color: rgba(255, 255, 255, 0.85);
+    text-transform: uppercase;
+    margin-bottom: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hero-main-title {
+    font-size: clamp(2.2rem, 3.4vw, 3.2rem);
+    font-weight: 800;
+    line-height: 1.18;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    margin-bottom: 1.5rem;
+    text-shadow: 0 4px 20px rgba(25, 10, 80, 0.25);
+}
+
+.hero-accent-line {
+    width: 140px;
+    height: 3.5px;
+    background: #ffffff;
+    border-radius: 4px;
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.3);
+}
+
+/* Footer Info Kiri */
+.hero-footer {
+    position: relative;
+    z-index: 10;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* ========================================================
+   ELEMEN-ELEMEN ANIMASI GEOMETRIS (REAL MOTION CSS)
+   ======================================================== */
+
+/* 1. Silinder Gradien Vertikal Melayang (Pill Capsule) */
+.anim-capsule-pill {
+    position: absolute;
+    top: 0;
+    right: 28%;
+    width: 44px;
+    height: 140px;
+    border-radius: 0 0 28px 28px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(165, 180, 252, 0.25) 60%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(8px);
+    z-index: 3;
+    animation: floatPill 5.5s ease-in-out infinite;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+}
+
+@keyframes floatPill {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(18px); }
+}
+
+/* 2. Cincin Putih Berputar Lembut (Hollow Circle Ring) */
+.anim-hollow-ring {
+    position: absolute;
+    top: 135px;
+    right: 22%;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.85);
+    z-index: 4;
+    animation: floatRing 4.8s ease-in-out infinite alternate;
+}
+
+@keyframes floatRing {
+    0% { transform: translateY(0) scale(1); opacity: 0.7; }
+    100% { transform: translateY(-12px) scale(1.15); opacity: 1; }
+}
+
+/* 3. Dot Matrix Grid (Kanan Atas & Kiri Bawah) */
+.dot-grid {
+    position: absolute;
+    display: grid;
+    grid-template-columns: repeat(5, 7px);
+    grid-gap: 8px;
+    z-index: 3;
+    opacity: 0.7;
+    animation: pulseDots 4s ease-in-out infinite alternate;
+}
+
+.dot-grid span {
+    width: 5px;
+    height: 5px;
+    background: #ffffff;
+    border-radius: 50%;
+    display: block;
+}
+
+.dot-grid-top-right {
+    top: 165px;
+    right: 10%;
+}
+
+.dot-grid-bottom-left {
+    bottom: 80px;
+    left: 8%;
+}
+
+@keyframes pulseDots {
+    0% { opacity: 0.4; transform: scale(0.95); }
+    100% { opacity: 0.95; transform: scale(1.05); }
+}
+
+/* 4. Bola Cyan Toska Menyala (Glowing Orb) */
+.anim-cyan-orb {
+    position: absolute;
+    bottom: 155px;
+    left: 7%;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #67e8f9 0%, #06b6d4 60%, #0891b2 100%);
+    box-shadow: 0 0 25px rgba(6, 182, 212, 0.7);
+    z-index: 5;
+    animation: floatOrb 5s ease-in-out infinite;
+}
+
+@keyframes floatOrb {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-16px) rotate(10deg); }
+}
+
+/* 5. Tanda Silang Putih (Cross X) */
+.anim-cross-icon {
+    position: absolute;
+    bottom: 125px;
+    left: 17%;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 1.3rem;
+    font-weight: 300;
+    z-index: 4;
+    animation: spinCross 14s linear infinite;
+}
+
+@keyframes spinCross {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* 6. Planet & Orbit Toska di Bagian Bawah */
+.orbit-system-container {
+    position: absolute;
+    bottom: -110px;
+    right: 10%;
+    width: 320px;
+    height: 320px;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Setengah bola besar gradien toska */
+.orbit-main-planet {
+    position: absolute;
+    bottom: 0;
+    right: 40px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0284c7 100%);
+    box-shadow: 0 0 50px rgba(6, 182, 212, 0.45);
+    animation: pulsePlanet 6s ease-in-out infinite alternate;
+}
+
+@keyframes pulsePlanet {
+    0% { transform: scale(1); filter: brightness(1); }
+    100% { transform: scale(1.04); filter: brightness(1.1); }
+}
+
+/* Jalur Orbit Lingkaran Tipis */
+.orbit-track {
+    position: absolute;
+    bottom: -20px;
+    right: 15px;
+    width: 270px;
+    height: 270px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.35);
+    animation: rotateOrbit 12s linear infinite;
+}
+
+/* Satelit Kecil pada Orbit */
+.orbit-satellite {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #67e8f9;
+    box-shadow: 0 0 12px #22d3ee;
+}
+
+@keyframes rotateOrbit {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+
+/* ========================================================
+   KONEKTOR TENGAH (FLOATING CIRCLE WITH ARROW)
+   Sesuai gambar lingkaran putih di sambungan pembatas
+   ======================================================== */
+.split-connector-btn {
+    position: absolute;
+    top: 50%;
+    left: 52%;
+    transform: translate(-50%, -50%);
+    z-index: 30;
+    width: 66px;
+    height: 66px;
+    background: #ffffff;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4);
+    box-shadow: 0 10px 30px rgba(79, 50, 232, 0.22);
+    border: 4px solid #ffffff;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* Animasi Scanner Laser & Floating Pills */
-@keyframes scanLaserLine {
-    0% { transform: translateY(0px); opacity: 0.2; }
-    50% { transform: translateY(110px); opacity: 1; filter: drop-shadow(0 0 8px #22d3ee); }
-    100% { transform: translateY(0px); opacity: 0.2; }
+[data-theme="dark"] .split-connector-btn {
+    background: #0b0f19;
+    border-color: #0b0f19;
 }
 
-@keyframes floatBob1 {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-8px) rotate(-1deg); }
+.connector-inner-circle {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 1.35rem;
+    box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+    animation: pulseArrow 2.2s ease-in-out infinite;
 }
 
-@keyframes floatBob2 {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(7px) rotate(1deg); }
+@keyframes pulseArrow {
+    0%, 100% { transform: translateX(0); }
+    50% { transform: translateX(4px); }
 }
 
-@keyframes floatBob3 {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-6px); }
+.split-connector-btn:hover {
+    transform: translate(-50%, -50%) scale(1.12);
+    box-shadow: 0 14px 35px rgba(79, 50, 232, 0.35);
 }
 
-@keyframes pulseGlow {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50% { opacity: 1; transform: scale(1.15); }
-}
 
-@keyframes workerInspectArm {
-    0%, 100% { transform: rotate(0deg); }
-    50% { transform: rotate(-4deg); }
-}
-
-.anim-laser {
-    animation: scanLaserLine 2.8s ease-in-out infinite;
-}
-
-.badge-float {
-    position: absolute;
-    backdrop-filter: blur(12px);
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    padding: 8px 14px;
-    border-radius: 30px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #e2e8f0;
-    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
-    z-index: 10;
-}
-
-.badge-float-1 {
-    top: 24%;
-    right: 8%;
-    animation: floatBob1 4.5s ease-in-out infinite;
-}
-
-.badge-float-2 {
-    bottom: 26%;
-    left: 6%;
-    animation: floatBob2 5.2s ease-in-out infinite;
-}
-
-.badge-float-3 {
-    bottom: 12%;
-    right: 12%;
-    animation: floatBob3 4s ease-in-out infinite;
-}
-
-/* Input Form Styling */
-.form-floating-custom {
+/* ========================================================
+   SISI KANAN: FORMULIR LOGIN MODERN
+   ======================================================== */
+.form-panel {
     position: relative;
-    margin-bottom: 1.25rem;
-}
-
-.form-floating-custom .form-control {
-    height: 52px;
-    border-radius: 12px;
-    padding-left: 45px;
-    border: 1.5px solid #e2e8f0;
-    background: #f8fafc;
-    transition: all 0.2s ease;
-    font-size: 0.92rem;
-}
-
-.form-floating-custom .form-control:focus {
+    width: 48%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 3rem 4rem;
     background: #ffffff;
-    border-color: #4361ee;
-    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.12);
+    z-index: 2;
 }
 
-[data-theme="dark"] .form-floating-custom .form-control {
+[data-theme="dark"] .form-panel {
+    background: #0b0f19;
+    color: #f1f5f9;
+}
+
+.form-wrapper {
+    width: 100%;
+    max-width: 420px;
+}
+
+/* Judul Formulir: Silahkan Masuk */
+.form-title {
+    font-size: 2.15rem;
+    font-weight: 800;
+    color: #553af6;
+    letter-spacing: -0.5px;
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .form-title {
+    color: #818cf8;
+}
+
+/* Label & Input Pill */
+.custom-input-group {
+    margin-bottom: 1.4rem;
+}
+
+.custom-input-label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 0.55rem;
+}
+
+[data-theme="dark"] .custom-input-label {
+    color: #e2e8f0;
+}
+
+.pill-input-container {
+    position: relative;
+}
+
+.pill-input {
+    width: 100%;
+    height: 52px;
+    border-radius: 50px;
+    border: 1.5px solid #e2e8f0;
+    padding: 0 24px;
+    font-size: 0.92rem;
+    background: #ffffff;
+    color: #1e293b;
+    transition: all 0.25s ease;
+    outline: none;
+}
+
+.pill-input::placeholder {
+    color: #94a3b8;
+    font-size: 0.88rem;
+}
+
+.pill-input:focus {
+    border-color: #553af6;
+    box-shadow: 0 0 0 4px rgba(85, 58, 246, 0.12);
+}
+
+[data-theme="dark"] .pill-input {
     background: #1e293b;
     border-color: #334155;
     color: #f1f5f9;
 }
 
-[data-theme="dark"] .form-floating-custom .form-control:focus {
-    background: #0f172a;
-    border-color: #6366f1;
+[data-theme="dark"] .pill-input:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 4px rgba(129, 140, 248, 0.15);
 }
 
-.form-floating-custom .input-icon {
+/* Password Toggle Eye Button */
+.pass-toggle-btn {
     position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 1.15rem;
-    z-index: 5;
-}
-
-.toggle-pass-btn {
-    position: absolute;
-    right: 14px;
+    right: 18px;
     top: 50%;
     transform: translateY(-50%);
     background: none;
@@ -186,394 +479,556 @@
     color: #94a3b8;
     cursor: pointer;
     padding: 0;
-    z-index: 5;
-    font-size: 1.1rem;
+    font-size: 1.15rem;
+    line-height: 1;
 }
 
-.toggle-pass-btn:hover {
-    color: #4361ee;
+.pass-toggle-btn:hover {
+    color: #553af6;
 }
 
-.btn-login-submit {
-    height: 50px;
-    border-radius: 12px;
-    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+/* Checkbox Remember Me */
+.remember-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1.75rem;
+}
+
+.custom-checkbox {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1.5px solid #cbd5e1;
+    cursor: pointer;
+    accent-color: #553af6;
+}
+
+.remember-label {
+    font-size: 0.88rem;
+    color: #64748b;
+    cursor: pointer;
+    user-select: none;
+    margin: 0;
+}
+
+[data-theme="dark"] .remember-label {
+    color: #94a3b8;
+}
+
+/* Tombol Login Pill Ungu */
+.btn-pill-login {
+    width: 100%;
+    height: 52px;
+    border-radius: 50px;
+    background: linear-gradient(135deg, #5b3cf5 0%, #6d4bf8 100%);
     border: none;
-    font-weight: 600;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 700;
     letter-spacing: 0.3px;
-    box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+    cursor: pointer;
+    box-shadow: 0 10px 24px rgba(91, 60, 245, 0.32);
     transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
 }
 
-.btn-login-submit:hover {
+.btn-pill-login:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgba(67, 97, 238, 0.45);
+    box-shadow: 0 14px 30px rgba(91, 60, 245, 0.45);
+    background: linear-gradient(135deg, #5132ec 0%, #623ef0 100%);
+    color: #ffffff;
 }
 
-/* Responsivitas Layar */
-@media (max-width: 991px) {
-    .login-hero-side {
-        display: none !important;
+.btn-pill-login:active {
+    transform: translateY(0);
+}
+
+/* ========================================================
+   SEPARATOR: ── Auto -fill ──
+   ======================================================== */
+.autofill-divider {
+    display: flex;
+    align-items: center;
+    margin: 2rem 0 1.5rem 0;
+    text-align: center;
+}
+
+.autofill-divider::before,
+.autofill-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1.5px solid #e2e8f0;
+}
+
+[data-theme="dark"] .autofill-divider::before,
+[data-theme="dark"] .autofill-divider::after {
+    border-bottom-color: #334155;
+}
+
+.autofill-divider span {
+    padding: 0 16px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: #94a3b8;
+    letter-spacing: 0.5px;
+}
+
+/* ========================================================
+   3 KOLOM DI BAWAH AUTOFILL (DENGAN ANIMASI INTERAKTIF)
+   Sesuai gambar referensi: 3 kotak/kapsul horisontal berjejer
+   ======================================================== */
+.autofill-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 1.5rem;
+}
+
+.autofill-pill-btn {
+    position: relative;
+    height: 48px;
+    background: #ffffff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+    padding: 0 12px;
+}
+
+[data-theme="dark"] .autofill-pill-btn {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+/* Animasi Mengambang Masing-Masing Kolom (Idle Float) */
+.autofill-col-1 { animation: idlePill1 4s ease-in-out infinite; }
+.autofill-col-2 { animation: idlePill2 4.6s ease-in-out infinite 0.4s; }
+.autofill-col-3 { animation: idlePill3 4.2s ease-in-out infinite 0.8s; }
+
+@keyframes idlePill1 {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+@keyframes idlePill2 {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+}
+@keyframes idlePill3 {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+}
+
+/* Efek Hover Pada 3 Kolom */
+.autofill-pill-btn:hover {
+    transform: translateY(-6px) scale(1.04) !important;
+    border-color: #553af6;
+    box-shadow: 0 10px 22px rgba(85, 58, 246, 0.22);
+}
+
+.autofill-pill-btn:active {
+    transform: scale(0.96) !important;
+}
+
+/* Icon SVG di dalam 3 kolom autofill */
+.autofill-icon-svg {
+    width: 28px;
+    height: 28px;
+    transition: transform 0.3s ease;
+}
+
+.autofill-pill-btn:hover .autofill-icon-svg {
+    transform: scale(1.15) rotate(4deg);
+}
+
+/* Badge Role Hint Kecil di Bawah Ikon Saat Hover */
+.autofill-role-hint {
+    position: absolute;
+    bottom: 2px;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: #553af6;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.2s ease;
+}
+
+.autofill-pill-btn:hover .autofill-role-hint {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.autofill-pill-btn:hover .autofill-icon-svg {
+    transform: translateY(-6px) scale(1.08);
+}
+
+/* Footer Copyright */
+.form-footer-info {
+    text-align: center;
+    font-size: 0.74rem;
+    color: #94a3b8;
+    margin-top: 1rem;
+}
+
+/* ========================================================
+   RESPONSIVITAS MOBILE (< 992px)
+   ======================================================== */
+@media (max-width: 991.98px) {
+    .login-viewport {
+        flex-direction: column;
     }
-    .login-form-side {
-        padding: 2.5rem 1.5rem;
+    .hero-panel {
+        width: 100%;
+        min-height: auto;
+        padding: 2.5rem 1.75rem 3.5rem 1.75rem;
     }
-    .login-split-container {
-        background: #ffffff;
+    .split-connector-btn {
+        display: none;
     }
-    [data-theme="dark"] .login-split-container {
-        background: #0b1120;
+    .form-panel {
+        width: 100%;
+        min-height: auto;
+        padding: 3rem 1.5rem 2.5rem 1.5rem;
+        border-radius: 28px 28px 0 0;
+        margin-top: -24px;
+        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+    }
+    .hero-main-title {
+        font-size: 2rem;
+    }
+    .orbit-system-container,
+    .anim-capsule-pill,
+    .anim-hollow-ring {
+        display: none;
     }
 }
 </style>
 
-<div class="container-fluid p-0 login-split-container">
-    <div class="row g-0 min-vh-100">
+<div class="login-viewport">
+
+    <!-- ========================================================
+         SISI KIRI: HERO PANEL & ANIMASI LIVE GEOMETRIS
+         ======================================================== -->
+    <div class="hero-panel">
         
-        <!-- ========================================================
-             SISI KIRI: ANIMASI LIVE OPERASIONAL INVENTARIS & HERO
-             ======================================================== -->
-        <div class="col-lg-6 col-xl-7 login-hero-side d-none d-lg-flex">
-            <div class="login-hero-grid"></div>
+        <!-- Soft Background Glow Circles -->
+        <div class="hero-bg-glow-1"></div>
+        <div class="hero-bg-glow-2"></div>
 
-            <!-- Top Brand Header -->
-            <div class="d-flex align-items-center justify-content-between position-relative z-2">
-                <div class="d-flex align-items-center gap-3">
-                    <div class="login-brand-logo text-white">
-                        <i class="bi bi-box-seam-fill fs-4"></i>
-                    </div>
-                    <div>
-                        <span class="h4 fw-extrabold text-white mb-0 tracking-tight font-monospace">JESCA</span>
-                        <span class="badge bg-primary bg-opacity-25 text-info border border-info border-opacity-25 ms-2 rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.68rem;">v2.5.0 Enterprise</span>
-                    </div>
-                </div>
-                <div class="text-white-50 small">
-                    <i class="bi bi-shield-check text-success me-1"></i>Secure Platform
-                </div>
-            </div>
+        <!-- 1. Top Brand Header (Logo Baru + Nama JESCA) -->
+        <div class="brand-header">
+            <!-- Modern Geometric Delta Logo Sesuai Sketsa -->
+            <svg class="brand-logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- Bar 1 (Kiri) -->
+                <path d="M4 40L17 4H23L10 40H4Z" fill="#ffffff"/>
+                <!-- Bar 2 (Tengah) -->
+                <path d="M16 40L25 14H31L22 40H16Z" fill="#22d3ee"/>
+                <!-- Bar 3 (Kanan Segitiga) -->
+                <path d="M30 4L48 40H41L34 26H26L28 21H36L29 4H30Z" fill="#ffffff"/>
+            </svg>
+            <h1 class="brand-text">JESCA</h1>
+        </div>
 
-            <!-- Center Stage: Animated Inventory Scene -->
-            <div class="position-relative my-auto py-4 text-center z-2">
-                
-                <!-- Floating Hologram Badges -->
-                <div class="badge-float badge-float-1 d-flex align-items-center gap-2">
-                    <span class="badge bg-success rounded-circle p-1" style="animation: pulseGlow 1.8s infinite;"><i class="bi bi-check2"></i></span>
-                    <span>QR Verified: <strong class="text-info font-monospace">Tech/042</strong></span>
-                </div>
+        <!-- 2. Elemen-Elemen Animasi Geometris Melayang -->
+        <!-- Silinder Gradien Vertikal -->
+        <div class="anim-capsule-pill" title="Geometric Accent"></div>
 
-                <div class="badge-float badge-float-2 d-flex align-items-center gap-2">
-                    <i class="bi bi-cart-check text-warning fs-6"></i>
-                    <span>PO Pengadaan: <strong class="text-white">15 Unit Tiba</strong></span>
-                </div>
+        <!-- Cincin Putih Berputar -->
+        <div class="anim-hollow-ring"></div>
 
-                <div class="badge-float badge-float-3 d-flex align-items-center gap-2">
-                    <i class="bi bi-speedometer2 text-success fs-6"></i>
-                    <span>Integritas Database: <strong class="text-success font-monospace">100% OK</strong></span>
-                </div>
+        <!-- Dot Matrix Kanan Atas -->
+        <div class="dot-grid dot-grid-top-right">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
 
-                <!-- SVG Artwork: Warehouse & Inspector Animation -->
-                <svg viewBox="0 0 680 420" width="100%" height="320" style="max-width: 580px;" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <!-- Gradients -->
-                        <linearGradient id="rackGrad" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#334155" />
-                            <stop offset="100%" stop-color="#1e293b" />
-                        </linearGradient>
-                        <linearGradient id="boxGrad1" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#f59e0b" />
-                            <stop offset="100%" stop-color="#d97706" />
-                        </linearGradient>
-                        <linearGradient id="boxGrad2" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#3b82f6" />
-                            <stop offset="100%" stop-color="#1d4ed8" />
-                        </linearGradient>
-                        <linearGradient id="boxGrad3" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#10b981" />
-                            <stop offset="100%" stop-color="#047857" />
-                        </linearGradient>
-                        <linearGradient id="laserBeamGrad" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.9" />
-                            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
-                        </linearGradient>
-                    </defs>
+        <!-- Dot Matrix Kiri Bawah -->
+        <div class="dot-grid dot-grid-bottom-left">
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span><span></span>
+        </div>
 
-                    <!-- Lantai Gudang & Perspektif Garis -->
-                    <ellipse cx="340" cy="380" rx="310" ry="35" fill="rgba(30, 41, 59, 0.4)" />
-                    <line x1="80" y1="380" x2="600" y2="380" stroke="#334155" stroke-width="2" stroke-dasharray="6 6" />
+        <!-- Bola Cyan Toska Glowing -->
+        <div class="anim-cyan-orb"></div>
 
-                    <!-- Rak Gudang Kiri (Warehouse Storage Rack) -->
-                    <g transform="translate(40, 90)">
-                        <!-- Rak Frame -->
-                        <rect x="0" y="0" width="14" height="280" rx="3" fill="url(#rackGrad)" stroke="#475569" stroke-width="1.5" />
-                        <rect x="180" y="0" width="14" height="280" rx="3" fill="url(#rackGrad)" stroke="#475569" stroke-width="1.5" />
-                        <!-- Shelves -->
-                        <rect x="0" y="90" width="194" height="10" rx="2" fill="#475569" />
-                        <rect x="0" y="180" width="194" height="10" rx="2" fill="#475569" />
-                        <rect x="0" y="270" width="194" height="10" rx="2" fill="#475569" />
+        <!-- Tanda Silang Putih (Cross X) -->
+        <div class="anim-cross-icon">&#10005;</div>
 
-                        <!-- Barang di Rak Atas -->
-                        <rect x="25" y="42" width="46" height="48" rx="6" fill="url(#boxGrad1)" />
-                        <rect x="80" y="32" width="54" height="58" rx="6" fill="url(#boxGrad2)" />
-                        <rect x="142" y="48" width="32" height="42" rx="4" fill="url(#boxGrad3)" />
-
-                        <!-- Barang di Rak Tengah (Boks dengan Barcode/QR) -->
-                        <rect x="22" y="130" width="60" height="50" rx="6" fill="url(#boxGrad2)" />
-                        <!-- QR Sticker Mini -->
-                        <rect x="42" y="145" width="20" height="20" rx="3" fill="#ffffff" />
-                        <rect x="45" y="148" width="6" height="6" fill="#0f172a" />
-                        <rect x="53" y="148" width="6" height="6" fill="#0f172a" />
-                        <rect x="45" y="156" width="6" height="6" fill="#0f172a" />
-                        <rect x="53" y="156" width="6" height="6" fill="#22d3ee" />
-
-                        <rect x="92" y="125" width="75" height="55" rx="6" fill="url(#boxGrad1)" />
-
-                        <!-- Barang di Rak Bawah -->
-                        <rect x="25" y="220" width="68" height="50" rx="6" fill="url(#boxGrad3)" />
-                        <rect x="105" y="215" width="65" height="55" rx="6" fill="url(#boxGrad2)" />
-                    </g>
-
-                    <!-- Palet & Tumpukan Boks Tengah yang Sedang Diinspeksi -->
-                    <g transform="translate(265, 230)">
-                        <!-- Palet Kayu -->
-                        <rect x="0" y="120" width="130" height="14" rx="2" fill="#78350f" />
-                        <rect x="10" y="134" width="20" height="12" fill="#451a03" />
-                        <rect x="55" y="134" width="20" height="12" fill="#451a03" />
-                        <rect x="100" y="134" width="20" height="12" fill="#451a03" />
-
-                        <!-- Boks Utama Sedang Discan -->
-                        <rect x="10" y="30" width="110" height="90" rx="10" fill="url(#boxGrad1)" stroke="#f59e0b" stroke-width="2" />
-                        
-                        <!-- Lakban Kemasan Boks -->
-                        <rect x="58" y="30" width="14" height="90" fill="rgba(255, 255, 255, 0.25)" />
-
-                        <!-- Label Stiker QR Code Besar pada Boks -->
-                        <rect x="30" y="52" width="46" height="46" rx="6" fill="#ffffff" />
-                        <rect x="34" y="56" width="14" height="14" rx="2" fill="#0f172a" />
-                        <rect x="37" y="59" width="8" height="8" fill="#ffffff" />
-                        <rect x="58" y="56" width="14" height="14" rx="2" fill="#0f172a" />
-                        <rect x="61" y="59" width="8" height="8" fill="#ffffff" />
-                        <rect x="34" y="80" width="14" height="14" rx="2" fill="#0f172a" />
-                        <rect x="37" y="83" width="8" height="8" fill="#ffffff" />
-                        <rect x="58" y="80" width="14" height="14" rx="2" fill="#4361ee" />
-
-                        <!-- Sinar Laser Bar Scanner yang Bergerak Naik-Turun (Animated Laser) -->
-                        <g class="anim-laser">
-                            <line x1="20" y1="20" x2="110" y2="20" stroke="#22d3ee" stroke-width="3" />
-                            <polygon points="20,20 110,20 95,45 35,45" fill="url(#laserBeamGrad)" />
-                        </g>
-
-                        <!-- Label Tag Aset -->
-                        <rect x="30" y="102" width="70" height="10" rx="3" fill="rgba(255,255,255,0.7)" />
-                        <text x="35" y="110" fill="#0f172a" font-size="7" font-family="monospace" font-weight="bold">Tech/042-LAPTOP</text>
-                    </g>
-
-                    <!-- Karakter Petugas 1: Pemeriksa Inventaris (Inspector with Scanner) -->
-                    <g transform="translate(425, 140)">
-                        <!-- Badan & Rompi Keselamatan (Safety Vest) -->
-                        <path d="M50 150 L35 230 L95 230 L80 150 Z" fill="#0f172a" />
-                        <!-- Rompi Oranye Terang -->
-                        <path d="M48 152 L38 215 L92 215 L82 152 Z" fill="#f97316" />
-                        <line x1="50" y1="180" x2="80" y2="180" stroke="#fef08a" stroke-width="5" />
-                        <line x1="45" y1="200" x2="85" y2="200" stroke="#fef08a" stroke-width="5" />
-
-                        <!-- Celana Panjang Petugas -->
-                        <rect x="42" y="230" width="20" height="75" rx="4" fill="#1e293b" />
-                        <rect x="68" y="230" width="20" height="75" rx="4" fill="#1e293b" />
-                        <!-- Sepatu Safety Boots -->
-                        <rect x="38" y="295" width="26" height="14" rx="4" fill="#0f172a" />
-                        <rect x="68" y="295" width="26" height="14" rx="4" fill="#0f172a" />
-
-                        <!-- Kepala & Helm Keselamatan (Hardhat) -->
-                        <ellipse cx="65" cy="115" rx="17" ry="19" fill="#fcd34d" />
-                        <!-- Helm Kuning Proyek -->
-                        <path d="M43 112 C43 92, 87 92, 87 112 Z" fill="#eab308" />
-                        <rect x="40" y="110" width="50" height="6" rx="2" fill="#ca8a04" />
-                        <!-- Wajah & Profil -->
-                        <circle cx="58" cy="118" r="3" fill="#0f172a" />
-
-                        <!-- Lengan Memegang Scanner Digital Beranimasi -->
-                        <g style="transform-origin: 48px 155px; animation: workerInspectArm 2.8s ease-in-out infinite;">
-                            <path d="M48 155 L15 175 L0 160" stroke="#0f172a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
-                            <!-- Tablet Scanner Digital -->
-                            <rect x="-24" y="145" width="30" height="38" rx="4" fill="#0284c7" stroke="#38bdf8" stroke-width="2" />
-                            <rect x="-20" y="149" width="22" height="24" rx="2" fill="#0f172a" />
-                            <!-- Layar Scanner menyala -->
-                            <rect x="-17" y="153" width="16" height="10" rx="1" fill="#22d3ee" />
-                            <line x1="-17" y1="167" x2="-5" y2="167" stroke="#38bdf8" stroke-width="2" />
-                            <!-- Tangan Pegang -->
-                            <circle cx="-5" cy="165" r="5" fill="#fcd34d" />
-                        </g>
-
-                        <!-- Lengan Kiri Santai -->
-                        <path d="M82 155 L95 190 L90 205" stroke="#0f172a" stroke-width="11" stroke-linecap="round" />
-                    </g>
-
-                    <!-- Karakter Petugas 2: Mengangkat Barang / Boks (Lifter) di Latar -->
-                    <g transform="translate(560, 200)">
-                        <!-- Boks yang Sedang Diangkat -->
-                        <rect x="-25" y="30" width="50" height="42" rx="5" fill="url(#boxGrad3)" />
-                        <rect x="-5" y="30" width="10" height="42" fill="rgba(255,255,255,0.2)" />
-                        <!-- Badan & Helm -->
-                        <circle cx="0" cy="10" r="13" fill="#fcd34d" />
-                        <path d="M-15 10 C-15 -6, 15 -6, 15 10 Z" fill="#3b82f6" />
-                        <!-- Baju & Rompi -->
-                        <rect x="-14" y="24" width="28" height="50" rx="6" fill="#3b82f6" />
-                        <!-- Celana -->
-                        <rect x="-14" y="74" width="12" height="55" rx="3" fill="#1e293b" />
-                        <rect x="2" y="74" width="12" height="55" rx="3" fill="#1e293b" />
-                        <!-- Tangan Mengangkat Boks -->
-                        <path d="M-12 35 L-24 50 L-18 65" stroke="#1e293b" stroke-width="7" stroke-linecap="round" />
-                        <path d="M12 35 L24 50 L18 65" stroke="#1e293b" stroke-width="7" stroke-linecap="round" />
-                    </g>
-
-                    <!-- Garis Indikator Sirkulasi Bergerak -->
-                    <path d="M 120 375 L 560 375" stroke="#4361ee" stroke-width="2" stroke-linecap="round" opacity="0.4" />
-                </svg>
-
-                <h4 class="fw-bold text-white mb-2">Automated Asset Intelligence</h4>
-                <p class="text-white-50 mx-auto small mb-0" style="max-width: 480px; line-height: 1.6;">
-                    Sistem pemantauan inventaris terpadu dari pengadaan, pelabelan QR code cerdas, sirkulasi peminjaman, hingga pemeliharaan aset fisik.
-                </p>
-            </div>
-
-            <!-- Bottom Three Features Highlight -->
-            <div class="row g-3 pt-3 border-top border-white border-opacity-10 position-relative z-2">
-                <div class="col-4">
-                    <div class="text-start">
-                        <div class="text-info fw-bold font-monospace small"><i class="bi bi-qr-code me-1"></i>QR Tracking</div>
-                        <small class="text-white-50" style="font-size: 0.7rem;">Pemindaian instan mobile</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="text-start">
-                        <div class="text-warning fw-bold font-monospace small"><i class="bi bi-shield-lock me-1"></i>Sudo Security</div>
-                        <small class="text-white-50" style="font-size: 0.7rem;">Perlindungan 2-langkah</small>
-                    </div>
-                </div>
-                <div class="col-4">
-                    <div class="text-start">
-                        <div class="text-success fw-bold font-monospace small"><i class="bi bi-cloud-arrow-up me-1"></i>Auto Backup</div>
-                        <small class="text-white-50" style="font-size: 0.7rem;">Pencadangan terjadwal</small>
-                    </div>
-                </div>
+        <!-- Orbit Planet Toska di Bagian Bawah -->
+        <div class="orbit-system-container">
+            <div class="orbit-main-planet"></div>
+            <div class="orbit-track">
+                <div class="orbit-satellite"></div>
             </div>
         </div>
 
+        <!-- 3. Konten Tengah: Smart Tracking Seamless Assets -->
+        <div class="hero-center-content">
+            <div class="hero-badge-subtitle">
+                <span>EFEKTIF</span>
+                <span>&bull;</span>
+                <span>AKUNTABEL</span>
+                <span>&bull;</span>
+                <span>INTEGRATIF</span>
+            </div>
+            <h2 class="hero-main-title">
+                Smart Tracking<br>
+                Seamless Assets
+            </h2>
+            <div class="hero-accent-line"></div>
+        </div>
 
-        <!-- ========================================================
-             SISI KANAN: FORMULIR LOGIN MODERN
-             ======================================================== -->
-        <div class="col-12 col-lg-6 col-xl-5 login-form-side">
-            <div class="w-100 mx-auto" style="max-width: 420px;">
-                
-                <!-- Mobile Only Logo & Title -->
-                <div class="text-center mb-4 d-lg-none">
-                    <div class="login-brand-logo mx-auto mb-3 text-white">
-                        <i class="bi bi-box-seam-fill fs-4"></i>
+        <!-- 4. Footer Kiri -->
+        <div class="hero-footer">
+            <span>Enterprise Asset Management System</span>
+            <span class="font-monospace">v2.5.0</span>
+        </div>
+
+    </div><!-- /hero-panel -->
+
+
+    <!-- ========================================================
+         KONEKTOR TENGAH DENGAN TOMBOL PANAH BERANIMASI
+         ======================================================== -->
+    <div class="split-connector-btn" id="connectorFocusBtn" title="Mulai Masuk">
+        <div class="connector-inner-circle">
+            <i class="bi bi-arrow-right"></i>
+        </div>
+    </div>
+
+
+    <!-- ========================================================
+         SISI KANAN: FORMULIR LOGIN
+         ======================================================== -->
+    <div class="form-panel">
+        <div class="form-wrapper">
+
+            <!-- Judul Form Sesuai Gambar -->
+            <h2 class="form-title">Silahkan Masuk</h2>
+
+            <!-- Flash Error/Success Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show small py-2.5 px-3 border-0 rounded-4 mb-3 d-flex align-items-center gap-2" role="alert">
+                            <i class="bi {% if category == 'success' %}bi-check-circle-fill text-success{% else %}bi-exclamation-triangle-fill text-danger{% endif %} fs-5 flex-shrink-0"></i>
+                            <span class="flex-grow-1">{{ message }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <!-- Login Form -->
+            <form method="POST" action="{{ url_for('login') }}" id="loginForm" novalidate>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <!-- Username Input -->
+                <div class="custom-input-group">
+                    <label class="custom-input-label" for="username">Username</label>
+                    <div class="pill-input-container">
+                        <input type="text" 
+                               class="pill-input" 
+                               id="username" 
+                               name="username" 
+                               placeholder="Enter your username" 
+                               required 
+                               autofocus 
+                               autocomplete="username">
                     </div>
-                    <h3 class="fw-extrabold text-dark mb-1 tracking-tight font-monospace">JESCA</h3>
-                    <p class="text-muted small">Jessica Assets Management System</p>
                 </div>
 
-                <!-- Form Heading -->
-                <div class="mb-4">
-                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-semibold small mb-2">
-                        Portal Otentikasi
-                    </span>
-                    <h3 class="fw-extrabold text-dark mb-1">Masuk ke Sistem</h3>
-                    <p class="text-muted small mb-0">Masukkan kredensial akun Anda untuk mengakses dashboard inventaris.</p>
-                </div>
-
-                <!-- Flash Messages -->
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show small py-2.5 px-3 border-0 rounded-3 mb-3 d-flex align-items-center gap-2" role="alert">
-                                <i class="bi {% if category == 'success' %}bi-check-circle-fill text-success{% else %}bi-exclamation-triangle-fill text-danger{% endif %} fs-5"></i>
-                                <span class="flex-grow-1">{{ message }}</span>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.9rem;"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-
-                <!-- Login Form -->
-                <form method="POST" action="{{ url_for('login') }}" id="loginForm" class="needs-validation">
-                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-
-                    <!-- Username Field -->
-                    <div class="form-floating-custom">
-                        <i class="bi bi-person input-icon"></i>
-                        <input type="text" class="form-control" id="username" name="username" placeholder="Nama Pengguna" required autofocus autocomplete="username">
-                    </div>
-
-                    <!-- Password Field -->
-                    <div class="form-floating-custom">
-                        <i class="bi bi-shield-lock input-icon"></i>
-                        <input type="password" class="form-control" id="password" name="password" placeholder="Kata Sandi" required autocomplete="current-password" style="padding-right: 45px;">
-                        <button type="button" class="toggle-pass-btn" id="togglePasswordBtn" title="Lihat / Sembunyikan Password">
+                <!-- Password Input -->
+                <div class="custom-input-group">
+                    <label class="custom-input-label" for="password">Password</label>
+                    <div class="pill-input-container">
+                        <input type="password" 
+                               class="pill-input" 
+                               id="password" 
+                               name="password" 
+                               placeholder="Enter your password" 
+                               required 
+                               autocomplete="current-password" 
+                               style="padding-right: 48px;">
+                        <button type="button" class="pass-toggle-btn" id="togglePasswordBtn" title="Tampilkan / Sembunyikan Password">
                             <i class="bi bi-eye" id="togglePasswordIcon"></i>
                         </button>
                     </div>
-
-                    <!-- Remember Me & Forgot Password (Optional Link) -->
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="remember" name="remember" checked>
-                            <label class="form-check-label small text-muted user-select-none" for="remember">
-                                Ingat sesi login saya
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary btn-login-submit w-100 text-white d-flex align-items-center justify-content-center gap-2 shadow-sm" id="btnLoginSubmit">
-                        <span class="fw-bold">Masuk Sekarang</span>
-                        <i class="bi bi-arrow-right fs-5"></i>
-                    </button>
-                </form>
-
-                <!-- Footer Security Notice -->
-                <div class="mt-5 pt-3 border-top text-center">
-                    <div class="d-flex align-items-center justify-content-center gap-2 text-muted small mb-2" style="font-size: 0.75rem;">
-                        <i class="bi bi-lock-fill text-success"></i>
-                        <span>Enkripsi Sesi TLS &bull; Dilindungi Proteksi Anti-Brute Force</span>
-                    </div>
-                    <small class="text-muted d-block" style="font-size: 0.72rem;">
-                        JESCA &copy; 2026 &bull; Jessica Assets Management System
-                    </small>
                 </div>
 
-            </div>
-        </div>
+                <!-- Remember Me Checkbox -->
+                <div class="remember-wrapper">
+                    <input type="checkbox" class="custom-checkbox" id="remember" name="remember" checked>
+                    <label class="remember-label" for="remember">Remember me</label>
+                </div>
 
-    </div>
+                <!-- Tombol Login -->
+                <button type="submit" class="btn-pill-login" id="btnLoginSubmit">
+                    <span>Login</span>
+                </button>
+            </form>
+
+            <!-- Separator: ── Auto -fill ── -->
+            <div class="autofill-divider">
+                <span>Auto -fill</span>
+            </div>
+
+            <!-- ========================================================
+                 3 KOLOM DI BAWAH AUTOFILL
+                 (Admin, Staff, Auditor — Lengkap Animasi Gerak)
+                 ======================================================== -->
+            <div class="autofill-grid">
+                
+                <!-- Kolom 1: Role Admin (Icon Shield Monogram) -->
+                <button type="button" 
+                        class="autofill-pill-btn autofill-col-1" 
+                        id="btnFillAdmin" 
+                        title="Auto-fill Akun Admin (Full Akses)"
+                        data-user="Admin" 
+                        data-pass="Admin123">
+                    <svg class="autofill-icon-svg" viewBox="0 0 32 32" fill="none">
+                        <!-- Stylized Hexagon/Shield Logo sesuai sketsa kolom 1 -->
+                        <path d="M16 3L27 9V17C27 23.5 22.3 27.5 16 29C9.7 27.5 5 23.5 5 17V9L16 3Z" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M16 10V22M12 14L16 10L20 14" stroke="#553af6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="autofill-role-hint">Admin</span>
+                </button>
+
+                <!-- Kolom 2: Role Staff (Icon Monogram M / Staff) -->
+                <button type="button" 
+                        class="autofill-pill-btn autofill-col-2" 
+                        id="btnFillStaff" 
+                        title="Auto-fill Akun Staff (Operasional & Aset)"
+                        data-user="staff1" 
+                        data-pass="Staff123">
+                    <svg class="autofill-icon-svg" viewBox="0 0 32 32" fill="none">
+                        <!-- Stylized Geometric "M" sesuai sketsa kolom 2 -->
+                        <path d="M7 24V9L16 16L25 9V24" stroke="#06b6d4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="16" cy="7" r="2.5" fill="#06b6d4"/>
+                    </svg>
+                    <span class="autofill-role-hint" style="color: #06b6d4;">Staff</span>
+                </button>
+
+                <!-- Kolom 3: Role Auditor (Icon Chevron V / Auditor) -->
+                <button type="button" 
+                        class="autofill-pill-btn autofill-col-3" 
+                        id="btnFillAuditor" 
+                        title="Auto-fill Akun Auditor (Laporan & Audit Log)"
+                        data-user="auditor" 
+                        data-pass="Auditor123">
+                    <svg class="autofill-icon-svg" viewBox="0 0 32 32" fill="none">
+                        <!-- Geometric Double Chevron "V" sesuai sketsa kolom 3 -->
+                        <path d="M6 10L16 20L26 10" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M10 16L16 22L22 16" stroke="#a78bfa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="autofill-role-hint" style="color: #7c3aed;">Auditor</span>
+                </button>
+
+            </div>
+
+            <!-- Footer Notice -->
+            <div class="form-footer-info">
+                <span>JESCA &copy; 2026 &bull; Jessica Assets Management System</span>
+            </div>
+
+        </div>
+    </div><!-- /form-panel -->
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-    // Toggle show/hide password
-    const togglePasswordBtn = document.getElementById('togglePasswordBtn');
-    const passwordInput = document.getElementById('password');
-    const toggleIcon = document.getElementById('togglePasswordIcon');
+document.addEventListener('DOMContentLoaded', function () {
+    // 1. Toggle Show / Hide Password
+    const toggleBtn = document.getElementById('togglePasswordBtn');
+    const passInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('togglePasswordIcon');
 
-    if (togglePasswordBtn && passwordInput && toggleIcon) {
-        togglePasswordBtn.addEventListener('click', () => {
-            const isPassword = passwordInput.getAttribute('type') === 'password';
-            passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-            toggleIcon.className = isPassword ? 'bi bi-eye-slash text-primary' : 'bi bi-eye';
+    if (toggleBtn && passInput && eyeIcon) {
+        toggleBtn.addEventListener('click', function () {
+            const isPass = passInput.getAttribute('type') === 'password';
+            passInput.setAttribute('type', isPass ? 'text' : 'password');
+            eyeIcon.className = isPass ? 'bi bi-eye-slash text-primary' : 'bi bi-eye';
         });
     }
 
-    // Submit button loading animation
+    // 2. Connector Arrow Click to Focus Username
+    const connectorBtn = document.getElementById('connectorFocusBtn');
+    const usernameInput = document.getElementById('username');
+    if (connectorBtn && usernameInput) {
+        connectorBtn.addEventListener('click', function () {
+            usernameInput.focus();
+            usernameInput.classList.add('border-primary');
+            setTimeout(() => usernameInput.classList.remove('border-primary'), 1000);
+        });
+    }
+
+    // 3. Tombol Login Loading Animation
     const loginForm = document.getElementById('loginForm');
     const btnSubmit = document.getElementById('btnLoginSubmit');
     if (loginForm && btnSubmit) {
-        loginForm.addEventListener('submit', function() {
+        loginForm.addEventListener('submit', function () {
             btnSubmit.disabled = true;
-            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memverifikasi Kredensial...';
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memverifikasi...';
         });
     }
+
+    // 4. Interaktivitas 3 Kolom Auto-fill dengan Animasi
+    const autofillButtons = [
+        document.getElementById('btnFillAdmin'),
+        document.getElementById('btnFillStaff'),
+        document.getElementById('btnFillAuditor')
+    ];
+
+    autofillButtons.forEach(btn => {
+        if (!btn) return;
+
+        btn.addEventListener('click', function () {
+            const u = this.getAttribute('data-user');
+            const p = this.getAttribute('data-pass');
+            const role = this.querySelector('.autofill-role-hint') ? this.querySelector('.autofill-role-hint').textContent : u;
+
+            if (usernameInput) usernameInput.value = u;
+            if (passInput) passInput.value = p;
+
+            // Animasi Pulsing Ripple pada input fields
+            [usernameInput, passInput].forEach(el => {
+                if (!el) return;
+                el.style.transition = 'all 0.3s ease';
+                el.style.borderColor = '#553af6';
+                el.style.boxShadow = '0 0 0 5px rgba(85, 58, 246, 0.25)';
+                el.style.background = '#f5f3ff';
+
+                setTimeout(() => {
+                    el.style.borderColor = '';
+                    el.style.boxShadow = '';
+                    el.style.background = '';
+                }, 900);
+            });
+
+            // Animasi Klik Tombol Auto-fill
+            this.style.transform = 'scale(0.92)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 200);
+
+            // Toast feedback
+            if (window.JescaToast) {
+                window.JescaToast.show('Kredensial akun ' + role + ' (' + u + ') berhasil diisi!', 'success');
+            }
+        });
+    });
+});
 </script>
 {% endblock %}

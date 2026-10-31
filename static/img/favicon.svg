@@ -1,10 +1,27 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
-  <!-- Background rounded square -->
-  <rect width="64" height="64" rx="14" fill="#4361ee"/>
-  <!-- Letter J -->
-  <text x="10" y="46" font-family="Arial Black, sans-serif" font-weight="900" font-size="30" fill="white">J</text>
-  <!-- Letter A -->
-  <text x="30" y="46" font-family="Arial Black, sans-serif" font-weight="900" font-size="30" fill="#ffd166">A</text>
-  <!-- Small dot accent -->
-  <circle cx="56" cy="12" r="5" fill="#ffd166"/>
+  <defs>
+    <linearGradient id="jescaBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366f1"/>
+      <stop offset="60%" stop-color="#553af6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="jescaCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+  </defs>
+  <!-- Background squircle -->
+  <rect width="64" height="64" rx="16" fill="url(#jescaBg)"/>
+  
+  <!-- Modern Geometric JESCA Monogram Logo -->
+  <g transform="translate(11, 14)">
+    <!-- Segment 1: Outer Left Slanted Bar -->
+    <path d="M0 36L12 0H17L5 36H0Z" fill="#ffffff"/>
+    <!-- Segment 2: Inner Slanted Bar -->
+    <path d="M11 36L20 9H25L16 36H11Z" fill="#ffffff" fill-opacity="0.95"/>
+    <!-- Segment 3: Right Triangle Slanted Wing -->
+    <path d="M25 0L42 36H36L30.5 24H23.5L25.5 19H32.5L24 0H25Z" fill="#ffffff"/>
+    <!-- Cyan glow dot accent -->
+    <circle cx="39" cy="4" r="3" fill="url(#jescaCyan)"/>
+  </g>
 </svg>
