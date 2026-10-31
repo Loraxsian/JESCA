@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.3.0'
+APP_VERSION = '2.4.0'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -3364,7 +3364,14 @@ def admin_backups():
                     'size': os.path.getsize(fp),
                     'created': datetime.fromtimestamp(os.path.getctime(fp))
                 })
-    return render_template('admin_backups.html', backups=backup_files)
+    show_modal = session.pop('show_import_modal', False)
+    import_report = session.get('import_report')
+    return render_template(
+        'admin_backups.html',
+        backups=backup_files,
+        import_report=import_report,
+        show_import_modal=show_modal
+    )
 
 
 @app.route('/admin/backup', methods=['POST'])
@@ -3403,6 +3410,479 @@ def restore_backup(filename):
     log_activity('RESTORE', details=f"Database dipulihkan dari file: {safe_name}")
     flash(f'Database berhasil dipulihkan dari {safe_name}. Snapshot pra-restore: {safety_snap}.', 'success')
     return redirect(url_for('admin_backups'))
+
+
+@app.route('/admin/import-db', methods=['POST'])
+@login_required
+@admin_required
+@sudo_required
+def import_db_merge():
+    """Smart DB Import: merge an old JESCA .db file into the current database.
+    - Handles ID conflicts by remapping foreign keys
+    - Preserves original asset codes when no conflict exists
+    - Auto-renumbers conflicting codes
+    - Creates a safety snapshot before any write
+    - Stores reconciliation report in session for modal display
+    """
+    import sqlite3 as _sqlite3
+    import tempfile as _tempfile
+
+    uploaded = request.files.get('db_file')
+    if not uploaded or uploaded.filename == '':
+        flash('Pilih file .db terlebih dahulu.', 'danger')
+        return redirect(url_for('admin_backups'))
+
+    if not uploaded.filename.lower().endswith('.db'):
+        flash('File harus berformat .db (SQLite database).', 'danger')
+        return redirect(url_for('admin_backups'))
+
+    # Save upload to temp file
+    tmp_fd, tmp_path = _tempfile.mkstemp(suffix='.db', prefix='jesca_import_')
+    os.close(tmp_fd)
+    try:
+        uploaded.save(tmp_path)
+
+        # Validate that it's a real SQLite file
+        try:
+            test_conn = _sqlite3.connect(tmp_path)
+            test_conn.execute("SELECT name FROM sqlite_master WHERE type='table' LIMIT 1").fetchall()
+            test_conn.close()
+        except Exception:
+            flash('File yang diunggah bukan database SQLite yang valid.', 'danger')
+            return redirect(url_for('admin_backups'))
+
+        # ── Step 1: Safety snapshot BEFORE any merge ──────────────────────
+        snap_name = f"pre_merge_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        snap_path = os.path.join(BACKUP_FOLDER, snap_name)
+        shutil.copy2(db_path, snap_path)
+
+        # ── Step 2: Open source DB (read-only via sqlite3 directly) ───────
+        src = _sqlite3.connect(f'file:{tmp_path}?mode=ro', uri=True)
+        src.row_factory = _sqlite3.Row
+
+        report = {
+            'summary': {
+                'safety_snapshot': snap_name,
+                'total_sites_new': 0,
+                'total_vendors_new': 0,
+                'total_assets_imported': 0,
+                'assets_kept_code': 0,
+                'assets_renumbered': 0,
+                'total_pos_imported': 0,
+                'total_maintenance_imported': 0,
+                'total_circulation_imported': 0,
+            },
+            'changes': []
+        }
+
+        # Helper: get table names in source DB
+        src_tables = {r[0] for r in src.execute("SELECT name FROM sqlite_master WHERE type='table'").fetchall()}
+
+        # ── Step 3: Merge SITES ──────────────────────────────────────────
+        site_id_map = {}  # src_id → dst_id
+        if 'sites' in src_tables:
+            for row in src.execute("SELECT * FROM sites").fetchall():
+                existing = Site.query.filter(
+                    db.func.lower(Site.name) == row['name'].strip().lower()
+                ).first()
+                if existing:
+                    site_id_map[row['id']] = existing.id
+                else:
+                    new_site = Site(
+                        name=row['name'],
+                        description=row['description'] if 'description' in row.keys() else None,
+                        is_active=bool(row['is_active']) if 'is_active' in row.keys() else True
+                    )
+                    db.session.add(new_site)
+                    db.session.flush()
+                    site_id_map[row['id']] = new_site.id
+                    report['summary']['total_sites_new'] += 1
+                    report['changes'].append({
+                        'type': 'Lokasi',
+                        'name': row['name'],
+                        'old_code': '-',
+                        'new_code': '-',
+                        'status': 'new',
+                        'reason': 'Lokasi baru ditambahkan'
+                    })
+
+        # ── Step 4: Merge VENDORS ─────────────────────────────────────────
+        vendor_id_map = {}  # src_id → dst_id
+        if 'vendors' in src_tables:
+            for row in src.execute("SELECT * FROM vendors").fetchall():
+                existing = Vendor.query.filter(
+                    db.func.lower(Vendor.name) == row['name'].strip().lower()
+                ).first()
+                if existing:
+                    vendor_id_map[row['id']] = existing.id
+                else:
+                    new_vendor = Vendor(
+                        name=row['name'],
+                        contact_person=row['contact_person'] if 'contact_person' in row.keys() else None,
+                        phone=row['phone'] if 'phone' in row.keys() else None,
+                        email=row['email'] if 'email' in row.keys() else None,
+                        address=row['address'] if 'address' in row.keys() else None,
+                        notes=row['notes'] if 'notes' in row.keys() else None,
+                        is_active=bool(row['is_active']) if 'is_active' in row.keys() else True
+                    )
+                    db.session.add(new_vendor)
+                    db.session.flush()
+                    vendor_id_map[row['id']] = new_vendor.id
+                    report['summary']['total_vendors_new'] += 1
+                    report['changes'].append({
+                        'type': 'Vendor',
+                        'name': row['name'],
+                        'old_code': '-',
+                        'new_code': '-',
+                        'status': 'new',
+                        'reason': 'Vendor baru ditambahkan'
+                    })
+
+        # ── Step 5: Merge ASSETS ─────────────────────────────────────────
+        asset_id_map = {}  # src_id → dst_id
+        if 'assets' in src_tables:
+            src_asset_cols = [desc[0] for desc in src.execute("SELECT * FROM assets LIMIT 0").description] if src.execute("SELECT COUNT(*) FROM assets").fetchone()[0] > 0 else []
+            # Re-fetch columns properly
+            cur = src.execute("SELECT * FROM assets LIMIT 0")
+            src_asset_cols = [d[0] for d in cur.description] if cur.description else []
+
+            for row in src.execute("SELECT * FROM assets ORDER BY id ASC").fetchall():
+                row_dict = dict(row)
+                orig_code = row_dict.get('asset_code', '')
+                category  = row_dict.get('category', 'Lainnya')
+
+                # Check if code already exists in destination
+                conflict = Asset.query.filter_by(asset_code=orig_code).first()
+                if conflict:
+                    new_code = generate_asset_code(category)
+                    status_val = 'renumbered'
+                    reason_val = f'Kode {orig_code} sudah ada, diberikan kode baru'
+                    report['summary']['assets_renumbered'] += 1
+                else:
+                    new_code = orig_code
+                    status_val = 'kept'
+                    reason_val = 'Kode asli dipertahankan (tidak ada konflik)'
+                    report['summary']['assets_kept_code'] += 1
+
+                # Map foreign keys
+                mapped_vendor_id = vendor_id_map.get(row_dict.get('vendor_id')) if row_dict.get('vendor_id') else None
+                mapped_site_id   = site_id_map.get(row_dict.get('site_id')) if row_dict.get('site_id') else None
+
+                # Parse date helpers
+                def _parse_date(val):
+                    if not val:
+                        return None
+                    for fmt in ('%Y-%m-%d', '%d/%m/%Y', '%Y/%m/%d'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt).date()
+                        except Exception:
+                            continue
+                    return None
+
+                def _parse_datetime(val):
+                    if not val:
+                        return None
+                    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt)
+                        except Exception:
+                            continue
+                    return None
+
+                new_asset = Asset(
+                    asset_code=new_code,
+                    name=row_dict.get('name', 'Asset'),
+                    category=category,
+                    purchase_date=_parse_date(row_dict.get('purchase_date')) or date.today(),
+                    purchase_price=float(row_dict.get('purchase_price') or 0),
+                    location=row_dict.get('location') or 'Kantor Pusat',
+                    status=row_dict.get('status') or 'Aktif',
+                    description=row_dict.get('description'),
+                    image=None,  # don't copy image files
+                    borrower=row_dict.get('borrower'),
+                    borrow_date=_parse_datetime(row_dict.get('borrow_date')),
+                    needs_maintenance=bool(row_dict.get('needs_maintenance', 0)),
+                    maintenance_interval_days=row_dict.get('maintenance_interval_days'),
+                    next_maintenance_date=_parse_date(row_dict.get('next_maintenance_date')),
+                    last_maintenance_date=_parse_date(row_dict.get('last_maintenance_date')),
+                    warranty_start=_parse_date(row_dict.get('warranty_start')),
+                    warranty_end=_parse_date(row_dict.get('warranty_end')),
+                    useful_life_years=row_dict.get('useful_life_years'),
+                    salvage_value=float(row_dict.get('salvage_value') or 0),
+                    total_checkout_days=int(row_dict.get('total_checkout_days') or 0),
+                    custom_fields_json=row_dict.get('custom_fields_json'),
+                    vendor_id=mapped_vendor_id,
+                    site_id=mapped_site_id,
+                    last_transfer_date=_parse_date(row_dict.get('last_transfer_date')),
+                    last_transfer_from=row_dict.get('last_transfer_from'),
+                )
+                db.session.add(new_asset)
+                db.session.flush()
+                asset_id_map[row_dict['id']] = new_asset.id
+                report['summary']['total_assets_imported'] += 1
+                report['changes'].append({
+                    'type': 'Aset',
+                    'name': row_dict.get('name', ''),
+                    'old_code': orig_code,
+                    'new_code': new_code,
+                    'status': status_val,
+                    'reason': reason_val
+                })
+
+        # ── Step 6: Merge PURCHASE ORDERS ────────────────────────────────
+        po_id_map = {}  # src_id → dst_id
+        if 'purchase_orders' in src_tables:
+            for row in src.execute("SELECT * FROM purchase_orders ORDER BY id ASC").fetchall():
+                row_dict = dict(row)
+                orig_po = row_dict.get('po_number', '')
+
+                conflict_po = PurchaseOrder.query.filter_by(po_number=orig_po).first()
+                if conflict_po:
+                    new_po_number = generate_po_number()
+                    po_status_val = 'renumbered'
+                    po_reason = f'Nomor PO {orig_po} sudah ada'
+                else:
+                    new_po_number = orig_po
+                    po_status_val = 'kept'
+                    po_reason = 'Nomor PO asli dipertahankan'
+
+                def _parse_date(val):
+                    if not val:
+                        return None
+                    for fmt in ('%Y-%m-%d', '%d/%m/%Y'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt).date()
+                        except Exception:
+                            continue
+                    return None
+
+                def _parse_datetime(val):
+                    if not val:
+                        return None
+                    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt)
+                        except Exception:
+                            continue
+                    return None
+
+                new_po = PurchaseOrder(
+                    po_number=new_po_number,
+                    title=row_dict.get('title', ''),
+                    description=row_dict.get('description'),
+                    status=row_dict.get('status', 'Draft'),
+                    priority=row_dict.get('priority', 'Normal'),
+                    requested_by=row_dict.get('requested_by', ''),
+                    approved_by=row_dict.get('approved_by'),
+                    vendor_id=vendor_id_map.get(row_dict.get('vendor_id')) if row_dict.get('vendor_id') else None,
+                    notes=row_dict.get('notes'),
+                    created_at=_parse_datetime(row_dict.get('created_at')) or datetime.utcnow(),
+                    updated_at=_parse_datetime(row_dict.get('updated_at')) or datetime.utcnow(),
+                )
+                db.session.add(new_po)
+                db.session.flush()
+                po_id_map[row_dict['id']] = new_po.id
+                report['summary']['total_pos_imported'] += 1
+                report['changes'].append({
+                    'type': 'Purchase Order',
+                    'name': row_dict.get('title', orig_po),
+                    'old_code': orig_po,
+                    'new_code': new_po_number,
+                    'status': po_status_val,
+                    'reason': po_reason
+                })
+
+        # ── Step 7: Merge PO ITEMS (children of PO) ──────────────────────
+        if 'po_items' in src_tables and po_id_map:
+            for row in src.execute("SELECT * FROM po_items ORDER BY id ASC").fetchall():
+                row_dict = dict(row)
+                mapped_po_id = po_id_map.get(row_dict.get('po_id'))
+                if not mapped_po_id:
+                    continue  # orphan — skip
+                new_item = POItem(
+                    po_id=mapped_po_id,
+                    item_name=row_dict.get('item_name', ''),
+                    specification=row_dict.get('specification'),
+                    category=row_dict.get('category', ''),
+                    quantity=int(row_dict.get('quantity') or 1),
+                    unit=row_dict.get('unit', 'unit'),
+                    unit_price=float(row_dict.get('unit_price') or 0),
+                    notes=row_dict.get('notes'),
+                )
+                db.session.add(new_item)
+
+        # ── Step 8: Merge PO HISTORIES ────────────────────────────────────
+        if 'po_histories' in src_tables and po_id_map:
+            for row in src.execute("SELECT * FROM po_histories ORDER BY id ASC").fetchall():
+                row_dict = dict(row)
+                mapped_po_id = po_id_map.get(row_dict.get('po_id'))
+                if not mapped_po_id:
+                    continue
+                def _parse_datetime_h(val):
+                    if not val:
+                        return datetime.utcnow()
+                    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt)
+                        except Exception:
+                            continue
+                    return datetime.utcnow()
+                new_hist = PurchaseOrderHistory(
+                    po_id=mapped_po_id,
+                    changed_by=row_dict.get('changed_by', ''),
+                    old_status=row_dict.get('old_status', ''),
+                    new_status=row_dict.get('new_status', ''),
+                    notes=row_dict.get('notes'),
+                    created_at=_parse_datetime_h(row_dict.get('created_at')),
+                )
+                db.session.add(new_hist)
+
+        # ── Step 9: Merge MAINTENANCE RECORDS ────────────────────────────
+        if 'maintenance_records' in src_tables and asset_id_map:
+            for row in src.execute("SELECT * FROM maintenance_records ORDER BY id ASC").fetchall():
+                row_dict = dict(row)
+                mapped_asset_id = asset_id_map.get(row_dict.get('asset_id'))
+                if not mapped_asset_id:
+                    continue
+                def _pd(val):
+                    if not val:
+                        return date.today()
+                    for fmt in ('%Y-%m-%d', '%d/%m/%Y'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt).date()
+                        except Exception:
+                            continue
+                    return date.today()
+                new_mr = MaintenanceRecord(
+                    asset_id=mapped_asset_id,
+                    service_type=row_dict.get('service_type', 'Rutin'),
+                    action_taken=row_dict.get('action_taken', ''),
+                    cost=float(row_dict.get('cost') or 0),
+                    proof_file=None,  # don't copy files
+                    performed_by=row_dict.get('performed_by', ''),
+                    service_date=_pd(row_dict.get('service_date')),
+                    next_service_date=_pd(row_dict.get('next_service_date')) if row_dict.get('next_service_date') else None,
+                )
+                db.session.add(new_mr)
+                report['summary']['total_maintenance_imported'] += 1
+
+        # ── Step 10: Merge ASSET CIRCULATION LOGS ─────────────────────────
+        if 'asset_circulation_logs' in src_tables and asset_id_map:
+            for row in src.execute("SELECT * FROM asset_circulation_logs ORDER BY id ASC").fetchall():
+                row_dict = dict(row)
+                mapped_asset_id = asset_id_map.get(row_dict.get('asset_id'))
+                if not mapped_asset_id:
+                    continue
+                def _pdt(val):
+                    if not val:
+                        return datetime.utcnow()
+                    for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M:%S.%f', '%Y-%m-%dT%H:%M:%S'):
+                        try:
+                            from datetime import datetime as _dt
+                            return _dt.strptime(str(val), fmt)
+                        except Exception:
+                            continue
+                    return datetime.utcnow()
+                new_circ = AssetCirculationLog(
+                    asset_id=mapped_asset_id,
+                    borrower=row_dict.get('borrower', ''),
+                    borrow_date=_pdt(row_dict.get('borrow_date')),
+                    return_date=_pdt(row_dict.get('return_date')) if row_dict.get('return_date') else None,
+                    duration_days=int(row_dict.get('duration_days') or 0),
+                    notes=row_dict.get('notes'),
+                    checkout_by=row_dict.get('checkout_by', ''),
+                    checkin_by=row_dict.get('checkin_by'),
+                )
+                db.session.add(new_circ)
+                report['summary']['total_circulation_imported'] += 1
+
+        src.close()
+
+        # ── Step 11: Commit everything ────────────────────────────────────
+        db.session.commit()
+
+        # ── Step 12: Log activity ─────────────────────────────────────────
+        s = report['summary']
+        log_activity(
+            'IMPORT_DB_MERGE',
+            details=(
+                f"Smart Import DB '{uploaded.filename}': "
+                f"{s['total_assets_imported']} aset "
+                f"({s['assets_kept_code']} kode dipertahankan, {s['assets_renumbered']} direnomor), "
+                f"{s['total_pos_imported']} PO, "
+                f"{s['total_vendors_new']} vendor baru, "
+                f"{s['total_sites_new']} lokasi baru. "
+                f"Snapshot: {snap_name}"
+            )
+        )
+
+        # ── Step 13: Store report in session (PRG pattern) ────────────────
+        session['import_report'] = report
+        session['show_import_modal'] = True
+        flash(
+            f"Import berhasil! {s['total_assets_imported']} aset, "
+            f"{s['total_pos_imported']} PO diimpor. "
+            f"Snapshot keamanan: {snap_name}",
+            'success'
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.exception(f"import_db_merge error: {e}")
+        flash(f'Import gagal: {str(e)}', 'danger')
+
+    finally:
+        # Clean up temp file
+        try:
+            os.remove(tmp_path)
+        except Exception:
+            pass
+
+    return redirect(url_for('admin_backups'))
+
+
+@app.route('/admin/import-report/csv')
+@login_required
+@admin_required
+def import_report_csv():
+    """Download reconciliation report from last import as CSV."""
+    import csv as _csv
+    report = session.get('import_report')
+    if not report:
+        flash('Tidak ada laporan impor yang tersedia.', 'warning')
+        return redirect(url_for('admin_backups'))
+
+    output = io.StringIO()
+    output.write('\ufeff')  # BOM for Excel
+    writer = _csv.writer(output, delimiter=';')
+    writer.writerow(['Tipe', 'Nama', 'Kode Lama', 'Kode Baru', 'Status', 'Keterangan'])
+    for change in report.get('changes', []):
+        status_label = {
+            'renumbered': 'Direnomor',
+            'kept': 'Kode Dipertahankan',
+            'new': 'Baru Ditambahkan'
+        }.get(change.get('status', ''), change.get('status', ''))
+        writer.writerow([
+            change.get('type', ''),
+            change.get('name', ''),
+            change.get('old_code', '-'),
+            change.get('new_code', '-'),
+            status_label,
+            change.get('reason', '')
+        ])
+
+    filename = f"jesca_import_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    return Response(
+        output.getvalue(),
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
 
 
 def auto_backup_job():

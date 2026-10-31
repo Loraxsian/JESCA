@@ -3,25 +3,28 @@
 {% block page_heading %}Backup & Pemulihan Basis Data{% endblock %}
 
 {% block content %}
+<!-- Kartu Operasi Basis Data -->
 <div class="row g-4 mb-4">
-    <div class="col-lg-5">
+    <!-- 1. Buat Backup Manual -->
+    <div class="col-lg-4">
         <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-cloud-arrow-up fs-3"></i>
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                            <i class="bi bi-cloud-arrow-up fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Cadangkan Data (Backup)</h6>
+                            <small class="text-muted">Buat snapshot instan database</small>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="fw-bold mb-0">Cadangkan Basis Data (Backup)</h6>
-                        <small class="text-muted">Buat snapshot instan file SQLite (jesca.db)</small>
-                    </div>
+                    <p class="small text-muted mb-3">
+                        Sistem mencadangkan otomatis tiap hari pukul <strong>02:00 WIB</strong> (retensi 30 hari). Anda juga dapat membuat snapshot manual kapan pun diperlukan.
+                    </p>
                 </div>
-
-                <p class="small text-muted mb-4">
-                    Sistem secara otomatis menjadwalkan pencadangan setiap hari pukul <strong>02:00 WIB</strong> dengan masa retensi otomatis <strong>30 hari</strong>. Anda juga dapat membuat cadangan manual sewaktu-waktu.
-                </p>
-
                 <form method="POST" action="{{ url_for('manual_backup') }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-semibold shadow-sm">
                         <i class="bi bi-hdd me-2"></i>Buat Backup Sekarang
                     </button>
@@ -30,27 +33,97 @@
         </div>
     </div>
 
-    <div class="col-lg-7">
-        <div class="card border-0 shadow-sm rounded-4 h-100">
-            <div class="card-body p-4">
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex align-items-center justify-content-center">
-                        <i class="bi bi-shield-exclamation fs-3"></i>
+    <!-- 2. Smart Import & Merge Database -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100 border-start border-4 border-info">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-info bg-opacity-10 text-info rounded-circle p-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                            <i class="bi bi-node-plus fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Smart Import & Merge</h6>
+                            <small class="text-muted">Gabungkan DB lama tanpa tumpang tindih</small>
+                        </div>
                     </div>
-                    <div>
-                        <h6 class="fw-bold mb-0">Kebijakan Pemulihan (Restore)</h6>
-                        <small class="text-muted">Perlindungan otomatis sebelum restore</small>
+                    <p class="small text-muted mb-2">
+                        Impor data dari file <code>.db</code> versi lama. Kode aset yang tidak bentrok akan dipertahankan agar label QR tetap valid; duplikasi akan otomatis direnomor.
+                    </p>
+                    <div class="badge bg-light text-secondary border small py-1 px-2 mb-3">
+                        <i class="bi bi-shield-check text-success me-1"></i>Safety snapshot dibuat otomatis sebelum merge
                     </div>
                 </div>
 
-                <div class="alert alert-warning border-0 rounded-3 small mb-0 py-3">
-                    <i class="bi bi-info-circle-fill me-2"></i>
-                    Saat Anda melakukan <strong>Restore</strong>, sistem JESCA akan secara otomatis membuat backup cadangan darurat (<em>safety snapshot</em>) terhadap kondisi database saat ini sebelum ditimpa dengan cadangan pilihan.
+                <form method="POST" action="{{ url_for('import_db_merge') }}" enctype="multipart/form-data" onsubmit="return confirm('Mulai proses Smart Import & Merge? Snapshot keamanan akan dibuat otomatis sebelum data digabungkan.');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="mb-3">
+                        <input type="file" class="form-control form-control-sm rounded-pill" name="db_file" accept=".db" required>
+                    </div>
+                    <button type="submit" class="btn btn-info text-white w-100 rounded-pill py-2 fw-semibold shadow-sm">
+                        <i class="bi bi-cloud-arrow-down me-2"></i>Mulai Smart Merge
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Kebijakan Pemulihan (Restore) -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-body p-4 d-flex flex-column justify-content-between">
+                <div>
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 d-flex align-items-center justify-content-center" style="width:48px;height:48px;">
+                            <i class="bi bi-shield-exclamation fs-4"></i>
+                        </div>
+                        <div>
+                            <h6 class="fw-bold mb-0">Kebijakan Pemulihan</h6>
+                            <small class="text-muted">Perlindungan data pra-restore</small>
+                        </div>
+                    </div>
+                    <div class="alert alert-warning border-0 rounded-3 small mb-0 py-2">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Saat memulihkan (<strong>Restore</strong>) arsip, sistem akan otomatis membuat cadangan darurat (<em>pre_restore_*</em>) dari basis data aktif sebelum ditimpa.
+                    </div>
                 </div>
+
+                {% if import_report %}
+                <div class="mt-3">
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100 rounded-pill" data-bs-toggle="modal" data-bs-target="#reconciliationModal">
+                        <i class="bi bi-clipboard-data me-1"></i>Buka Laporan Impor Terakhir
+                    </button>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
+
+<!-- Banner Notifikasi Laporan Impor Terakhir jika ada -->
+{% if import_report %}
+<div class="alert alert-info border-0 rounded-4 shadow-sm py-3 px-4 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <div class="bg-info bg-opacity-25 text-info rounded-circle p-2 d-flex align-items-center justify-content-center" style="width:40px;height:40px;">
+            <i class="bi bi-check2-circle fs-4"></i>
+        </div>
+        <div>
+            <div class="fw-bold text-dark">Laporan Rekonsiliasi Impor Terakhir Tersedia</div>
+            <small class="text-muted">
+                Total {{ import_report.summary.total_assets_imported }} aset diimpor ({{ import_report.summary.assets_kept_code }} kode asli dipertahankan, {{ import_report.summary.assets_renumbered }} direnomor baru), {{ import_report.summary.total_pos_imported }} PO.
+            </small>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('import_report_csv') }}" class="btn btn-light border btn-sm rounded-pill px-3 fw-semibold">
+            <i class="bi bi-download me-1"></i>Unduh CSV
+        </a>
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-semibold" data-bs-toggle="modal" data-bs-target="#reconciliationModal">
+            <i class="bi bi-eye me-1"></i>Lihat Rincian
+        </button>
+    </div>
+</div>
+{% endif %}
 
 <!-- Daftar File Backup -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
@@ -82,6 +155,8 @@
                                 <span class="badge bg-info-subtle text-info border font-monospace ms-2" style="font-size: 0.68rem;">Auto-Backup</span>
                                 {% elif 'manual_' in b.name %}
                                 <span class="badge bg-success-subtle text-success border font-monospace ms-2" style="font-size: 0.68rem;">Manual</span>
+                                {% elif 'pre_merge_' in b.name %}
+                                <span class="badge bg-primary-subtle text-primary border font-monospace ms-2" style="font-size: 0.68rem;">Pre-Merge Snap</span>
                                 {% elif 'pre_restore_' in b.name %}
                                 <span class="badge bg-warning-subtle text-warning border font-monospace ms-2" style="font-size: 0.68rem;">Safety Snap</span>
                                 {% endif %}
@@ -96,6 +171,7 @@
                     </td>
                     <td class="text-end pe-4">
                         <form method="POST" action="{{ url_for('restore_backup', filename=b.name) }}" class="d-inline" onsubmit="return confirm('PERINGATAN: Pulihkan database dari {{ b.name }}? Database saat ini akan digantikan oleh cadangan ini.');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i>Restore ke Versi Ini
                             </button>
@@ -114,4 +190,180 @@
         </table>
     </div>
 </div>
+
+<!-- MODAL: Laporan Rekonsiliasi Impor Basis Data -->
+{% if import_report %}
+<div class="modal fade" id="reconciliationModal" tabindex="-1" aria-labelledby="reconciliationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4 bg-light bg-opacity-50">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 p-2 d-flex align-items-center justify-content-center" style="width:42px;height:42px;">
+                        <i class="bi bi-clipboard2-check fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="modal-title fw-bold text-dark" id="reconciliationModalLabel">Laporan Rekonsiliasi Impor Basis Data</h6>
+                        <small class="text-muted">Rincian status penggabungan data, pemetaan relasi, dan penyesuaian kode unik</small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <div class="modal-body p-4">
+                <!-- Ringkasan Statistik Kartu -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <small class="text-muted d-block mb-1">Aset Diimpor</small>
+                            <div class="h4 fw-bold mb-1 text-primary">{{ import_report.summary.total_assets_imported }}</div>
+                            <small class="text-muted" style="font-size:0.75rem;">
+                                <span class="text-success fw-semibold">{{ import_report.summary.assets_kept_code }}</span> kode asli &bull;
+                                <span class="text-warning fw-semibold">{{ import_report.summary.assets_renumbered }}</span> baru
+                            </small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <small class="text-muted d-block mb-1">Purchase Order (PO)</small>
+                            <div class="h4 fw-bold mb-1 text-info">{{ import_report.summary.total_pos_imported }}</div>
+                            <small class="text-muted" style="font-size:0.75rem;">Termasuk riwayat &amp; daftar barang</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <small class="text-muted d-block mb-1">Master Baru</small>
+                            <div class="h4 fw-bold mb-1 text-success">{{ import_report.summary.total_vendors_new + import_report.summary.total_sites_new }}</div>
+                            <small class="text-muted" style="font-size:0.75rem;">{{ import_report.summary.total_vendors_new }} vendor, {{ import_report.summary.total_sites_new }} lokasi</small>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-lg-3">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <small class="text-muted d-block mb-1">Snapshot Keamanan</small>
+                            <div class="small fw-semibold text-truncate font-monospace text-dark" title="{{ import_report.summary.safety_snapshot }}">{{ import_report.summary.safety_snapshot }}</div>
+                            <small class="text-success" style="font-size:0.75rem;"><i class="bi bi-shield-check me-1"></i>Tersimpan aman</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Input Pencarian Cepat di Modal -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h6 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-list-check me-2 text-primary"></i>Rincian Penyesuaian Data ({{ import_report.changes|length }} Item)
+                    </h6>
+                    <div style="max-width: 260px;">
+                        <input type="text" id="reportSearchInput" class="form-control form-control-sm rounded-pill" placeholder="Cari nama atau kode..." onkeyup="filterReportTable()">
+                    </div>
+                </div>
+
+                <!-- Tabel Perubahan Detail -->
+                <div class="table-responsive border rounded-3" style="max-height: 420px; overflow-y: auto;">
+                    <table class="table table-hover align-middle mb-0" id="reportTable">
+                        <thead class="table-light text-secondary small sticky-top">
+                            <tr>
+                                <th class="ps-3" style="width: 120px;">Tipe Data</th>
+                                <th>Nama Objek</th>
+                                <th style="width: 150px;">Kode Asli</th>
+                                <th style="width: 150px;">Kode Baru</th>
+                                <th style="width: 170px;">Status Penomoran</th>
+                                <th>Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody class="small">
+                            {% for c in import_report.changes %}
+                            <tr class="report-row">
+                                <td class="ps-3">
+                                    {% if c.type == 'Aset' %}
+                                    <span class="badge bg-primary-subtle text-primary border font-monospace">Aset</span>
+                                    {% elif c.type == 'Purchase Order' %}
+                                    <span class="badge bg-info-subtle text-info border font-monospace">PO</span>
+                                    {% elif c.type == 'Vendor' %}
+                                    <span class="badge bg-secondary-subtle text-secondary border font-monospace">Vendor</span>
+                                    {% else %}
+                                    <span class="badge bg-light text-dark border font-monospace">{{ c.type }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-semibold text-dark search-target">{{ c.name }}</td>
+                                <td class="font-monospace text-muted search-target">{{ c.old_code }}</td>
+                                <td class="font-monospace fw-bold text-dark search-target">
+                                    {% if c.status == 'renumbered' %}
+                                    <span class="text-warning">{{ c.new_code }}</span>
+                                    {% elif c.status == 'kept' %}
+                                    <span class="text-success">{{ c.new_code }}</span>
+                                    {% else %}
+                                    {{ c.new_code }}
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if c.status == 'kept' %}
+                                    <span class="badge bg-success-subtle text-success border">
+                                        <i class="bi bi-check2 me-1"></i>Kode Dipertahankan
+                                    </span>
+                                    {% elif c.status == 'renumbered' %}
+                                    <span class="badge bg-warning-subtle text-warning border">
+                                        <i class="bi bi-arrow-repeat me-1"></i>Direnomor Otomatis
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-info-subtle text-info border">
+                                        <i class="bi bi-plus-lg me-1"></i>Data Baru
+                                    </span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-muted small">{{ c.reason }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    Tidak ada data rekonsiliasi spesifik.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="modal-footer border-top py-3 px-4 bg-light bg-opacity-50 d-flex justify-content-between align-items-center">
+                <div class="small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>Label stiker QR pada aset yang kodenya dipertahankan tetap berlaku.
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('import_report_csv') }}" class="btn btn-outline-success btn-sm rounded-pill px-3">
+                        <i class="bi bi-file-earmark-spreadsheet me-1"></i>Unduh Laporan (CSV)
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function filterReportTable() {
+    var input = document.getElementById("reportSearchInput");
+    var filter = input.value.toLowerCase();
+    var rows = document.querySelectorAll(".report-row");
+
+    rows.forEach(function(row) {
+        var targets = row.querySelectorAll(".search-target");
+        var match = false;
+        targets.forEach(function(t) {
+            if (t.textContent.toLowerCase().indexOf(filter) > -1) {
+                match = true;
+            }
+        });
+        row.style.display = match ? "" : "none";
+    });
+}
+
+{% if show_import_modal %}
+document.addEventListener('DOMContentLoaded', function() {
+    var mEl = document.getElementById('reconciliationModal');
+    if (mEl && typeof bootstrap !== 'undefined') {
+        var modal = new bootstrap.Modal(mEl);
+        modal.show();
+    }
+});
+{% endif %}
+</script>
+{% endif %}
 {% endblock %}
