@@ -1,114 +1,552 @@
 {% extends "base.html" %}
 
-{% block title %}Login - JESCA Asset Management{% endblock %}
+{% block title %}Login - JESCA Enterprise Asset Management{% endblock %}
 
 {% block auth_content %}
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
-            
-            <!-- Clean Brand Header -->
-            <div class="text-center mb-4">
-                <div class="login-brand-icon mx-auto mb-3 shadow d-flex align-items-center justify-content-center text-white">
-                    <i class="bi bi-box-seam-fill fs-2"></i>
-                </div>
-                <h3 class="fw-extrabold text-dark mb-1 tracking-tight">JESCA</h3>
-                <p class="text-muted small">Jessica Assets Management System</p>
-            </div>
+<style>
+/* ========================================================
+   JESCA v2.5.0 — Split-Screen Animated Login Experience
+   ======================================================== */
+.login-split-container {
+    min-height: 100vh;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background: #0f172a;
+}
 
-            <!-- Login Card -->
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-body p-4 p-sm-4">
-                    
-                    <div class="mb-3">
-                        <h5 class="fw-bold text-dark mb-1">Masuk ke Sistem</h5>
-                        <p class="text-muted small">Masukkan kredensial akun Anda untuk melanjutkan.</p>
+/* Sisi Kiri: Scene Animasi Hero */
+.login-hero-side {
+    position: relative;
+    background: radial-gradient(circle at 15% 20%, #1e1b4b 0%, #0f172a 60%, #020617 100%);
+    overflow: hidden;
+    min-height: 100vh;
+    padding: 3.5rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.login-hero-grid {
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(99, 102, 241, 0.15) 1.2px, transparent 1.2px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* Sisi Kanan: Form Card */
+.login-form-side {
+    min-height: 100vh;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 4rem;
+}
+
+[data-theme="dark"] .login-form-side {
+    background: #0b1120;
+    color: #f8fafc;
+}
+
+/* Brand Header */
+.login-brand-logo {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 10px 25px rgba(67, 97, 238, 0.4);
+}
+
+/* Animasi Scanner Laser & Floating Pills */
+@keyframes scanLaserLine {
+    0% { transform: translateY(0px); opacity: 0.2; }
+    50% { transform: translateY(110px); opacity: 1; filter: drop-shadow(0 0 8px #22d3ee); }
+    100% { transform: translateY(0px); opacity: 0.2; }
+}
+
+@keyframes floatBob1 {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-8px) rotate(-1deg); }
+}
+
+@keyframes floatBob2 {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(7px) rotate(1deg); }
+}
+
+@keyframes floatBob3 {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-6px); }
+}
+
+@keyframes pulseGlow {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.15); }
+}
+
+@keyframes workerInspectArm {
+    0%, 100% { transform: rotate(0deg); }
+    50% { transform: rotate(-4deg); }
+}
+
+.anim-laser {
+    animation: scanLaserLine 2.8s ease-in-out infinite;
+}
+
+.badge-float {
+    position: absolute;
+    backdrop-filter: blur(12px);
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    box-shadow: 0 16px 32px rgba(0, 0, 0, 0.35);
+    z-index: 10;
+}
+
+.badge-float-1 {
+    top: 24%;
+    right: 8%;
+    animation: floatBob1 4.5s ease-in-out infinite;
+}
+
+.badge-float-2 {
+    bottom: 26%;
+    left: 6%;
+    animation: floatBob2 5.2s ease-in-out infinite;
+}
+
+.badge-float-3 {
+    bottom: 12%;
+    right: 12%;
+    animation: floatBob3 4s ease-in-out infinite;
+}
+
+/* Input Form Styling */
+.form-floating-custom {
+    position: relative;
+    margin-bottom: 1.25rem;
+}
+
+.form-floating-custom .form-control {
+    height: 52px;
+    border-radius: 12px;
+    padding-left: 45px;
+    border: 1.5px solid #e2e8f0;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+    font-size: 0.92rem;
+}
+
+.form-floating-custom .form-control:focus {
+    background: #ffffff;
+    border-color: #4361ee;
+    box-shadow: 0 0 0 4px rgba(67, 97, 238, 0.12);
+}
+
+[data-theme="dark"] .form-floating-custom .form-control {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme="dark"] .form-floating-custom .form-control:focus {
+    background: #0f172a;
+    border-color: #6366f1;
+}
+
+.form-floating-custom .input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    font-size: 1.15rem;
+    z-index: 5;
+}
+
+.toggle-pass-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+    z-index: 5;
+    font-size: 1.1rem;
+}
+
+.toggle-pass-btn:hover {
+    color: #4361ee;
+}
+
+.btn-login-submit {
+    height: 50px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+    border: none;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    box-shadow: 0 10px 20px rgba(67, 97, 238, 0.3);
+    transition: all 0.25s ease;
+}
+
+.btn-login-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 28px rgba(67, 97, 238, 0.45);
+}
+
+/* Responsivitas Layar */
+@media (max-width: 991px) {
+    .login-hero-side {
+        display: none !important;
+    }
+    .login-form-side {
+        padding: 2.5rem 1.5rem;
+    }
+    .login-split-container {
+        background: #ffffff;
+    }
+    [data-theme="dark"] .login-split-container {
+        background: #0b1120;
+    }
+}
+</style>
+
+<div class="container-fluid p-0 login-split-container">
+    <div class="row g-0 min-vh-100">
+        
+        <!-- ========================================================
+             SISI KIRI: ANIMASI LIVE OPERASIONAL INVENTARIS & HERO
+             ======================================================== -->
+        <div class="col-lg-6 col-xl-7 login-hero-side d-none d-lg-flex">
+            <div class="login-hero-grid"></div>
+
+            <!-- Top Brand Header -->
+            <div class="d-flex align-items-center justify-content-between position-relative z-2">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="login-brand-logo text-white">
+                        <i class="bi bi-box-seam-fill fs-4"></i>
                     </div>
-
-                    <!-- Flash messages in login -->
-                    {% with messages = get_flashed_messages(with_categories=true) %}
-                        {% if messages %}
-                            {% for category, message in messages %}
-                                <div class="alert alert-{{ category }} alert-dismissible fade show small py-2 px-3 border-0 rounded-3 mb-3" role="alert">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-info-circle-fill"></i>
-                                        <span>{{ message }}</span>
-                                    </div>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.8rem;"></button>
-                                </div>
-                            {% endfor %}
-                        {% endif %}
-                    {% endwith %}
-
-                    <form method="POST" action="{{ url_for('login') }}" id="loginForm">
-                        <!-- Username -->
-                        <div class="mb-3">
-                            <label for="username" class="form-label small fw-semibold text-secondary">Username</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <input type="text" class="form-control bg-light border-start-0" id="username" name="username" placeholder="Masukkan username" required autofocus autocomplete="username">
-                            </div>
-                        </div>
-
-                        <!-- Password -->
-                        <div class="mb-3">
-                            <label for="password" class="form-label small fw-semibold text-secondary">Password</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-end-0 text-muted">
-                                    <i class="bi bi-key"></i>
-                                </span>
-                                <input type="password" class="form-control bg-light border-start-0 border-end-0" id="password" name="password" placeholder="Masukkan password" required autocomplete="current-password">
-                                <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePasswordBtn">
-                                    <i class="bi bi-eye" id="togglePasswordIcon"></i>
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- Remember Me -->
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="remember" name="remember" checked>
-                                <label class="form-check-label small text-muted user-select-none" for="remember">
-                                    Ingat saya
-                                </label>
-                            </div>
-                        </div>
-
-                        <!-- Submit Button -->
-                        <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold rounded-3 shadow-sm d-flex align-items-center justify-content-center gap-2">
-                            <span>Masuk</span>
-                            <i class="bi bi-arrow-right"></i>
-                        </button>
-                    </form>
-
-                    <!-- Demo Credentials Card -->
-                    <div class="mt-4 pt-3 border-top text-center">
-                        <div class="p-2 px-3 bg-light border rounded-3 small text-start">
-                            <div class="d-flex align-items-center justify-content-between mb-1">
-                                <span class="fw-bold text-dark"><i class="bi bi-info-circle text-primary me-1"></i> Akun Bawaan:</span>
-                                <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2 fw-semibold rounded-pill" id="fillDemoCredentialsBtn" style="font-size: 0.72rem;">
-                                    Auto-Fill
-                                </button>
-                            </div>
-                            <div class="font-monospace text-secondary" style="font-size: 0.78rem;">
-                                User: <strong>Admin</strong> &bull; Pass: <strong>Admin123</strong>
-                            </div>
-                        </div>
+                    <div>
+                        <span class="h4 fw-extrabold text-white mb-0 tracking-tight font-monospace">JESCA</span>
+                        <span class="badge bg-primary bg-opacity-25 text-info border border-info border-opacity-25 ms-2 rounded-pill px-2.5 py-1 font-monospace" style="font-size: 0.68rem;">v2.5.0 Enterprise</span>
                     </div>
-
+                </div>
+                <div class="text-white-50 small">
+                    <i class="bi bi-shield-check text-success me-1"></i>Secure Platform
                 </div>
             </div>
 
-            <!-- Footer -->
-            <div class="text-center mt-3">
-                <small class="text-muted" style="font-size: 0.75rem;">
-                    JESCA &copy; 2024 &bull; Flask & SQLAlchemy
-                </small>
+            <!-- Center Stage: Animated Inventory Scene -->
+            <div class="position-relative my-auto py-4 text-center z-2">
+                
+                <!-- Floating Hologram Badges -->
+                <div class="badge-float badge-float-1 d-flex align-items-center gap-2">
+                    <span class="badge bg-success rounded-circle p-1" style="animation: pulseGlow 1.8s infinite;"><i class="bi bi-check2"></i></span>
+                    <span>QR Verified: <strong class="text-info font-monospace">Tech/042</strong></span>
+                </div>
+
+                <div class="badge-float badge-float-2 d-flex align-items-center gap-2">
+                    <i class="bi bi-cart-check text-warning fs-6"></i>
+                    <span>PO Pengadaan: <strong class="text-white">15 Unit Tiba</strong></span>
+                </div>
+
+                <div class="badge-float badge-float-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-speedometer2 text-success fs-6"></i>
+                    <span>Integritas Database: <strong class="text-success font-monospace">100% OK</strong></span>
+                </div>
+
+                <!-- SVG Artwork: Warehouse & Inspector Animation -->
+                <svg viewBox="0 0 680 420" width="100%" height="320" style="max-width: 580px;" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <!-- Gradients -->
+                        <linearGradient id="rackGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#334155" />
+                            <stop offset="100%" stop-color="#1e293b" />
+                        </linearGradient>
+                        <linearGradient id="boxGrad1" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f59e0b" />
+                            <stop offset="100%" stop-color="#d97706" />
+                        </linearGradient>
+                        <linearGradient id="boxGrad2" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#3b82f6" />
+                            <stop offset="100%" stop-color="#1d4ed8" />
+                        </linearGradient>
+                        <linearGradient id="boxGrad3" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#10b981" />
+                            <stop offset="100%" stop-color="#047857" />
+                        </linearGradient>
+                        <linearGradient id="laserBeamGrad" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stop-color="#22d3ee" stop-opacity="0.9" />
+                            <stop offset="100%" stop-color="#06b6d4" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+
+                    <!-- Lantai Gudang & Perspektif Garis -->
+                    <ellipse cx="340" cy="380" rx="310" ry="35" fill="rgba(30, 41, 59, 0.4)" />
+                    <line x1="80" y1="380" x2="600" y2="380" stroke="#334155" stroke-width="2" stroke-dasharray="6 6" />
+
+                    <!-- Rak Gudang Kiri (Warehouse Storage Rack) -->
+                    <g transform="translate(40, 90)">
+                        <!-- Rak Frame -->
+                        <rect x="0" y="0" width="14" height="280" rx="3" fill="url(#rackGrad)" stroke="#475569" stroke-width="1.5" />
+                        <rect x="180" y="0" width="14" height="280" rx="3" fill="url(#rackGrad)" stroke="#475569" stroke-width="1.5" />
+                        <!-- Shelves -->
+                        <rect x="0" y="90" width="194" height="10" rx="2" fill="#475569" />
+                        <rect x="0" y="180" width="194" height="10" rx="2" fill="#475569" />
+                        <rect x="0" y="270" width="194" height="10" rx="2" fill="#475569" />
+
+                        <!-- Barang di Rak Atas -->
+                        <rect x="25" y="42" width="46" height="48" rx="6" fill="url(#boxGrad1)" />
+                        <rect x="80" y="32" width="54" height="58" rx="6" fill="url(#boxGrad2)" />
+                        <rect x="142" y="48" width="32" height="42" rx="4" fill="url(#boxGrad3)" />
+
+                        <!-- Barang di Rak Tengah (Boks dengan Barcode/QR) -->
+                        <rect x="22" y="130" width="60" height="50" rx="6" fill="url(#boxGrad2)" />
+                        <!-- QR Sticker Mini -->
+                        <rect x="42" y="145" width="20" height="20" rx="3" fill="#ffffff" />
+                        <rect x="45" y="148" width="6" height="6" fill="#0f172a" />
+                        <rect x="53" y="148" width="6" height="6" fill="#0f172a" />
+                        <rect x="45" y="156" width="6" height="6" fill="#0f172a" />
+                        <rect x="53" y="156" width="6" height="6" fill="#22d3ee" />
+
+                        <rect x="92" y="125" width="75" height="55" rx="6" fill="url(#boxGrad1)" />
+
+                        <!-- Barang di Rak Bawah -->
+                        <rect x="25" y="220" width="68" height="50" rx="6" fill="url(#boxGrad3)" />
+                        <rect x="105" y="215" width="65" height="55" rx="6" fill="url(#boxGrad2)" />
+                    </g>
+
+                    <!-- Palet & Tumpukan Boks Tengah yang Sedang Diinspeksi -->
+                    <g transform="translate(265, 230)">
+                        <!-- Palet Kayu -->
+                        <rect x="0" y="120" width="130" height="14" rx="2" fill="#78350f" />
+                        <rect x="10" y="134" width="20" height="12" fill="#451a03" />
+                        <rect x="55" y="134" width="20" height="12" fill="#451a03" />
+                        <rect x="100" y="134" width="20" height="12" fill="#451a03" />
+
+                        <!-- Boks Utama Sedang Discan -->
+                        <rect x="10" y="30" width="110" height="90" rx="10" fill="url(#boxGrad1)" stroke="#f59e0b" stroke-width="2" />
+                        
+                        <!-- Lakban Kemasan Boks -->
+                        <rect x="58" y="30" width="14" height="90" fill="rgba(255, 255, 255, 0.25)" />
+
+                        <!-- Label Stiker QR Code Besar pada Boks -->
+                        <rect x="30" y="52" width="46" height="46" rx="6" fill="#ffffff" />
+                        <rect x="34" y="56" width="14" height="14" rx="2" fill="#0f172a" />
+                        <rect x="37" y="59" width="8" height="8" fill="#ffffff" />
+                        <rect x="58" y="56" width="14" height="14" rx="2" fill="#0f172a" />
+                        <rect x="61" y="59" width="8" height="8" fill="#ffffff" />
+                        <rect x="34" y="80" width="14" height="14" rx="2" fill="#0f172a" />
+                        <rect x="37" y="83" width="8" height="8" fill="#ffffff" />
+                        <rect x="58" y="80" width="14" height="14" rx="2" fill="#4361ee" />
+
+                        <!-- Sinar Laser Bar Scanner yang Bergerak Naik-Turun (Animated Laser) -->
+                        <g class="anim-laser">
+                            <line x1="20" y1="20" x2="110" y2="20" stroke="#22d3ee" stroke-width="3" />
+                            <polygon points="20,20 110,20 95,45 35,45" fill="url(#laserBeamGrad)" />
+                        </g>
+
+                        <!-- Label Tag Aset -->
+                        <rect x="30" y="102" width="70" height="10" rx="3" fill="rgba(255,255,255,0.7)" />
+                        <text x="35" y="110" fill="#0f172a" font-size="7" font-family="monospace" font-weight="bold">Tech/042-LAPTOP</text>
+                    </g>
+
+                    <!-- Karakter Petugas 1: Pemeriksa Inventaris (Inspector with Scanner) -->
+                    <g transform="translate(425, 140)">
+                        <!-- Badan & Rompi Keselamatan (Safety Vest) -->
+                        <path d="M50 150 L35 230 L95 230 L80 150 Z" fill="#0f172a" />
+                        <!-- Rompi Oranye Terang -->
+                        <path d="M48 152 L38 215 L92 215 L82 152 Z" fill="#f97316" />
+                        <line x1="50" y1="180" x2="80" y2="180" stroke="#fef08a" stroke-width="5" />
+                        <line x1="45" y1="200" x2="85" y2="200" stroke="#fef08a" stroke-width="5" />
+
+                        <!-- Celana Panjang Petugas -->
+                        <rect x="42" y="230" width="20" height="75" rx="4" fill="#1e293b" />
+                        <rect x="68" y="230" width="20" height="75" rx="4" fill="#1e293b" />
+                        <!-- Sepatu Safety Boots -->
+                        <rect x="38" y="295" width="26" height="14" rx="4" fill="#0f172a" />
+                        <rect x="68" y="295" width="26" height="14" rx="4" fill="#0f172a" />
+
+                        <!-- Kepala & Helm Keselamatan (Hardhat) -->
+                        <ellipse cx="65" cy="115" rx="17" ry="19" fill="#fcd34d" />
+                        <!-- Helm Kuning Proyek -->
+                        <path d="M43 112 C43 92, 87 92, 87 112 Z" fill="#eab308" />
+                        <rect x="40" y="110" width="50" height="6" rx="2" fill="#ca8a04" />
+                        <!-- Wajah & Profil -->
+                        <circle cx="58" cy="118" r="3" fill="#0f172a" />
+
+                        <!-- Lengan Memegang Scanner Digital Beranimasi -->
+                        <g style="transform-origin: 48px 155px; animation: workerInspectArm 2.8s ease-in-out infinite;">
+                            <path d="M48 155 L15 175 L0 160" stroke="#0f172a" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+                            <!-- Tablet Scanner Digital -->
+                            <rect x="-24" y="145" width="30" height="38" rx="4" fill="#0284c7" stroke="#38bdf8" stroke-width="2" />
+                            <rect x="-20" y="149" width="22" height="24" rx="2" fill="#0f172a" />
+                            <!-- Layar Scanner menyala -->
+                            <rect x="-17" y="153" width="16" height="10" rx="1" fill="#22d3ee" />
+                            <line x1="-17" y1="167" x2="-5" y2="167" stroke="#38bdf8" stroke-width="2" />
+                            <!-- Tangan Pegang -->
+                            <circle cx="-5" cy="165" r="5" fill="#fcd34d" />
+                        </g>
+
+                        <!-- Lengan Kiri Santai -->
+                        <path d="M82 155 L95 190 L90 205" stroke="#0f172a" stroke-width="11" stroke-linecap="round" />
+                    </g>
+
+                    <!-- Karakter Petugas 2: Mengangkat Barang / Boks (Lifter) di Latar -->
+                    <g transform="translate(560, 200)">
+                        <!-- Boks yang Sedang Diangkat -->
+                        <rect x="-25" y="30" width="50" height="42" rx="5" fill="url(#boxGrad3)" />
+                        <rect x="-5" y="30" width="10" height="42" fill="rgba(255,255,255,0.2)" />
+                        <!-- Badan & Helm -->
+                        <circle cx="0" cy="10" r="13" fill="#fcd34d" />
+                        <path d="M-15 10 C-15 -6, 15 -6, 15 10 Z" fill="#3b82f6" />
+                        <!-- Baju & Rompi -->
+                        <rect x="-14" y="24" width="28" height="50" rx="6" fill="#3b82f6" />
+                        <!-- Celana -->
+                        <rect x="-14" y="74" width="12" height="55" rx="3" fill="#1e293b" />
+                        <rect x="2" y="74" width="12" height="55" rx="3" fill="#1e293b" />
+                        <!-- Tangan Mengangkat Boks -->
+                        <path d="M-12 35 L-24 50 L-18 65" stroke="#1e293b" stroke-width="7" stroke-linecap="round" />
+                        <path d="M12 35 L24 50 L18 65" stroke="#1e293b" stroke-width="7" stroke-linecap="round" />
+                    </g>
+
+                    <!-- Garis Indikator Sirkulasi Bergerak -->
+                    <path d="M 120 375 L 560 375" stroke="#4361ee" stroke-width="2" stroke-linecap="round" opacity="0.4" />
+                </svg>
+
+                <h4 class="fw-bold text-white mb-2">Automated Asset Intelligence</h4>
+                <p class="text-white-50 mx-auto small mb-0" style="max-width: 480px; line-height: 1.6;">
+                    Sistem pemantauan inventaris terpadu dari pengadaan, pelabelan QR code cerdas, sirkulasi peminjaman, hingga pemeliharaan aset fisik.
+                </p>
             </div>
 
+            <!-- Bottom Three Features Highlight -->
+            <div class="row g-3 pt-3 border-top border-white border-opacity-10 position-relative z-2">
+                <div class="col-4">
+                    <div class="text-start">
+                        <div class="text-info fw-bold font-monospace small"><i class="bi bi-qr-code me-1"></i>QR Tracking</div>
+                        <small class="text-white-50" style="font-size: 0.7rem;">Pemindaian instan mobile</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-start">
+                        <div class="text-warning fw-bold font-monospace small"><i class="bi bi-shield-lock me-1"></i>Sudo Security</div>
+                        <small class="text-white-50" style="font-size: 0.7rem;">Perlindungan 2-langkah</small>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="text-start">
+                        <div class="text-success fw-bold font-monospace small"><i class="bi bi-cloud-arrow-up me-1"></i>Auto Backup</div>
+                        <small class="text-white-50" style="font-size: 0.7rem;">Pencadangan terjadwal</small>
+                    </div>
+                </div>
+            </div>
         </div>
+
+
+        <!-- ========================================================
+             SISI KANAN: FORMULIR LOGIN MODERN
+             ======================================================== -->
+        <div class="col-12 col-lg-6 col-xl-5 login-form-side">
+            <div class="w-100 mx-auto" style="max-width: 420px;">
+                
+                <!-- Mobile Only Logo & Title -->
+                <div class="text-center mb-4 d-lg-none">
+                    <div class="login-brand-logo mx-auto mb-3 text-white">
+                        <i class="bi bi-box-seam-fill fs-4"></i>
+                    </div>
+                    <h3 class="fw-extrabold text-dark mb-1 tracking-tight font-monospace">JESCA</h3>
+                    <p class="text-muted small">Jessica Assets Management System</p>
+                </div>
+
+                <!-- Form Heading -->
+                <div class="mb-4">
+                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-1.5 fw-semibold small mb-2">
+                        Portal Otentikasi
+                    </span>
+                    <h3 class="fw-extrabold text-dark mb-1">Masuk ke Sistem</h3>
+                    <p class="text-muted small mb-0">Masukkan kredensial akun Anda untuk mengakses dashboard inventaris.</p>
+                </div>
+
+                <!-- Flash Messages -->
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                        {% for category, message in messages %}
+                            <div class="alert alert-{{ category }} alert-dismissible fade show small py-2.5 px-3 border-0 rounded-3 mb-3 d-flex align-items-center gap-2" role="alert">
+                                <i class="bi {% if category == 'success' %}bi-check-circle-fill text-success{% else %}bi-exclamation-triangle-fill text-danger{% endif %} fs-5"></i>
+                                <span class="flex-grow-1">{{ message }}</span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" style="padding: 0.9rem;"></button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                {% endwith %}
+
+                <!-- Login Form -->
+                <form method="POST" action="{{ url_for('login') }}" id="loginForm" class="needs-validation">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <!-- Username Field -->
+                    <div class="form-floating-custom">
+                        <i class="bi bi-person input-icon"></i>
+                        <input type="text" class="form-control" id="username" name="username" placeholder="Nama Pengguna" required autofocus autocomplete="username">
+                    </div>
+
+                    <!-- Password Field -->
+                    <div class="form-floating-custom">
+                        <i class="bi bi-shield-lock input-icon"></i>
+                        <input type="password" class="form-control" id="password" name="password" placeholder="Kata Sandi" required autocomplete="current-password" style="padding-right: 45px;">
+                        <button type="button" class="toggle-pass-btn" id="togglePasswordBtn" title="Lihat / Sembunyikan Password">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+
+                    <!-- Remember Me & Forgot Password (Optional Link) -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="remember" name="remember" checked>
+                            <label class="form-check-label small text-muted user-select-none" for="remember">
+                                Ingat sesi login saya
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-login-submit w-100 text-white d-flex align-items-center justify-content-center gap-2 shadow-sm" id="btnLoginSubmit">
+                        <span class="fw-bold">Masuk Sekarang</span>
+                        <i class="bi bi-arrow-right fs-5"></i>
+                    </button>
+                </form>
+
+                <!-- Footer Security Notice -->
+                <div class="mt-5 pt-3 border-top text-center">
+                    <div class="d-flex align-items-center justify-content-center gap-2 text-muted small mb-2" style="font-size: 0.75rem;">
+                        <i class="bi bi-lock-fill text-success"></i>
+                        <span>Enkripsi Sesi TLS &bull; Dilindungi Proteksi Anti-Brute Force</span>
+                    </div>
+                    <small class="text-muted d-block" style="font-size: 0.72rem;">
+                        JESCA &copy; 2026 &bull; Jessica Assets Management System
+                    </small>
+                </div>
+
+            </div>
+        </div>
+
     </div>
 </div>
 {% endblock %}
@@ -124,17 +562,17 @@
         togglePasswordBtn.addEventListener('click', () => {
             const isPassword = passwordInput.getAttribute('type') === 'password';
             passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
-            toggleIcon.className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            toggleIcon.className = isPassword ? 'bi bi-eye-slash text-primary' : 'bi bi-eye';
         });
     }
 
-    // Auto-fill demo credentials
-    const fillDemoBtn = document.getElementById('fillDemoCredentialsBtn');
-    if (fillDemoBtn) {
-        fillDemoBtn.addEventListener('click', () => {
-            document.getElementById('username').value = 'Admin';
-            document.getElementById('password').value = 'Admin123';
-            document.getElementById('username').focus();
+    // Submit button loading animation
+    const loginForm = document.getElementById('loginForm');
+    const btnSubmit = document.getElementById('btnLoginSubmit');
+    if (loginForm && btnSubmit) {
+        loginForm.addEventListener('submit', function() {
+            btnSubmit.disabled = true;
+            btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memverifikasi Kredensial...';
         });
     }
 </script>

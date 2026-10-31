@@ -582,7 +582,7 @@
 
     {% else %}
         <!-- Unauthenticated View (Login / Scan View) -->
-        <main class="min-vh-100 d-flex flex-column justify-content-center py-4 bg-light">
+        <main class="min-vh-100 d-flex flex-column justify-content-center {% if request.endpoint != 'login' %}py-4 bg-light{% endif %}">
             {% block auth_content %}{% endblock %}
         </main>
     {% endif %}
