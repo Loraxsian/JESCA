@@ -1489,6 +1489,7 @@ def health():
     return jsonify({
         'status': 'ok',
         'version': APP_VERSION,
+        'release_stage': 'Stable Version',
         'app': 'JESCA Asset Management System',
         'timestamp': datetime.utcnow().isoformat()
     })
