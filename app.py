@@ -11,6 +11,7 @@ import threading
 import base64
 import hashlib
 import ipaddress
+import traceback
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
@@ -56,7 +57,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.3.1'
+APP_VERSION = '2.5.4'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -936,6 +937,8 @@ def inject_alerts():
             pass
 
         return {
+            'today': today,
+            'date_today': today,
             'maintenance_alerts': alerts,
             'warranty_alerts': warranty_alerts,
             'overdue_returns': overdue_returns,
@@ -945,7 +948,10 @@ def inject_alerts():
             'is_sudo_active': is_sudo_active(),
             'csrf_token': lambda: ''
         }
+    today_now = date.today()
     return {
+        'today': today_now,
+        'date_today': today_now,
         'maintenance_alerts': [],
         'warranty_alerts': [],
         'overdue_returns': [],
@@ -1530,6 +1536,53 @@ def check_force_password_change():
 
 
 # ==========================================
+# Error Handlers: 404, 500, 413
+# ==========================================
+@app.errorhandler(404)
+def handle_404_error(e):
+    if request.is_json or request.path.startswith('/api/'):
+        return jsonify({
+            'status': 'error',
+            'code': 404,
+            'message': 'Halaman atau endpoint yang Anda tuju tidak ditemukan.'
+        }), 404
+    return render_template('404.html', path=request.path), 404
+
+
+@app.errorhandler(500)
+def handle_500_error(e):
+    db.session.rollback()
+    original_err = getattr(e, 'original_exception', e)
+    tb_str = traceback.format_exc()
+    app.logger.error(f"[SYSTEM_ERROR 500] URL: {request.path} [{request.method}] - Error: {original_err}\n{tb_str}")
+
+    try:
+        user_name = current_user.username if current_user and current_user.is_authenticated else 'Guest/System'
+        err_msg = str(original_err)[:250]
+        log_activity(
+            'SYSTEM_ERROR',
+            details=f"500 Error pada {request.path} ({request.method}) oleh {user_name}: {err_msg}"
+        )
+    except Exception:
+        db.session.rollback()
+
+    if request.is_json or request.path.startswith('/api/'):
+        return jsonify({
+            'status': 'error',
+            'code': 500,
+            'message': 'Terjadi kendala pada server. Sistem telah memulihkan transaksi (rollback) dan mencatat insiden ini.'
+        }), 500
+
+    return render_template('500.html', error=original_err, path=request.path), 500
+
+
+@app.errorhandler(413)
+def handle_413_error(e):
+    flash('Ukuran berkas melebihi batas maksimum 5MB. Silakan gunakan berkas yang lebih kecil.', 'danger')
+    return redirect(request.referrer or url_for('dashboard'))
+
+
+# ==========================================
 # Routes: Health, Robots & Auth
 # ==========================================
 @app.route('/robots.txt')
@@ -1863,7 +1916,7 @@ def assets():
             Asset.next_maintenance_date <= threshold,
             Asset.status.notin_(['Dalam Perbaikan', 'Afkir']),
             db.or_(
-                Asset.last_maintenance_date == None,
+                Asset.last_maintenance_date.is_(None),
                 Asset.last_maintenance_date < today,
                 Asset.next_maintenance_date <= today
             )
@@ -2028,8 +2081,15 @@ def create_asset():
         custom_fields_json=custom_fields_json
     )
 
-    db.session.add(new_asset)
-    db.session.commit()
+    try:
+        db.session.add(new_asset)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        delete_photo_file(saved_filename)
+        app.logger.error(f"Gagal menyimpan aset baru ke database: {e}")
+        flash('Terjadi kendala saat menyimpan aset ke database. Silakan periksa kembali input Anda.', 'danger')
+        return redirect(url_for('assets'))
 
     log_activity(
         'TAMBAH_ASET',
@@ -2172,7 +2232,13 @@ def edit_asset(asset_id):
     asset.description = description
     asset.updated_at = datetime.utcnow()
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal memperbarui aset ID {asset_id}: {e}")
+        flash('Terjadi kendala saat memperbarui aset di database. Silakan periksa kembali input Anda.', 'danger')
+        return redirect(url_for('assets'))
 
     # Track audit changes old -> new
     changes = []
@@ -6117,6 +6183,15 @@ def print_purchase_order_pdf(po_id):
 # Initialize Database Tables & Scheduler
 # ==========================================
 with app.app_context():
+    try:
+        if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+            with db.engine.connect() as conn:
+                conn.execute(db.text("PRAGMA journal_mode=WAL;"))
+                conn.execute(db.text("PRAGMA synchronous=NORMAL;"))
+                conn.execute(db.text("PRAGMA busy_timeout=30000;"))
+                conn.execute(db.text("PRAGMA foreign_keys=ON;"))
+    except Exception as e:
+        app.logger.warning(f"Could not apply startup SQLite PRAGMAs: {e}")
     db.create_all()
     check_and_update_schema()
     seed_database()

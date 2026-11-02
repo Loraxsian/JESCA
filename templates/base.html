@@ -94,17 +94,6 @@
                             {% endif %}
                         </a>
                     </li>
-                    {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
-                    <li class="nav-item">
-                        <a href="{{ url_for('feedbacks_list') }}" class="nav-link {% if request.endpoint in ['feedbacks_list', 'feedback_detail'] %}active{% endif %} d-flex align-items-center gap-3">
-                            <i class="bi bi-chat-square-text"></i>
-                            <span>Laporan &amp; Masukan</span>
-                            {% if feedback_alerts and feedback_alerts|length > 0 %}
-                            <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ feedback_alerts|length }}</span>
-                            {% endif %}
-                        </a>
-                    </li>
-                    {% endif %}
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
                         <a href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
@@ -124,7 +113,7 @@
                 </ul>
 
                 <!-- Section: RIWAYAT & LAPORAN -->
-                {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
+                {% if current_user.role in ['Admin', 'Administrator', 'Auditor', 'Teknisi'] %}
                 <div class="menu-label">Riwayat & Laporan</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role in ['Admin', 'Administrator'] %}
@@ -135,28 +124,29 @@
                         </a>
                     </li>
                     {% endif %}
+                    {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
                     <li class="nav-item">
                         <a href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-file-earmark-text"></i>
                             <span>Laporan Audit</span>
                         </a>
                     </li>
+                    {% endif %}
+                    {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
                     <li class="nav-item">
-                        <a href="{{ url_for('export_assets_excel') }}" class="nav-link d-flex align-items-center gap-3">
-                            <i class="bi bi-file-earmark-excel text-success"></i>
-                            <span>Export Excel (.xlsx)</span>
+                        <a href="{{ url_for('feedbacks_list') }}" class="nav-link {% if request.endpoint in ['feedbacks_list', 'feedback_detail'] %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-chat-square-text"></i>
+                            <span>Laporan &amp; Masukan</span>
+                            {% if feedback_alerts and feedback_alerts|length > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ feedback_alerts|length }}</span>
+                            {% endif %}
                         </a>
                     </li>
+                    {% endif %}
                     <li class="nav-item">
-                        <a href="{{ url_for('export_assets_csv') }}" class="nav-link d-flex align-items-center gap-3">
-                            <i class="bi bi-file-earmark-spreadsheet text-secondary"></i>
-                            <span>Export CSV</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a href="{{ url_for('export_assets_pdf') }}" class="nav-link d-flex align-items-center gap-3">
-                            <i class="bi bi-file-pdf text-danger"></i>
-                            <span>Export PDF</span>
+                        <a href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#exportModal">
+                            <i class="bi bi-box-arrow-up-right"></i>
+                            <span>Export Data</span>
                         </a>
                     </li>
                 </ul>
@@ -512,7 +502,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.3.1 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.4 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
@@ -524,6 +514,88 @@
                     </div>
                 </div>
             </footer>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL MODAL: EXPORT DATA INVENTARIS
+         ========================================== -->
+    <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-bottom py-3 px-4">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
+                            <i class="bi bi-box-arrow-up-right fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold mb-0" id="exportModalLabel">Export Data Inventaris</h6>
+                            <small class="text-muted">Pilih format berkas yang ingin diunduh</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-flex flex-column gap-3">
+                        <!-- Pilihan 1: Excel (.xlsx) -->
+                        <div class="card border rounded-3 p-3">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="bg-success-subtle text-success rounded-3 p-2 mt-1 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="bi bi-file-earmark-excel fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Microsoft Excel (.xlsx)</div>
+                                        <small class="text-muted d-block">Tabel spreadsheet rapi, auto-fit lebar kolom, dan pemisah ribuan Rupiah.</small>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 flex-shrink-0">
+                                    <i class="bi bi-download me-1"></i>Unduh
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan 2: PDF Landscape -->
+                        <div class="card border rounded-3 p-3">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="bg-danger-subtle text-danger rounded-3 p-2 mt-1 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="bi bi-file-pdf fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Dokumen PDF (.pdf)</div>
+                                        <small class="text-muted d-block">Format landscape A4 formal, siap dicetak untuk arsip fisik dan audit.</small>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 flex-shrink-0">
+                                    <i class="bi bi-download me-1"></i>Unduh
+                                </a>
+                            </div>
+                        </div>
+
+                        <!-- Pilihan 3: CSV Universal -->
+                        <div class="card border rounded-3 p-3">
+                            <div class="d-flex align-items-center justify-content-between gap-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="bg-secondary-subtle text-secondary rounded-3 p-2 mt-1 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
+                                        <i class="bi bi-file-earmark-spreadsheet fs-4"></i>
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold text-dark">Berkas CSV (.csv)</div>
+                                        <small class="text-muted d-block">Data mentah berstandar UTF-8 dengan BOM, kompatibel dengan semua sistem.</small>
+                                    </div>
+                                </div>
+                                <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 flex-shrink-0">
+                                    <i class="bi bi-download me-1"></i>Unduh
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-2 bg-light rounded-bottom-4 justify-content-end">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
         </div>
     </div>
 
