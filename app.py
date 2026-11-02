@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.1.1'
+APP_VERSION = '2.5.2'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -679,6 +679,34 @@ class AssetCirculationLog(db.Model):
     asset = db.relationship('Asset', backref=db.backref('circulation_logs', lazy=True, order_by='AssetCirculationLog.borrow_date.desc()'))
 
 
+class SystemFeedback(db.Model):
+    """Stores bug reports, feature suggestions, login issues, and inquiries submitted from login modal or internal users."""
+    __tablename__ = 'system_feedbacks'
+
+    id = db.Column(db.Integer, primary_key=True)
+    sender_name = db.Column(db.String(100), nullable=True)
+    contact = db.Column(db.String(120), nullable=True)
+    category = db.Column(db.String(50), default='Saran Fitur Baru')
+    message = db.Column(db.Text, nullable=False)
+    status = db.Column(db.String(20), default='Pending')  # 'Pending', 'In Progress', 'Resolved'
+    resolved_by = db.Column(db.String(80), nullable=True)
+    resolution_notes = db.Column(db.Text, nullable=True)
+    resolved_at = db.Column(db.DateTime, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'sender_name': self.sender_name or 'Anonim',
+            'contact': self.contact or '-',
+            'category': self.category,
+            'message': self.message,
+            'status': self.status,
+            'resolved_by': self.resolved_by or '-',
+            'created_at': self.created_at.strftime('%d/%m/%Y %H:%M') if self.created_at else '-'
+        }
+
+
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, int(user_id))
@@ -883,12 +911,27 @@ def inject_alerts():
         except Exception:
             pass
 
+        # v2.5.2: Public Feedback & Bug Report alerts (Admin & Teknisi)
+        feedback_alerts = []
+        try:
+            if current_user.role in ['Admin', 'Administrator']:
+                feedback_alerts = SystemFeedback.query.filter_by(status='Pending')\
+                    .order_by(SystemFeedback.created_at.desc()).all()
+            elif current_user.role == 'Teknisi':
+                feedback_alerts = SystemFeedback.query.filter(
+                    SystemFeedback.status == 'Pending',
+                    SystemFeedback.category.in_(['Laporan Bug / Eror', 'Kendala Login / Akun', 'Laporan Kendala Aset', 'Pertanyaan Inventaris'])
+                ).order_by(SystemFeedback.created_at.desc()).all()
+        except Exception:
+            pass
+
         return {
             'maintenance_alerts': alerts,
             'warranty_alerts': warranty_alerts,
             'overdue_returns': overdue_returns,
             'pending_po_alerts': pending_po_alerts,
             'user_po_alerts': user_po_alerts,
+            'feedback_alerts': feedback_alerts,
             'is_sudo_active': is_sudo_active(),
             'csrf_token': lambda: ''
         }
@@ -898,6 +941,7 @@ def inject_alerts():
         'overdue_returns': [],
         'pending_po_alerts': [],
         'user_po_alerts': [],
+        'feedback_alerts': [],
         'is_sudo_active': False,
         'csrf_token': lambda: ''
     }
@@ -1834,7 +1878,8 @@ def assets():
         vendors=all_vendors,
         sites=all_sites,
         category_custom_fields=CATEGORY_CUSTOM_FIELDS,
-        today=today
+        today=today,
+        date_today=today
     )
 
 
@@ -2344,7 +2389,7 @@ def maintenance():
 
 @app.route('/assets/<int:asset_id>/maintenance/start', methods=['POST'])
 @login_required
-@role_required('Admin', 'Administrator', 'Teknisi', 'Staff')
+@role_required('Admin', 'Administrator', 'Teknisi')
 def start_maintenance(asset_id):
     """Technician marks an asset as currently undergoing repair/servicing."""
     asset = db.session.get(Asset, asset_id)
@@ -2370,7 +2415,7 @@ def start_maintenance(asset_id):
 @app.route('/assets/<int:asset_id>/maintenance/complete', methods=['POST'])
 @app.route('/assets/<int:asset_id>/complete-maintenance', methods=['POST'])
 @login_required
-@role_required('Admin', 'Administrator', 'Teknisi', 'Staff')
+@role_required('Admin', 'Administrator', 'Teknisi')
 def complete_maintenance(asset_id):
     """Complete maintenance service, record invoice/proof, reset interval."""
     asset = db.session.get(Asset, asset_id)
@@ -2427,6 +2472,103 @@ def complete_maintenance(asset_id):
 
     flash(f'Pemeliharaan untuk [{asset.asset_code}] berhasil disimpan & jadwal servis berikutnya diperbarui ({asset.next_maintenance_date.strftime("%d/%m/%Y")})!', 'success')
     return redirect(request.referrer or url_for('maintenance'))
+
+
+@app.route('/assets/<int:asset_id>/report-issue', methods=['POST'])
+@login_required
+@role_required('Admin', 'Administrator', 'Teknisi', 'Staff')
+def report_asset_issue(asset_id):
+    """Staff or other users report an issue/breakdown of an asset directly to technicians & admin."""
+    asset = db.session.get(Asset, asset_id)
+    if not asset:
+        flash('Aset tidak ditemukan.', 'danger')
+        return redirect(url_for('maintenance'))
+
+    issue_desc = request.form.get('issue_description', '').strip()
+    if not issue_desc:
+        flash('Deskripsi kendala wajib diisi.', 'danger')
+        return redirect(url_for('maintenance'))
+
+    fb = SystemFeedback(
+        sender_name=current_user.full_name or current_user.username,
+        contact=f"User: {current_user.username} ({current_user.role})",
+        category='Laporan Kendala Aset',
+        message=f"Kendala pada aset [{asset.asset_code}] {asset.name}: {issue_desc}",
+        status='Pending',
+        created_at=datetime.utcnow()
+    )
+    db.session.add(fb)
+    db.session.commit()
+
+    log_activity(
+        'LAPOR_KENDALA',
+        asset_code=asset.asset_code,
+        asset_name=asset.name,
+        details=f"Kendala dilaporkan oleh {current_user.username}: {issue_desc}"
+    )
+
+    flash(f'Kendala untuk aset [{asset.asset_code}] berhasil dilaporkan ke Teknisi & Admin.', 'success')
+    return redirect(request.referrer or url_for('maintenance'))
+
+
+@app.route('/submit-feedback', methods=['POST'])
+@app.route('/api/public/feedback', methods=['POST'])
+def submit_public_feedback():
+    """Receives feedback, suggestions, and bug reports from the public login modal or authenticated users."""
+    sender_name = request.form.get('name', '').strip() or (request.json.get('name', '').strip() if request.is_json else '')
+    contact = request.form.get('contact', '').strip() or (request.json.get('contact', '').strip() if request.is_json else '')
+    category = request.form.get('category', 'Saran Fitur Baru').strip() or (request.json.get('category', 'Saran Fitur Baru').strip() if request.is_json else '')
+    message = request.form.get('message', '').strip() or (request.json.get('message', '').strip() if request.is_json else '')
+
+    if not message:
+        return jsonify({'status': 'error', 'message': 'Pesan masukan atau laporan wajib diisi.'}), 400
+
+    try:
+        fb = SystemFeedback(
+            sender_name=sender_name or 'Anonim',
+            contact=contact or '-',
+            category=category or 'Saran Fitur Baru',
+            message=message,
+            status='Pending',
+            created_at=datetime.utcnow()
+        )
+        db.session.add(fb)
+        db.session.commit()
+
+        log_activity(
+            'FEEDBACK_MASUK',
+            details=f"Pesan/laporan publik diterima [{category}] dari {sender_name or 'Anonim'}: {message[:60]}"
+        )
+
+        return jsonify({'status': 'ok', 'message': 'Masukan atau laporan berhasil dikirim. Terima kasih atas partisipasi Anda!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'status': 'error', 'message': f'Gagal menyimpan data: {str(e)}'}), 500
+
+
+@app.route('/feedback/<int:feedback_id>/resolve', methods=['POST'])
+@login_required
+@role_required('Admin', 'Administrator', 'Teknisi')
+def resolve_feedback(feedback_id):
+    """Mark a feedback / bug report as resolved."""
+    fb = db.session.get(SystemFeedback, feedback_id)
+    if not fb:
+        flash('Laporan tidak ditemukan.', 'danger')
+        return redirect(request.referrer or url_for('dashboard'))
+
+    fb.status = 'Resolved'
+    fb.resolved_by = current_user.username
+    fb.resolved_at = datetime.utcnow()
+    fb.resolution_notes = request.form.get('notes', 'Ditandai selesai via notifikasi.')
+    db.session.commit()
+
+    log_activity(
+        'RESOLVE_FEEDBACK',
+        details=f"Laporan #{fb.id} [{fb.category}] ditandai selesai oleh {current_user.username}."
+    )
+
+    flash(f'Laporan #{fb.id} ({fb.category}) berhasil ditandai selesai.', 'success')
+    return redirect(request.referrer or url_for('dashboard'))
 
 
 @app.route('/attachments/maintenance/<filename>')

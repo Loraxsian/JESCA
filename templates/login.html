@@ -792,7 +792,7 @@ body, html {
                 <path d="M30 4L48 40H41L34 26H26L28 21H36L29 4H30Z" fill="#ffffff"/>
             </svg>
             <h1 class="brand-text">JESCA</h1>
-            <span class="badge rounded-pill font-monospace" style="font-size: 0.65rem; background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 4px 8px;">v2.5.1.1 Stable</span>
+            <span class="badge rounded-pill font-monospace" style="font-size: 0.65rem; background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.35); padding: 4px 8px;">v2.5.2 Stable</span>
         </div>
 
         <!-- 2. Elemen-Elemen Animasi Geometris Melayang -->
@@ -980,7 +980,6 @@ body, html {
             <!-- Footer Notice -->
             <div class="form-footer-info">
                 <span>JESCA &copy; 2026 &bull; Jessica Assets Management System</span>
-                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace ms-1" style="font-size: 0.65rem;">v2.5.1.1 Stable</span>
             </div>
 
         </div>
@@ -1135,29 +1134,57 @@ function submitFeedback() {
 
     if (!messageInput || !messageInput.value.trim()) return;
 
+    const name = document.getElementById('feedbackName') ? document.getElementById('feedbackName').value.trim() : '';
+    const contact = document.getElementById('feedbackContact') ? document.getElementById('feedbackContact').value.trim() : '';
+    const category = document.getElementById('feedbackCategory') ? document.getElementById('feedbackCategory').value.trim() : 'Saran Fitur Baru';
+    const message = messageInput.value.trim();
+
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('contact', contact);
+    formData.append('category', category);
+    formData.append('message', message);
+
     btnSubmit.disabled = true;
     btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengirim...';
 
-    setTimeout(function () {
+    fetch('/submit-feedback', {
+        method: 'POST',
+        body: formData
+    })
+    .then(function(resp) { return resp.json(); })
+    .then(function(data) {
         btnSubmit.disabled = false;
-        btnSubmit.innerHTML = '<i class="bi bi-check-lg me-1"></i>Terkirim';
-        alertBox.classList.remove('d-none');
-        alertBox.classList.add('d-flex');
-        form.reset();
-
-        setTimeout(function () {
-            const modalEl = document.getElementById('feedbackModal');
-            const modalInstance = bootstrap.Modal.getInstance(modalEl);
-            if (modalInstance) modalInstance.hide();
-            alertBox.classList.add('d-none');
-            alertBox.classList.remove('d-flex');
+        if (data.status === 'ok') {
+            btnSubmit.innerHTML = '<i class="bi bi-check-lg me-1"></i>Terkirim';
+            alertBox.classList.remove('d-none');
+            alertBox.classList.add('d-flex');
+            form.reset();
+            setTimeout(function () {
+                const modalEl = document.getElementById('feedbackModal');
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                if (modalInstance) modalInstance.hide();
+                alertBox.classList.add('d-none');
+                alertBox.classList.remove('d-flex');
+                btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Kirim Masukan';
+                if (window.JescaToast) {
+                    window.JescaToast.show('Laporan / saran Anda telah berhasil terkirim. Terima kasih!', 'success');
+                }
+            }, 1800);
+        } else {
             btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Kirim Masukan';
-
             if (window.JescaToast) {
-                window.JescaToast.show('Laporan / saran Anda telah berhasil terkirim!', 'success');
+                window.JescaToast.show(data.message || 'Gagal mengirim laporan. Coba lagi.', 'danger');
             }
-        }, 1800);
-    }, 600);
+        }
+    })
+    .catch(function() {
+        btnSubmit.disabled = false;
+        btnSubmit.innerHTML = '<i class="bi bi-send me-1"></i>Kirim Masukan';
+        if (window.JescaToast) {
+            window.JescaToast.show('Koneksi gagal. Pastikan server dapat dijangkau.', 'danger');
+        }
+    });
 }
 </script>
 {% endblock %}

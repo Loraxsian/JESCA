@@ -49,7 +49,7 @@
                     <div>
                         <div class="d-flex align-items-center gap-1.5">
                             <span class="fs-5 fw-extrabold tracking-tight text-primary d-block lh-1">JESCA</span>
-                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace" style="font-size: 0.58rem; padding: 2px 6px;">v2.5.1.1 Stable</span>
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace" style="font-size: 0.58rem; padding: 2px 6px;">v2.5.2 Stable</span>
                         </div>
                         <small class="text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">ASSET MANAGEMENT</small>
                     </div>
@@ -228,7 +228,7 @@
 
                     <div class="d-flex align-items-center gap-2 ms-auto">
                         <!-- Notification Bell Dropdown -->
-                        {% set total_notifs = (maintenance_alerts|length if maintenance_alerts else 0) + (pending_po_alerts|length if pending_po_alerts else 0) + (user_po_alerts|length if user_po_alerts else 0) %}
+                        {% set total_notifs = (maintenance_alerts|length if maintenance_alerts else 0) + (pending_po_alerts|length if pending_po_alerts else 0) + (user_po_alerts|length if user_po_alerts else 0) + (feedback_alerts|length if feedback_alerts else 0) %}
                         <div class="dropdown me-1">
                             <button class="btn btn-light position-relative border-0 rounded-circle p-2 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan & Notifikasi">
                                 <i class="bi bi-bell fs-5 text-secondary"></i>
@@ -240,6 +240,33 @@
                                 {% endif %}
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 320px; max-height: 420px; overflow-y: auto;">
+                                <!-- Section: Bug Report & Feedback Alerts (Admin & Teknisi) -->
+                                {% if feedback_alerts and feedback_alerts|length > 0 %}
+                                <li class="px-3 py-2 bg-danger bg-opacity-10 border-bottom d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold small text-danger"><i class="bi bi-chat-square-dots-fill me-1"></i> Laporan & Masukan Masuk</span>
+                                    <span class="badge bg-danger rounded-pill font-monospace">{{ feedback_alerts|length }}</span>
+                                </li>
+                                {% for fb in feedback_alerts[:5] %}
+                                <li class="p-2 border-bottom">
+                                    <div class="px-2 py-1">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="badge {% if fb.category == 'Laporan Bug / Eror' %}bg-danger text-white{% elif fb.category == 'Laporan Kendala Aset' %}bg-warning text-dark{% else %}bg-primary text-white{% endif %} font-monospace" style="font-size: 0.65rem;">{{ fb.category }}</span>
+                                            <span class="text-muted" style="font-size: 0.65rem;">{{ fb.created_at.strftime('%d/%m %H:%M') if fb.created_at else '' }}</span>
+                                        </div>
+                                        <div class="small text-dark fw-medium mb-1 text-break" style="line-height: 1.35; font-size: 0.8rem;">{{ fb.message }}</div>
+                                        <div class="d-flex justify-content-between align-items-center pt-1 border-top border-light">
+                                            <small class="text-muted text-truncate" style="font-size: 0.68rem; max-width: 170px;">{{ fb.sender_name }} ({{ fb.contact }})</small>
+                                            <form method="POST" action="{{ url_for('resolve_feedback', feedback_id=fb.id) }}" class="m-0" onsubmit="return confirm('Tandai laporan ini selesai?')">
+                                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2 rounded-pill" style="font-size: 0.65rem;">
+                                                    <i class="bi bi-check2 me-1"></i>Selesai
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </li>
+                                {% endfor %}
+                                {% endif %}
                                 <!-- Section: Pending PO Approvals (Admin) -->
                                 {% if pending_po_alerts and pending_po_alerts|length > 0 %}
                                 <li class="px-3 py-2 bg-primary bg-opacity-10 border-bottom d-flex justify-content-between align-items-center">
@@ -466,7 +493,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.1.1 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.2 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">

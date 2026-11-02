@@ -9,11 +9,11 @@ Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*productio
 ## 🚀 Fitur Utama & Keunggulan
 
 ### 1. 🔐 Keamanan & Hak Akses Berbasis Peran (RBAC)
-- **4 Role Pengguna Terisolasi**:
-  - **Admin**: Akses penuh (Pengaturan sistem, backup/restore, kelola akun, approval PO).
-  - **Staff**: Pengajuan aset, pengajuan PO, peminjaman barang, dan transfer lokasi.
-  - **Auditor**: Pemeriksaan log, laporan audit periode, dan ekspor data (read-only).
-  - **Teknisi**: Workbench pemeliharaan aset (`/maintenance`), eksekusi perbaikan, dan upload bukti servis.
+- **4 Role Pengguna Terisolasi & Terverifikasi**:
+  - **Admin / Administrator**: Akses penuh (Pengaturan sistem, backup/restore, kelola akun, persetujuan PO, resolusi laporan masukan/bug publik).
+  - **Staff**: Pengajuan aset baru, pengajuan PO, peminjaman/pengembalian barang, transfer lokasi/site, dan **Lapor Kendala Aset**. *Catatan Integritas: Staf tidak diperkenankan memulai servis maupun menyelesaikan status perbaikan secara langsung tanpa verifikasi teknis.*
+  - **Teknisi**: Workbench operasional pemeliharaan aset (`/maintenance`), konfirmasi eksekusi perbaikan ("Mulai Servis"), penyelesaian servis berdokumen bukti ("Selesaikan Servis & Bukti"), serta menerima lonceng notifikasi kendala perangkat & laporan bug sistem.
+  - **Auditor**: Pemeriksaan log aktivitas, laporan audit kepatuhan periode, dan ekspor data (read-only tanpa izin modifikasi).
 - **Proteksi Brute-force & Rate Limiting**: Penguncian akun otomatis setelah percobaan login gagal berturut-turut.
 - **Sesi Otomatis**: Session timeout dengan peringatan dini sebelum sesi berakhir.
 - **Sudo Mode (Step-Up Authentication)**: Konfirmasi kata sandi ulang otomatis saat mengakses menu Pengaturan Sistem (`/settings`). Sesi verifikasi aktif selama 15 menit dengan tombol kunci manual instan demi mencegah akses tidak sah jika laptop ditinggalkan tanpa pengawasan (*unattended laptop*).
@@ -43,28 +43,38 @@ Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*productio
 - **Anti-Inflasi Harga**: Parsing presisi format mata uang Rupiah (`Rp 10.200.000` &rarr; `10200000.0`).
 - **Jejak Audit PO**: Riwayat perjalanan status per PO tercatat lengkap di tabel `po_histories`.
 
-### 4. 🛠️ Pemeliharaan Aset & Teknisi Workbench (`/maintenance`)
-- Antarmuka khusus Teknisi untuk menangani antrean aset yang perlu diservis.
-- Perubahan status otomatis ke `Dalam Perbaikan` saat teknisi mulai bekerja.
-- Penyelesaian servis disertai input biaya perbaikan, tindakan servis, upload bukti nota, serta perpanjangan otomatis tanggal servis berikutnya.
+### 4. 🛠️ Tata Kelola Pemeliharaan Aset & Teknisi Workbench (`/maintenance`)
+- **Alur Perbaikan Berintegritas (Strict Workflow)**:
+  - Alur wajib bertahap demi akuntabilitas: **Jatuh Tempo** &rarr; **Mulai Servis** (status aset berubah menjadi `Dalam Perbaikan`) &rarr; **Selesaikan Servis & Bukti** (pencatatan tindakan teknis, biaya suku cadang/jasa, bukti invoice/nota, serta kalkulasi otomatis tanggal servis periode berikutnya).
+  - Shortcut penyelesaian langsung tanpa pengerjaan telah ditiadakan agar seluruh proses servis dapat dipertanggungjawabkan dalam audit.
+- **Pemisahan Otoritas Staf & Teknisi**:
+  - Tombol aksi eksekusi pemeliharaan diproteksi ketat hanya untuk role **Teknisi** dan **Admin**.
+  - Pengguna dengan role **Staff** disediakan tombol khusus **Lapor Kendala Aset** untuk meneruskan kendala fisik barang secara langsung ke antrean notifikasi teknisi tanpa dapat mengubah status operasional aset secara sepihak.
 
-### 5. 🏷️ Auto-Coding & QR Code Scanner
+### 5. 💬 Laporan Bug & Saran Publik Terintegrasi (`/submit-feedback`)
+- **Pusat Pengaduan & Masukan Langsung dari Halaman Login**:
+  - Pengguna maupun pengunjung dapat menyampaikan laporan bug aplikasi, kendala autentikasi akun, pertanyaan inventaris, atau usulan fitur baru langsung dari modal halaman depan tanpa harus login terlebih dahulu.
+- **Penyaluran Notifikasi Real-Time ke Admin & Teknisi**:
+  - Setiap laporan yang masuk secara otomatis memicu alert pada **Lonceng Notifikasi Navbar** akun Administrator dan Teknisi.
+  - Dilengkapi label kategori spesifik, identitas pelapor, teks kendala, dan tombol resolusi 1-klik (`/feedback/<id>/resolve`) setelah kendala terselesaikan.
+
+### 6. 🏷️ Auto-Coding & QR Code Scanner
 - **Auto-Generate Kode Real-Time**: `<Prefix>/<3-Digit Sequential Number>` (contoh: `Tech/001`, `Tools/001`, `Furn/001`, `Vehicle/001`, `Office/001`).
 - **QR Code Terintegrasi**: QR Code otomatis dibuat per aset untuk dicetak pada label fisik.
 - **Kamera Scanner**: Scan QR Code langsung melalui kamera browser laptop/smartphone via `html5-qrcode`.
 - **Halaman Scan Publik Ringkas**: `/scan/<asset_code>` untuk audit dan verifikasi cepat barang di lapangan.
 
-### 6. 📊 Nilai Buku, Depresiasi & Sirkulasi Peminjaman
+### 7. 📊 Nilai Buku, Depresiasi & Sirkulasi Peminjaman
 - **Metode Garis Lurus (Straight-Line Depreciation)**: Perhitungan nilai buku aset terkini secara otomatis berdasarkan masa manfaat (*useful life*) dan nilai residu.
 - **Riwayat Sirkulasi Peminjaman**: Pencatatan lengkap nama peminjam, tanggal keluar, tanggal kembali, dan durasi hari peminjaman (`asset_circulation_logs`).
 - **Alert Keterlambatan**: Notifikasi peringatan aset yang terlambat dikembalikan pada ikon lonceng navbar.
 
-### 7. 📑 Ekspor & Laporan Profesional
+### 8. 📑 Ekspor & Laporan Profesional
 - **Ekspor PDF Formal**: Landscape A4 rapi, penataan tabel presisi, warna aksen elegan pada judul tabel, tanpa emoji, dan kop resmi.
 - **Ekspor CSV Kompatibel Excel**: Encoding UTF-8 dengan BOM (`\ufeff`) dan delimiter rapi yang langsung terbagi ke kolom masing-masing di Microsoft Excel.
 - **Laporan Audit Terpisah**: Laporan berbasis rentang tanggal periode (`/reports/audit`) khusus untuk kepatuhan dan audit internal.
 
-### 8. 🎨 Multi-Tema & Desain Responsif
+### 9. 🎨 Multi-Tema & Desain Responsif
 - 5 Pilihan Tema Tampilan: **Light**, **Dark Mode (Midnight Slate)**, **Sakura Pink**, **Forest Green**, dan **Ocean Blue**.
 - **Avatar Profil Solid**: Huruf avatar profil dan foto pengguna tetap tajam dan kontras tinggi di semua mode tema.
 - **Foto Profil Pengguna**: Dukungan unggah foto profil mandiri maupun melalui pengelolaan akun admin.
@@ -178,6 +188,21 @@ jesca-assets/
     ├── sites.html             # Manajemen cabang lokasi fisik aset
     └── admin_backups.html     # Manajemen backup & restore database
 ```
+
+---
+
+## 🔮 Roadmap Pengembangan Mendatang (Coming Soon)
+
+Seiring dengan bertumbuhnya volume aset dan jumlah pengguna aktif yang bersamaan (*high concurrency*), langkah-langkah optimalisasi arsitektur berikut direncanakan pada rilis selanjutnya:
+
+1. **Optimalisasi Database & Skalabilitas Concurrency**:
+   - **Migrasi Engine RDBMS**: Opsi dukungan penuh untuk engine enterprise seperti **PostgreSQL 16+** atau **MySQL 8.0+** disamping SQLite bawaan saat ini.
+   - **Connection Pooling Terdistribusi**: Pemanfaatan *SQLAlchemy QueuePool* dengan konfigurasi pool size dan overflow presisi untuk menangani ratusan transaksi simultan tanpa locking.
+   - **Database Indexing Tingkat Lanjut**: Penambahan indeks komposit pada kolom-kolom kritis pencarian (`asset_code`, `status`, `next_maintenance_date`, `vendor_id`, dan `created_at`).
+   - **In-Memory Caching (Redis)**: Penyimpanan sementara (*cache*) hasil agregasi analitik dashboard dan token sesi pengguna guna meminimalkan beban I/O database.
+
+2. **Integrasi Notifikasi Eksternal**:
+   - Integrasi webhook pesan instan (Telegram Bot & WhatsApp Business API) untuk eskalasi cepat saat ada aset rusak parah atau pengajuan Purchase Order bernilai tinggi.
 
 ---
 

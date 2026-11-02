@@ -127,6 +127,7 @@
                                     <span class="text-danger fw-semibold">Sedang Dikerjakan</span>
                                 </td>
                                 <td class="text-end pe-4">
+                                    {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
                                     <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm"
                                         data-asset-id="{{ asset.id }}"
                                         data-asset-code="{{ asset.asset_code }}"
@@ -135,6 +136,11 @@
                                         onclick="openCompleteMaintenanceModalFromBtn(this)">
                                         <i class="bi bi-check2-circle me-1"></i> Selesaikan Servis & Bukti
                                     </button>
+                                    {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border font-monospace" style="font-size: 0.72rem;">
+                                        <i class="bi bi-clock-history me-1"></i>Dalam Proses Teknisi
+                                    </span>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
@@ -174,22 +180,24 @@
                                     {% endif %}
                                 </td>
                                 <td class="text-end pe-4">
-                                    <div class="d-inline-flex gap-2">
-                                        <form method="POST" action="{{ url_for('start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
-                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                            <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm text-dark fw-medium">
-                                                <i class="bi bi-tools me-1"></i> Mulai Servis
-                                            </button>
-                                        </form>
-                                    <button type="button" class="btn btn-success btn-sm rounded-pill px-3 shadow-sm"
-                                        data-asset-id="{{ asset.id }}"
-                                        data-asset-code="{{ asset.asset_code }}"
-                                        data-asset-name="{{ asset.name }}"
-                                        data-interval="{{ asset.maintenance_interval_days or 90 }}"
-                                        onclick="openCompleteMaintenanceModalFromBtn(this)">
-                                            <i class="bi bi-check-lg me-1"></i> Langsung Selesai
+                                    {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
+                                    <form method="POST" action="{{ url_for('start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm text-dark fw-medium">
+                                            <i class="bi bi-tools me-1"></i> Mulai Servis
                                         </button>
-                                    </div>
+                                    </form>
+                                    {% else %}
+                                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3 shadow-sm text-secondary"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#reportIssueModal"
+                                            data-asset-id="{{ asset.id }}"
+                                            data-asset-code="{{ asset.asset_code }}"
+                                            data-asset-name="{{ asset.name }}"
+                                            onclick="prepareReportIssue(this)">
+                                        <i class="bi bi-flag me-1"></i> Lapor Kendala
+                                    </button>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endif %}
@@ -349,7 +357,56 @@
     </div>
 </div>
 
+<!-- MODAL: Lapor Kendala Aset (Staff / User) -->
+<div class="modal fade" id="reportIssueModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom py-3 px-4">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="bg-warning-subtle text-warning rounded-3 p-2"><i class="bi bi-flag-fill fs-5"></i></div>
+                    <h6 class="modal-title fw-bold">Lapor Kendala Aset ke Teknisi</h6>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="" id="reportIssueForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Aset yang Bermasalah</label>
+                        <div class="p-2 bg-light rounded-3 border d-flex align-items-center gap-2">
+                            <span class="badge bg-secondary font-monospace" id="reportIssueAssetCode"></span>
+                            <span class="fw-semibold small text-dark" id="reportIssueAssetName"></span>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Deskripsi Kendala / Kerusakan <span class="text-danger">*</span></label>
+                        <textarea class="form-control" name="issue_description" rows="3" required placeholder="Jelaskan kendala secara rinci, misalnya: kipas mati, layar berkedip, tidak mau menyala..."></textarea>
+                    </div>
+                    <div class="alert alert-info border-0 rounded-3 small mb-0 py-2">
+                        <i class="bi bi-info-circle me-1"></i>Laporan ini akan segera diteruskan ke Teknisi dan Admin melalui lonceng notifikasi sistem.
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-3 bg-light rounded-bottom-4">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-warning btn-sm rounded-pill px-4 text-dark fw-bold">
+                        <i class="bi bi-send me-1"></i>Kirim Laporan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
+function prepareReportIssue(btn) {
+    const assetId = btn.dataset.assetId;
+    const assetCode = btn.dataset.assetCode;
+    const assetName = btn.dataset.assetName;
+    document.getElementById('reportIssueForm').action = '/assets/' + assetId + '/report-issue';
+    document.getElementById('reportIssueAssetCode').textContent = assetCode;
+    document.getElementById('reportIssueAssetName').textContent = assetName;
+}
+
 function openCompleteMaintenanceModalFromBtn(btn) {
     const assetId = btn.dataset.assetId;
     const assetCode = btn.dataset.assetCode;

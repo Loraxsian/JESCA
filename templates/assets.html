@@ -176,7 +176,7 @@
                         <span class="badge bg-secondary-subtle text-secondary border">{{ a.status }}</span>
                         {% endif %}
 
-                        {% if a.needs_maintenance and a.next_maintenance_date and a.next_maintenance_date <= date_today and a.status != 'Afkir' %}
+                        {% if a.needs_maintenance and a.next_maintenance_date and a.next_maintenance_date <= (date_today or today) and a.status != 'Afkir' %}
                         <div class="mt-1">
                             <span class="badge bg-warning text-dark font-monospace" style="font-size: 0.65rem;" title="Jatuh tempo maintenance">
                                 <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Perlu Servis
@@ -278,6 +278,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('create_asset') }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-8">
@@ -409,6 +410,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="editAssetForm" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="row g-3">
                         <div class="col-md-8">
@@ -544,6 +546,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="transferAssetForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Aset yang Ditransfer</label>
@@ -591,6 +594,7 @@
             </div>
             <div class="modal-body p-4">
                 <form method="POST" action="" id="uploadAttachmentForm" enctype="multipart/form-data" class="mb-4">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <label class="form-label small fw-bold">Unggah Dokumen Baru</label>
                     <div class="input-group input-group-sm mb-2">
                         <input type="file" class="form-control" name="attachment_file" required>
@@ -628,6 +632,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('import_assets_csv') }}" enctype="multipart/form-data">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">
                         Gunakan fitur ini untuk memasukkan data aset secara massal dari spreadsheet. Pastikan struktur kolom sesuai dengan template standar.
@@ -662,6 +667,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="checkOutForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Aset</label>
@@ -696,6 +702,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="" id="checkInForm">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">
                         Konfirmasi pengembalian untuk aset <strong id="checkInAssetTitle" class="text-dark"></strong> oleh <strong id="checkInBorrowerTitle" class="text-dark"></strong>.
@@ -761,6 +768,7 @@
                 <h6 class="fw-bold mb-1">Hapus Aset?</h6>
                 <p class="text-muted small mb-3">Aset <strong id="deleteTargetCode" class="text-dark"></strong> akan dihapus permanen.</p>
                 <form method="POST" action="" id="deleteAssetForm">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-light border btn-sm w-50 rounded-pill" data-bs-dismiss="modal">Batal</button>
                         <button type="submit" class="btn btn-danger btn-sm w-50 rounded-pill fw-semibold">Ya, Hapus</button>
