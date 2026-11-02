@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.3'
+APP_VERSION = '2.5.3.1'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -851,12 +851,22 @@ def get_maintenance_notifications():
         Asset.needs_maintenance == True,
         Asset.next_maintenance_date != None,
         Asset.next_maintenance_date <= threshold,
-        Asset.status != 'Afkir'  # v2: skip retired assets
+        Asset.status.notin_(['Dalam Perbaikan', 'Afkir'])
     ).order_by(Asset.next_maintenance_date.asc()).all()
 
     notifications = []
     for a in due_assets:
+        # If the asset was serviced today and next maintenance is in the future, it is clear for this cycle
+        if a.last_maintenance_date and a.last_maintenance_date >= today and a.next_maintenance_date > today:
+            continue
+
         days_left = (a.next_maintenance_date - today).days
+
+        # Dynamic notice window: For shorter intervals (e.g. <= 7 days), don't alert prematurely
+        max_notice_days = min(7, max(1, (a.maintenance_interval_days or 90) // 2))
+        if days_left > max_notice_days:
+            continue
+
         is_overdue = days_left < 0
         if is_overdue:
             status_text = f"Terlewat {-days_left} hari!"
@@ -1850,7 +1860,13 @@ def assets():
         query = query.filter(
             Asset.needs_maintenance == True,
             Asset.next_maintenance_date != None,
-            Asset.next_maintenance_date <= threshold
+            Asset.next_maintenance_date <= threshold,
+            Asset.status.notin_(['Dalam Perbaikan', 'Afkir']),
+            db.or_(
+                Asset.last_maintenance_date == None,
+                Asset.last_maintenance_date < today,
+                Asset.next_maintenance_date <= today
+            )
         )
     elif maintenance_filter == 'yes':
         query = query.filter(Asset.needs_maintenance == True)
@@ -2364,12 +2380,17 @@ def maintenance():
     today = date.today()
     threshold = today + timedelta(days=14)
 
-    due_assets = Asset.query.filter(
+    due_assets_raw = Asset.query.filter(
         Asset.needs_maintenance == True,
         Asset.next_maintenance_date != None,
         Asset.next_maintenance_date <= threshold,
-        Asset.status != 'Afkir'
+        Asset.status.notin_(['Dalam Perbaikan', 'Afkir'])
     ).order_by(Asset.next_maintenance_date.asc()).all()
+
+    due_assets = [
+        a for a in due_assets_raw
+        if not (a.last_maintenance_date and a.last_maintenance_date >= today and a.next_maintenance_date > today)
+    ]
 
     in_repair_assets = Asset.query.filter_by(status='Dalam Perbaikan').order_by(Asset.updated_at.desc()).all()
     records = MaintenanceRecord.query.order_by(MaintenanceRecord.service_date.desc(), MaintenanceRecord.id.desc()).all()

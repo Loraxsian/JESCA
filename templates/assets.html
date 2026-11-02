@@ -179,7 +179,7 @@
                         <span class="badge bg-secondary-subtle text-secondary border">{{ a.status }}</span>
                         {% endif %}
 
-                        {% if a.needs_maintenance and a.next_maintenance_date and a.next_maintenance_date <= (date_today or today) and a.status != 'Afkir' %}
+                        {% if a.needs_maintenance and a.next_maintenance_date and a.next_maintenance_date <= (date_today or today) and a.status not in ['Dalam Perbaikan', 'Afkir'] and not (a.last_maintenance_date and a.last_maintenance_date >= (date_today or today) and a.next_maintenance_date > (date_today or today)) %}
                         <div class="mt-1">
                             <span class="badge bg-warning text-dark font-monospace" style="font-size: 0.65rem;" title="Jatuh tempo maintenance">
                                 <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i>Perlu Servis
