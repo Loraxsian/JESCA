@@ -57,7 +57,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.4'
+APP_VERSION = '2.5.4.1'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -313,16 +313,16 @@ class Asset(db.Model):
     purchase_date = db.Column(db.Date, nullable=False, default=date.today)
     purchase_price = db.Column(db.Float, default=0.0)
     location = db.Column(db.String(100), default='Kantor Pusat')
-    status = db.Column(db.String(50), default='Aktif')  # Aktif, Dipinjam, Dalam Perbaikan, Rusak, Afkir
+    status = db.Column(db.String(50), default='Aktif', index=True)  # Aktif, Dipinjam, Dalam Perbaikan, Rusak, Afkir
     description = db.Column(db.Text, nullable=True)
     image = db.Column(db.String(255), nullable=True)  # filename in static/uploads
     borrower = db.Column(db.String(100), nullable=True)  # Current borrower name
     borrow_date = db.Column(db.DateTime, nullable=True)  # Date when borrowed
 
     # Maintenance Scheduling
-    needs_maintenance = db.Column(db.Boolean, default=False)
+    needs_maintenance = db.Column(db.Boolean, default=False, index=True)
     maintenance_interval_days = db.Column(db.Integer, nullable=True)  # e.g., 30, 90, 180, 365
-    next_maintenance_date = db.Column(db.Date, nullable=True)
+    next_maintenance_date = db.Column(db.Date, nullable=True, index=True)
     last_maintenance_date = db.Column(db.Date, nullable=True)
 
     # v2: Warranty
@@ -340,8 +340,8 @@ class Asset(db.Model):
     custom_fields_json = db.Column(db.Text, nullable=True)
 
     # v2: Relations
-    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'), nullable=True)
-    site_id = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=True)
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'), nullable=True, index=True)
+    site_id = db.Column(db.Integer, db.ForeignKey('sites.id'), nullable=True, index=True)
     po_id = db.Column(db.Integer, db.ForeignKey('purchase_orders.id'), nullable=True)
     po_item_id = db.Column(db.Integer, db.ForeignKey('po_items.id'), nullable=True)
 
@@ -355,7 +355,7 @@ class Asset(db.Model):
     last_transfer_date = db.Column(db.Date, nullable=True)
     last_transfer_from = db.Column(db.String(100), nullable=True)
 
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
@@ -462,11 +462,11 @@ class ActivityLog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, nullable=True)
     username = db.Column(db.String(80), nullable=False, default='System')
-    action = db.Column(db.String(50), nullable=False)
+    action = db.Column(db.String(50), nullable=False, index=True)
     asset_code = db.Column(db.String(50), nullable=True)
     asset_name = db.Column(db.String(150), nullable=True)
     details = db.Column(db.Text, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
 
     def to_dict(self):
         return {
@@ -649,13 +649,13 @@ class MaintenanceRecord(db.Model):
     __tablename__ = 'maintenance_records'
 
     id = db.Column(db.Integer, primary_key=True)
-    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False, index=True)
     service_type = db.Column(db.String(100), default='Rutin')
     action_taken = db.Column(db.Text, nullable=False)
     cost = db.Column(db.Float, default=0.0)
     proof_file = db.Column(db.String(255), nullable=True)
     performed_by = db.Column(db.String(80), nullable=False)
-    service_date = db.Column(db.Date, default=date.today)
+    service_date = db.Column(db.Date, default=date.today, index=True)
     next_service_date = db.Column(db.Date, nullable=True)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -667,7 +667,7 @@ class AssetCirculationLog(db.Model):
     __tablename__ = 'asset_circulation_logs'
 
     id = db.Column(db.Integer, primary_key=True)
-    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=False, index=True)
     borrower = db.Column(db.String(100), nullable=False)
     borrow_date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     return_date = db.Column(db.DateTime, nullable=True)
@@ -687,9 +687,9 @@ class SystemFeedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sender_name = db.Column(db.String(100), nullable=True)
     contact = db.Column(db.String(120), nullable=True)
-    category = db.Column(db.String(50), default='Saran Fitur Baru')
+    category = db.Column(db.String(50), default='Saran Fitur Baru', index=True)
     message = db.Column(db.Text, nullable=False)
-    status = db.Column(db.String(20), default='Pending')  # 'Pending', 'In Progress', 'Resolved'
+    status = db.Column(db.String(20), default='Pending', index=True)  # 'Pending', 'In Progress', 'Resolved'
     resolved_by = db.Column(db.String(80), nullable=True)
     resolution_notes = db.Column(db.Text, nullable=True)
     resolved_at = db.Column(db.DateTime, nullable=True)
@@ -1432,6 +1432,31 @@ def check_and_update_schema():
             for col_name, col_type in ss_additions:
                 if col_name not in cols_ss:
                     conn.execute(db.text(f"ALTER TABLE system_settings ADD COLUMN {col_name} {col_type}"))
+
+            # Create performance indexes if not exist
+            indexes = [
+                "CREATE INDEX IF NOT EXISTS idx_assets_status ON assets(status);",
+                "CREATE INDEX IF NOT EXISTS idx_assets_needs_maint ON assets(needs_maintenance);",
+                "CREATE INDEX IF NOT EXISTS idx_assets_next_maint ON assets(next_maintenance_date);",
+                "CREATE INDEX IF NOT EXISTS idx_assets_vendor_id ON assets(vendor_id);",
+                "CREATE INDEX IF NOT EXISTS idx_assets_site_id ON assets(site_id);",
+                "CREATE INDEX IF NOT EXISTS idx_assets_created_at ON assets(created_at);",
+                "CREATE INDEX IF NOT EXISTS idx_po_status ON purchase_orders(status);",
+                "CREATE INDEX IF NOT EXISTS idx_po_requested_by ON purchase_orders(requested_by);",
+                "CREATE INDEX IF NOT EXISTS idx_po_created_at ON purchase_orders(created_at);",
+                "CREATE INDEX IF NOT EXISTS idx_maint_asset_id ON maintenance_records(asset_id);",
+                "CREATE INDEX IF NOT EXISTS idx_maint_service_date ON maintenance_records(service_date);",
+                "CREATE INDEX IF NOT EXISTS idx_circ_asset_id ON asset_circulation_logs(asset_id);",
+                "CREATE INDEX IF NOT EXISTS idx_activity_created_at ON activity_logs(created_at);",
+                "CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_logs(action);",
+                "CREATE INDEX IF NOT EXISTS idx_feedback_status ON system_feedbacks(status);",
+                "CREATE INDEX IF NOT EXISTS idx_feedback_category ON system_feedbacks(category);"
+            ]
+            for idx_sql in indexes:
+                try:
+                    conn.execute(db.text(idx_sql))
+                except Exception:
+                    pass
 
             conn.commit()
 
@@ -2300,10 +2325,16 @@ def delete_asset(asset_id):
 
     code = asset.asset_code
     name = asset.name
-    delete_photo_file(asset.image)
 
-    db.session.delete(asset)
-    db.session.commit()
+    try:
+        delete_photo_file(asset.image)
+        db.session.delete(asset)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menghapus aset ID {asset_id}: {e}")
+        flash(f'Aset [{code}] tidak dapat dihapus karena masih terhubung dengan data riwayat/servis/pengadaan.', 'warning')
+        return redirect(url_for('assets'))
 
     log_activity(
         'HAPUS_ASET',
@@ -2359,8 +2390,14 @@ def checkout_asset(asset_id):
         checkout_by=current_user.username,
         notes=notes
     )
-    db.session.add(circ_log)
-    db.session.commit()
+    try:
+        db.session.add(circ_log)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal memproses peminjaman aset ID {asset_id}: {e}")
+        flash('Terjadi kendala saat memproses peminjaman aset ke database. Silakan coba kembali.', 'danger')
+        return redirect(url_for('assets'))
 
     log_activity(
         'CHECK_OUT',
@@ -2406,7 +2443,14 @@ def checkin_asset(asset_id):
     asset.status = new_status
     asset.borrower = None
     asset.borrow_date = None
-    db.session.commit()
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal memproses pengembalian aset ID {asset_id}: {e}")
+        flash('Terjadi kendala saat memproses pengembalian aset ke database. Silakan coba kembali.', 'danger')
+        return redirect(url_for('assets'))
 
     log_activity(
         'CHECK_IN',
@@ -2486,7 +2530,13 @@ def start_maintenance(asset_id):
 
     old_status = asset.status
     asset.status = 'Dalam Perbaikan'
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal memulai servis aset ID {asset_id}: {e}")
+        flash('Terjadi kendala saat mengubah status servis. Silakan coba kembali.', 'danger')
+        return redirect(url_for('maintenance'))
 
     log_activity(
         'MULAI_SERVIS',
@@ -2548,7 +2598,13 @@ def complete_maintenance(asset_id):
     asset.last_maintenance_date = service_date
     asset.maintenance_interval_days = interval
     asset.next_maintenance_date = service_date + timedelta(days=interval)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menyelesaikan servis aset ID {asset_id}: {e}")
+        flash('Terjadi kendala saat menyimpan data servis ke database. Silakan coba kembali.', 'danger')
+        return redirect(url_for('maintenance'))
 
     log_activity(
         'MAINTENANCE_SELESAI',
@@ -2787,7 +2843,13 @@ def transfer_asset(asset_id):
     asset.last_transfer_date = date.today()
     asset.last_transfer_from = from_loc
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal mentransfer aset ID {asset_id}: {e}")
+        flash('Terjadi kendala saat menyimpan transfer aset. Silakan coba kembali.', 'danger')
+        return redirect(url_for('assets'))
 
     log_activity(
         'TRANSFER_ASET',
@@ -3232,8 +3294,16 @@ def create_vendor():
         notes=notes,
         is_active=True
     )
-    db.session.add(new_v)
-    db.session.commit()
+    try:
+        db.session.add(new_v)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menambahkan vendor {name}: {e}")
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': 'Gagal menyimpan vendor ke database.'}), 500
+        flash('Terjadi kendala saat menambahkan vendor. Silakan coba kembali.', 'danger')
+        return redirect(url_for('vendors'))
 
     log_activity('TAMBAH_VENDOR', details=f"Vendor baru ditambahkan: '{name}' oleh {current_user.username}.")
     if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -3265,7 +3335,14 @@ def edit_vendor(vendor_id):
     v.notes = request.form.get('notes', '').strip()
     v.is_active = bool(request.form.get('is_active'))
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal memperbarui vendor ID {vendor_id}: {e}")
+        flash('Terjadi kendala saat memperbarui vendor. Silakan coba kembali.', 'danger')
+        return redirect(url_for('vendors'))
+
     log_activity('EDIT_VENDOR', details=f"Data vendor '{name}' diperbarui.")
     flash(f'Vendor "{name}" berhasil diperbarui!', 'success')
     return redirect(url_for('vendors'))
@@ -3281,10 +3358,16 @@ def delete_vendor(vendor_id):
         return redirect(url_for('vendors'))
 
     v_name = v.name
-    # Unlink assets referencing this vendor
-    Asset.query.filter_by(vendor_id=v.id).update({'vendor_id': None})
-    db.session.delete(v)
-    db.session.commit()
+    try:
+        # Unlink assets referencing this vendor
+        Asset.query.filter_by(vendor_id=v.id).update({'vendor_id': None})
+        db.session.delete(v)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menghapus vendor ID {vendor_id}: {e}")
+        flash(f'Vendor "{v_name}" tidak dapat dihapus karena masih terhubung dengan transaksi.', 'warning')
+        return redirect(url_for('vendors'))
 
     log_activity('HAPUS_VENDOR', details=f"Vendor '{v_name}' dihapus oleh {current_user.username}.")
     flash(f'Vendor "{v_name}" berhasil dihapus.', 'info')
@@ -3329,8 +3412,16 @@ def create_site():
         return redirect(url_for('sites'))
 
     s = Site(name=name, description=description, is_active=True)
-    db.session.add(s)
-    db.session.commit()
+    try:
+        db.session.add(s)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menambahkan site {name}: {e}")
+        if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return jsonify({'status': 'error', 'message': 'Gagal menyimpan site ke database.'}), 500
+        flash('Terjadi kendala saat menambahkan site. Silakan coba kembali.', 'danger')
+        return redirect(url_for('sites'))
 
     log_activity('TAMBAH_SITE', details=f"Lokasi/Site '{name}' ditambahkan.")
     if request.is_json or request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -3357,7 +3448,14 @@ def edit_site(site_id):
     s.name = name
     s.description = request.form.get('description', '').strip()
     s.is_active = bool(request.form.get('is_active'))
-    db.session.commit()
+
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal memperbarui site ID {site_id}: {e}")
+        flash('Terjadi kendala saat memperbarui site. Silakan coba kembali.', 'danger')
+        return redirect(url_for('sites'))
 
     log_activity('EDIT_SITE', details=f"Data site '{name}' diperbarui.")
     flash(f'Site "{name}" berhasil diperbarui!', 'success')
@@ -3374,10 +3472,16 @@ def delete_site(site_id):
         return redirect(url_for('sites'))
 
     s_name = s.name
-    # Unlink assets referencing this site
-    Asset.query.filter_by(site_id=s.id).update({'site_id': None})
-    db.session.delete(s)
-    db.session.commit()
+    try:
+        # Unlink assets referencing this site
+        Asset.query.filter_by(site_id=s.id).update({'site_id': None})
+        db.session.delete(s)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menghapus site ID {site_id}: {e}")
+        flash(f'Site "{s_name}" tidak dapat dihapus karena masih terhubung dengan transaksi.', 'warning')
+        return redirect(url_for('sites'))
 
     log_activity('HAPUS_SITE', details=f"Site '{s_name}' dihapus oleh {current_user.username}.")
     flash(f'Site "{s_name}" berhasil dihapus.', 'info')
@@ -5284,8 +5388,14 @@ def delete_account(user_id):
         return redirect(url_for('accounts'))
 
     u_name = target_user.username
-    db.session.delete(target_user)
-    db.session.commit()
+    try:
+        db.session.delete(target_user)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Gagal menghapus akun user {u_name}: {e}")
+        flash(f'Akun "{u_name}" tidak dapat dihapus karena masih terhubung dengan data riwayat transaksi.', 'warning')
+        return redirect(url_for('accounts'))
 
     log_activity('HAPUS_USER', details=f"Akun {u_name} dihapus oleh {current_user.username}.")
     flash(f'Akun "{u_name}" telah berhasil dihapus.', 'info')
@@ -5916,7 +6026,14 @@ def convert_po_item_to_asset(po_id, item_id):
         log_po_history(po, 'CONVERT_ITEM', f"Unit #{item.converted_count} '{new_asset.name}' [{new_asset.asset_code}] resmi didaftarkan.")
         msg = f"Aset [{new_asset.asset_code}] '{new_asset.name}' berhasil dibuat (Unit {item.converted_count}/{item.quantity}). Sisa {item.remaining_to_convert} unit untuk item ini."
 
-    db.session.commit()
+    try:
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        delete_photo_file(image_filename)
+        app.logger.error(f"Gagal mengonversi item PO #{item.id}: {e}")
+        flash('Terjadi kendala saat menyimpan konversi aset ke database. Silakan coba kembali.', 'danger')
+        return redirect(url_for('purchase_order_detail', po_id=po.id))
 
     log_activity(
         'TAMBAH_ASET_PO',
