@@ -94,6 +94,17 @@
                             {% endif %}
                         </a>
                     </li>
+                    {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
+                    <li class="nav-item">
+                        <a href="{{ url_for('feedbacks_list') }}" class="nav-link {% if request.endpoint in ['feedbacks_list', 'feedback_detail'] %}active{% endif %} d-flex align-items-center gap-3">
+                            <i class="bi bi-chat-square-text"></i>
+                            <span>Laporan &amp; Masukan</span>
+                            {% if feedback_alerts and feedback_alerts|length > 0 %}
+                            <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ feedback_alerts|length }}</span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endif %}
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
                         <a href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
@@ -131,8 +142,14 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a href="{{ url_for('export_assets_excel') }}" class="nav-link d-flex align-items-center gap-3">
+                            <i class="bi bi-file-earmark-excel text-success"></i>
+                            <span>Export Excel (.xlsx)</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a href="{{ url_for('export_assets_csv') }}" class="nav-link d-flex align-items-center gap-3">
-                            <i class="bi bi-file-earmark-spreadsheet text-success"></i>
+                            <i class="bi bi-file-earmark-spreadsheet text-secondary"></i>
                             <span>Export CSV</span>
                         </a>
                     </li>
@@ -263,6 +280,11 @@
                                     </div>
                                 </li>
                                 {% endfor %}
+                                <li class="py-1 text-center border-bottom bg-light">
+                                    <a href="{{ url_for('feedbacks_list') }}" class="small text-danger fw-semibold text-decoration-none" style="font-size: 0.72rem;">
+                                        Lihat Semua Laporan Masukan ({{ feedback_alerts|length }}) &rarr;
+                                    </a>
+                                </li>
                                 {% endif %}
                                 <!-- Section: Pending PO Approvals (Admin) -->
                                 {% if pending_po_alerts and pending_po_alerts|length > 0 %}
@@ -490,7 +512,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.2.1 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.3 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">

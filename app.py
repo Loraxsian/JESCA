@@ -56,7 +56,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.2.1'
+APP_VERSION = '2.5.3'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -2568,7 +2568,75 @@ def resolve_feedback(feedback_id):
     )
 
     flash(f'Laporan #{fb.id} ({fb.category}) berhasil ditandai selesai.', 'success')
-    return redirect(request.referrer or url_for('dashboard'))
+    return redirect(request.referrer or url_for('feedbacks_list'))
+
+
+@app.route('/feedbacks')
+@login_required
+@role_required('Admin', 'Administrator', 'Teknisi')
+def feedbacks_list():
+    """Feedback & Bug Report Helpdesk Center for Admin and Technicians."""
+    category_filter = request.args.get('category', '').strip()
+    status_filter = request.args.get('status', 'Pending').strip()
+    search_query = request.args.get('search', '').strip()
+
+    query = SystemFeedback.query
+
+    if status_filter and status_filter != 'all':
+        query = query.filter_by(status=status_filter)
+
+    if category_filter:
+        query = query.filter_by(category=category_filter)
+
+    if search_query:
+        query = query.filter(
+            db.or_(
+                SystemFeedback.message.ilike(f"%{search_query}%"),
+                SystemFeedback.sender_name.ilike(f"%{search_query}%"),
+                SystemFeedback.contact.ilike(f"%{search_query}%"),
+                SystemFeedback.category.ilike(f"%{search_query}%")
+            )
+        )
+
+    feedbacks = query.order_by(SystemFeedback.created_at.desc()).all()
+
+    total_count = SystemFeedback.query.count()
+    pending_count = SystemFeedback.query.filter_by(status='Pending').count()
+    resolved_count = SystemFeedback.query.filter_by(status='Resolved').count()
+
+    categories = [
+        'Laporan Bug / Eror',
+        'Laporan Kendala Aset',
+        'Kendala Login / Akun',
+        'Saran Fitur Baru',
+        'Pertanyaan Inventaris'
+    ]
+
+    return render_template(
+        'feedbacks.html',
+        feedbacks=feedbacks,
+        current_status=status_filter,
+        current_category=category_filter,
+        search_query=search_query,
+        total_count=total_count,
+        pending_count=pending_count,
+        resolved_count=resolved_count,
+        categories=categories
+    )
+
+
+@app.route('/feedback/<int:feedback_id>/delete', methods=['POST'])
+@login_required
+@role_required('Admin', 'Administrator')
+def delete_feedback(feedback_id):
+    """Admin removes a feedback record."""
+    fb = db.session.get(SystemFeedback, feedback_id)
+    if fb:
+        log_activity('HAPUS_FEEDBACK', details=f"Laporan #{fb.id} ({fb.category}) dihapus oleh {current_user.username}")
+        db.session.delete(fb)
+        db.session.commit()
+        flash(f'Laporan #{feedback_id} berhasil dihapus.', 'info')
+    return redirect(request.referrer or url_for('feedbacks_list'))
 
 
 @app.route('/attachments/maintenance/<filename>')
@@ -3333,9 +3401,137 @@ def api_warranty_alerts():
     })
 
 
+@app.route('/assets/export/excel')
+@login_required
+@role_required('Admin', 'Administrator', 'Auditor', 'Staff')
+def export_assets_excel():
+    """Export all asset inventory data to native Excel (.xlsx) format with auto-fit columns and professional styling."""
+    try:
+        import openpyxl
+        from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+        from openpyxl.utils import get_column_letter
+    except ImportError:
+        flash('Modul openpyxl belum terpasang. Mengalihkan ke ekspor CSV...', 'warning')
+        return redirect(url_for('export_assets_csv'))
+
+    assets_all = Asset.query.order_by(Asset.asset_code.asc()).all()
+
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Inventaris Aset"
+
+    # Styling definitions
+    header_fill = PatternFill(start_color="1E3A8A", end_color="1E3A8A", fill_type="solid")  # Deep Navy Blue
+    header_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+    data_font = Font(name="Calibri", size=10)
+    data_font_bold = Font(name="Calibri", size=10, bold=True)
+
+    thin_border_side = Side(style='thin', color="D1D5DB")
+    thin_border = Border(left=thin_border_side, right=thin_border_side, top=thin_border_side, bottom=thin_border_side)
+
+    zebra_fill = PatternFill(start_color="F8FAFC", end_color="F8FAFC", fill_type="solid")
+    white_fill = PatternFill(start_color="FFFFFF", end_color="FFFFFF", fill_type="solid")
+
+    headers = [
+        'No', 'Kode Aset', 'Nama Aset', 'Kategori', 'Lokasi',
+        'Tanggal Perolehan', 'Nilai Perolehan (IDR)', 'Nilai Buku (IDR)', 'Status',
+        'Peminjam', 'Vendor / Supplier', 'Lokasi Cabang (Site)', 'Mulai Garansi', 'Akhir Garansi',
+        'Perlu Servis Rutin', 'Interval (Hari)', 'Jadwal Servis Berikutnya', 'Keterangan'
+    ]
+
+    ws.append(headers)
+    ws.row_dimensions[1].height = 26
+
+    for col_num in range(1, len(headers) + 1):
+        cell = ws.cell(row=1, column=col_num)
+        cell.fill = header_fill
+        cell.font = header_font
+        cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
+        cell.border = thin_border
+
+    center_cols = {1, 2, 4, 6, 9, 13, 14, 15, 16, 17}
+    currency_cols = {7, 8}
+
+    for idx, a in enumerate(assets_all, 1):
+        row_num = idx + 1
+        ws.row_dimensions[row_num].height = 20
+        row_fill = zebra_fill if idx % 2 == 0 else white_fill
+
+        purchase_val = float(a.purchase_price or 0.0)
+        book_val = float(a.current_book_value or 0.0)
+        p_date = a.purchase_date.strftime('%d/%m/%Y') if a.purchase_date else '-'
+        w_start = a.warranty_start.strftime('%d/%m/%Y') if a.warranty_start else '-'
+        w_end = a.warranty_end.strftime('%d/%m/%Y') if a.warranty_end else '-'
+        next_maint = a.next_maintenance_date.strftime('%d/%m/%Y') if a.next_maintenance_date else '-'
+        desc = (a.description or '').replace('\r', '').replace('\n', ' ').strip() or '-'
+
+        row_data = [
+            idx,
+            a.asset_code,
+            a.name,
+            a.category,
+            a.location,
+            p_date,
+            purchase_val,
+            book_val,
+            a.status,
+            a.borrower or '-',
+            a.vendor.name if a.vendor else '-',
+            a.site.name if a.site else '-',
+            w_start,
+            w_end,
+            'Ya' if a.needs_maintenance else 'Tidak',
+            a.maintenance_interval_days or '-',
+            next_maint,
+            desc
+        ]
+
+        ws.append(row_data)
+
+        for col_num in range(1, len(headers) + 1):
+            cell = ws.cell(row=row_num, column=col_num)
+            cell.font = data_font_bold if col_num == 2 else data_font
+            cell.fill = row_fill
+            cell.border = thin_border
+
+            if col_num in currency_cols:
+                cell.number_format = '#,##0'
+                cell.alignment = Alignment(horizontal="right", vertical="center")
+            elif col_num in center_cols:
+                cell.alignment = Alignment(horizontal="center", vertical="center")
+            else:
+                cell.alignment = Alignment(horizontal="left", vertical="center")
+
+    # Auto-fit column widths with padding (no '###' truncation)
+    for col in ws.columns:
+        col_letter = get_column_letter(col[0].column)
+        max_len = 0
+        for cell in col:
+            val_str = str(cell.value or '')
+            if cell.number_format == '#,##0' and isinstance(cell.value, (int, float)):
+                val_str = f"{int(cell.value):,}"
+            max_len = max(max_len, len(val_str))
+        ws.column_dimensions[col_letter].width = max(max_len + 5, 14)
+
+    # Freeze top row
+    ws.freeze_panes = "A2"
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+
+    log_activity('EXPORT_EXCEL', details=f"Ekspor Excel (.xlsx) {len(assets_all)} data inventaris aset.")
+    filename = f"jesca_inventaris_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return Response(
+        buf.getvalue(),
+        mimetype='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 @app.route('/assets/export/csv')
 @login_required
-@role_required('Admin', 'Administrator', 'Auditor')
+@role_required('Admin', 'Administrator', 'Auditor', 'Staff')
 def export_assets_csv():
     assets_all = Asset.query.order_by(Asset.asset_code.asc()).all()
 
@@ -3357,18 +3553,18 @@ def export_assets_csv():
             a.name,
             a.category,
             a.location,
-            a.purchase_date.strftime('%Y-%m-%d') if a.purchase_date else '-',
+            a.purchase_date.strftime('%d/%m/%Y') if a.purchase_date else '-',
             f"{int(round(a.purchase_price or 0))}",
             f"{int(round(a.current_book_value or 0))}",
             a.status,
             a.borrower or '-',
             a.vendor.name if a.vendor else '-',
             a.site.name if a.site else '-',
-            a.warranty_start.strftime('%Y-%m-%d') if a.warranty_start else '-',
-            a.warranty_end.strftime('%Y-%m-%d') if a.warranty_end else '-',
+            a.warranty_start.strftime('%d/%m/%Y') if a.warranty_start else '-',
+            a.warranty_end.strftime('%d/%m/%Y') if a.warranty_end else '-',
             'Ya' if a.needs_maintenance else 'Tidak',
             a.maintenance_interval_days or '-',
-            a.next_maintenance_date.strftime('%Y-%m-%d') if a.next_maintenance_date else '-',
+            a.next_maintenance_date.strftime('%d/%m/%Y') if a.next_maintenance_date else '-',
             (a.description or '').replace('\r', '').replace('\n', ' ').strip() or '-'
         ])
 

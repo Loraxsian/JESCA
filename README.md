@@ -51,12 +51,12 @@ Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*productio
   - Tombol aksi eksekusi pemeliharaan diproteksi ketat hanya untuk role **Teknisi** dan **Admin**.
   - Pengguna dengan role **Staff** disediakan tombol khusus **Lapor Kendala Aset** untuk meneruskan kendala fisik barang secara langsung ke antrean notifikasi teknisi tanpa dapat mengubah status operasional aset secara sepihak.
 
-### 5. 💬 Laporan Bug & Saran Publik Terintegrasi (`/submit-feedback`)
-- **Pusat Pengaduan & Masukan Langsung dari Halaman Login**:
-  - Pengguna maupun pengunjung dapat menyampaikan laporan bug aplikasi, kendala autentikasi akun, pertanyaan inventaris, atau usulan fitur baru langsung dari modal halaman depan tanpa harus login terlebih dahulu.
-- **Penyaluran Notifikasi Real-Time ke Admin & Teknisi**:
-  - Setiap laporan yang masuk secara otomatis memicu alert pada **Lonceng Notifikasi Navbar** akun Administrator dan Teknisi.
-  - Dilengkapi label kategori spesifik, identitas pelapor, teks kendala, dan tombol resolusi 1-klik (`/feedback/<id>/resolve`) setelah kendala terselesaikan.
+### 5. 💬 Pusat Laporan, Bug & Masukan Sistem (`/feedbacks`)
+- **Pusat Pengaduan & Masukan Terintegrasi**:
+  - Menerima aduan dari form login publik (`/submit-feedback`), kendala fisik aset dari staf lapangan, laporan bug teknis, serta saran pengembangan fitur.
+  - Submenu khusus **Laporan & Masukan** di sidebar utama untuk **Admin** dan **Teknisi**, lengkap dengan kartu statistik resolusi, filter kategori, tab status *Pending* vs *Resolved*, dan riwayat nama petugas penangan beserta catatan tindakan solusinya.
+- **Penyaluran Notifikasi Real-Time**:
+  - Alert lonceng notifikasi navbar menyala otomatis saat ada aduan baru masuk, dilengkapi pintasan langsung ke menu manajemen laporan.
 
 ### 6. 🏷️ Auto-Coding & QR Code Scanner
 - **Auto-Generate Kode Real-Time**: `<Prefix>/<3-Digit Sequential Number>` (contoh: `Tech/001`, `Tools/001`, `Furn/001`, `Vehicle/001`, `Office/001`).
@@ -70,8 +70,9 @@ Dirancang dengan arsitektur modular, ringan, aman, dan siap produksi (*productio
 - **Alert Keterlambatan**: Notifikasi peringatan aset yang terlambat dikembalikan pada ikon lonceng navbar.
 
 ### 8. 📑 Ekspor & Laporan Profesional
+- **Ekspor Excel Asli (.xlsx)**: Menggunakan pustaka modern `openpyxl` dengan penyesuaian lebar kolom otomatis (*Auto-Fit Width*) sehingga bebas dari error teks terpotong atau tanggal bertanda pagar `#########`. Dilengkapi styling header resmi (*Navy Blue*), pemisah ribuan Rupiah (`#,##0`), freeze panes baris atas, dan zebra striping.
 - **Ekspor PDF Formal**: Landscape A4 rapi, penataan tabel presisi, warna aksen elegan pada judul tabel, tanpa emoji, dan kop resmi.
-- **Ekspor CSV Kompatibel Excel**: Encoding UTF-8 dengan BOM (`\ufeff`) dan delimiter rapi yang langsung terbagi ke kolom masing-masing di Microsoft Excel.
+- **Ekspor CSV Kompatibel Excel**: Encoding UTF-8 dengan BOM (`\ufeff`) dan format tanggal `DD/MM/YYYY` yang langsung terbagi ke kolom masing-masing di Microsoft Excel.
 - **Laporan Audit Terpisah**: Laporan berbasis rentang tanggal periode (`/reports/audit`) khusus untuk kepatuhan dan audit internal.
 
 ### 9. 🎨 Multi-Tema & Desain Responsif
