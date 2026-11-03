@@ -178,7 +178,7 @@
              ======================================================== -->
         <div class="tab-pane fade show active" id="tab-pane-network" role="tabpanel">
             <div class="row g-4">
-                <!-- Card 1: Domain Publik & Enforce HTTPS -->
+                <!-- Card 1: Alamat Akses Sistem (Base URL) -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex align-items-center gap-2">
@@ -186,36 +186,123 @@
                                 <i class="bi bi-globe2 fs-5"></i>
                             </div>
                             <div>
-                                <h6 class="fw-bold mb-0 text-dark">Domain Publik &amp; HTTPS</h6>
-                                <small class="text-muted">Alamat URL resmi aplikasi dan enkripsi transfer</small>
+                                <h6 class="fw-bold mb-0 text-dark">Alamat Akses Sistem (Base URL)</h6>
+                                <small class="text-muted">Tentukan bagaimana staf dan kamera HP membuka aplikasi</small>
                             </div>
                         </div>
                         <div class="card-body p-4 d-flex flex-column justify-content-between">
                             <div>
+                                <!-- Pilihan 3 Mode Akses -->
+                                <label class="form-label small fw-bold text-secondary mb-2">Pilih Mode Koneksi:</label>
+                                <div class="d-flex gap-2 mb-3 flex-wrap">
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 net-mode-btn" id="mode-btn-localhost" onclick="setNetworkMode('localhost')">
+                                        <i class="bi bi-laptop me-1"></i>Komputer Ini
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 net-mode-btn active" id="mode-btn-wifi" onclick="setNetworkMode('wifi')">
+                                        <i class="bi bi-wifi me-1"></i>Wi-Fi Kantor
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 net-mode-btn" id="mode-btn-domain" onclick="setNetworkMode('domain')">
+                                        <i class="bi bi-cloud-check me-1"></i>Domain Sendiri
+                                    </button>
+                                </div>
+
+                                <!-- Konten Mode 1: Komputer Sendiri -->
+                                <div id="net-mode-content-localhost" class="net-mode-content d-none mb-3 p-3 rounded-3 border bg-light">
+                                    <div class="small fw-semibold text-dark mb-1">
+                                        <i class="bi bi-pc-display me-1 text-primary"></i>Mode Komputer Ini (Localhost)
+                                    </div>
+                                    <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                                        Sistem hanya dapat diakses melalui browser di komputer ini via alamat <code>http://localhost:5000</code>. Cocok untuk penggunaan pribadi di satu perangkat.
+                                    </p>
+                                </div>
+
+                                <!-- Konten Mode 2: Wi-Fi Kantor (LAN) -->
+                                <div id="net-mode-content-wifi" class="net-mode-content mb-3 p-3 rounded-3 border bg-light">
+                                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                                        <div>
+                                            <div class="small fw-bold text-dark">
+                                                <i class="bi bi-router text-success me-1"></i>Alamat Wi-Fi Terdeteksi:
+                                            </div>
+                                            <div class="font-monospace fw-bold fs-6 text-primary" id="currentLanIpDisplay">
+                                                {{ detected_lan_ip }}:5000
+                                            </div>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" id="btnRefreshLanIp" onclick="refreshLanIp()" title="Cek ulang IP jika Wi-Fi me-restart">
+                                                <i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP
+                                            </button>
+                                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="btnApplyLanIp" onclick="applyLanIp()">
+                                                <i class="bi bi-check2-circle me-1"></i>Terapkan
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <small class="text-muted d-block" style="font-size: 0.73rem;">
+                                        Staf cukup menyambungkan HP ke Wi-Fi kantor yang sama untuk memindai label QR Code tanpa perlu kuota internet. Jika router Wi-Fi me-restart dan alamat IP berubah, klik <strong>Cek Ulang IP</strong> lalu simpan.
+                                    </small>
+                                </div>
+
+                                <!-- Konten Mode 3: Domain Sendiri / Cloud -->
+                                <div id="net-mode-content-domain" class="net-mode-content d-none mb-3 p-3 rounded-3 border bg-light">
+                                    <div class="small fw-semibold text-dark mb-1">
+                                        <i class="bi bi-hdd-network me-1 text-primary"></i>Mode Domain / VPS Resmi
+                                    </div>
+                                    <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+                                        Gunakan opsi ini jika JESCA dipasang pada server cloud (VPS) atau dihubungkan dengan domain resmi perusahaan (contoh: <code>https://aset.perusahaan.com</code>).
+                                    </p>
+                                </div>
+
+                                <!-- Base URL Input Field -->
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-secondary">
-                                        Base URL Aplikasi (Public Domain) <span class="text-danger">*</span>
+                                        Alamat URL Aktif (Base URL) <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-end-0 text-muted">
                                             <i class="bi bi-link-45deg"></i>
                                         </span>
-                                        <input type="url" class="form-control" name="app_base_url" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="https://assets.perusahaan.com atau http://localhost:5000" required>
+                                        <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="https://aset.domain.com atau http://192.168.1.15:5000" required>
                                     </div>
-                                    <small class="text-muted d-block mt-1" style="font-size: 0.73rem;">
-                                        URL ini menjadi rujukan resmi tautan label QR Code fisik, tautan email notifikasi tim, dan redirect webhooks.
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                        Alamat ini akan tertanam di dalam setiap stiker QR Code fisik yang dicetak dan tautan email pemberitahuan tim.
                                     </small>
                                 </div>
 
+                                <!-- Akses Cepat Lapangan / Tunnel -->
+                                <div class="accordion mb-3" id="accordionQuickTunnel">
+                                    <div class="accordion-item border rounded-3 overflow-hidden">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed py-2 px-3 bg-light small fw-bold text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTunnel">
+                                                <i class="bi bi-broadcast-pin text-primary me-2"></i>Uji Coba Online dari Luar Kantor (Tanpa Beli Domain)
+                                            </button>
+                                        </h2>
+                                        <div id="collapseTunnel" class="accordion-collapse collapse" data-bs-parent="#accordionQuickTunnel">
+                                            <div class="accordion-body p-3 bg-white small text-muted">
+                                                <p class="mb-2" style="font-size: 0.75rem;">
+                                                    Buka <strong>Command Prompt / PowerShell</strong> (Windows) atau <strong>Terminal</strong> (Linux) di komputer server Anda, lalu jalankan perintah instan berikut:
+                                                </p>
+                                                <div class="d-flex align-items-center gap-2 p-2 rounded-2 bg-dark text-white font-monospace mb-2" style="font-size: 0.75rem;">
+                                                    <span class="flex-grow-1 user-select-all text-truncate">ssh -p 443 -R0:localhost:5000 a.pinggy.io</span>
+                                                    <button type="button" class="btn btn-outline-light btn-sm py-0 px-2 rounded-pill" style="font-size: 0.68rem;" onclick="copyCommandText('ssh -p 443 -R0:localhost:5000 a.pinggy.io')">
+                                                        <i class="bi bi-clipboard me-1"></i>Salin
+                                                    </button>
+                                                </div>
+                                                <p class="mb-0" style="font-size: 0.72rem;">
+                                                    Salin tautan <code>https://...</code> yang tampil di terminal Anda, lalu tempelkan ke kolom Base URL di atas agar dapat dibuka dari smartphone mana pun.
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <!-- Enforce HTTPS Toggle Box -->
-                                <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between mt-4">
+                                <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
                                     <div>
                                         <div class="fw-bold text-dark small mb-0 d-flex align-items-center gap-2">
-                                            <i class="bi bi-lock-fill text-success"></i>
-                                            Paksa Protokol Aman (Enforce HTTPS)
+                                            <i class="bi bi-shield-check text-success"></i>
+                                            Paksa Jalur Aman (Enforce HTTPS)
                                         </div>
                                         <small class="text-muted d-block mt-0.5" style="font-size: 0.72rem;">
-                                            Otomatis redirect setiap request HTTP biasa ke HTTPS (301 Permanent Redirect) demi mencegah penyadapan data.
+                                            Otomatis mengalihkan koneksi ke HTTPS demi keamanan data dan kelancaran izin kamera QR Code smartphone.
                                         </small>
                                     </div>
                                     <div class="form-check form-switch ms-3">
@@ -224,9 +311,9 @@
                                 </div>
                             </div>
 
-                            <div class="alert alert-light border small mt-4 mb-0 text-muted" style="font-size: 0.75rem;">
+                            <div class="alert alert-light border small mt-3 mb-0 text-muted" style="font-size: 0.73rem;">
                                 <i class="bi bi-info-circle text-primary me-1"></i>
-                                Jika aplikasi dipasang di balik Reverse Proxy (Nginx / Cloudflare), pastikan reverse proxy meneruskan header <code>X-Forwarded-Proto</code>.
+                                Kamera smartphone memerlukan protokol HTTPS yang aman untuk mengaktifkan pemindai QR Code jika diakses melalui jaringan luar.
                             </div>
                         </div>
                     </div>
@@ -721,6 +808,101 @@
 
 {% block scripts %}
 <script>
+// ==========================================
+// Network & Base URL Mode Helpers
+// ==========================================
+function setNetworkMode(mode) {
+    document.querySelectorAll('.net-mode-btn').forEach(function(b) {
+        b.classList.remove('active', 'btn-primary');
+        b.classList.add('btn-outline-primary');
+    });
+    var activeBtn = document.getElementById('mode-btn-' + mode);
+    if (activeBtn) {
+        activeBtn.classList.remove('btn-outline-primary');
+        activeBtn.classList.add('active', 'btn-primary');
+    }
+
+    document.querySelectorAll('.net-mode-content').forEach(function(el) {
+        el.classList.add('d-none');
+    });
+    var targetEl = document.getElementById('net-mode-content-' + mode);
+    if (targetEl) targetEl.classList.remove('d-none');
+
+    var urlInput = document.getElementById('appBaseUrlInput');
+    if (mode === 'localhost' && urlInput) {
+        urlInput.value = 'http://localhost:5000';
+    }
+}
+
+function refreshLanIp() {
+    var btn = document.getElementById('btnRefreshLanIp');
+    var display = document.getElementById('currentLanIpDisplay');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengecek...';
+    }
+
+    fetch('/api/system/detect-network')
+        .then(function(res) { return res.json(); })
+        .then(function(data) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP';
+            }
+            if (data.status === 'success') {
+                if (display) display.textContent = data.detected_ip + ':' + data.port;
+                JescaToast.show('IP Wi-Fi berhasil diperbarui: ' + data.detected_ip + ':' + data.port, 'info');
+            }
+        })
+        .catch(function(err) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP';
+            }
+            JescaToast.show('Gagal mendeteksi ulang IP Wi-Fi: ' + err.message, 'danger');
+        });
+}
+
+function applyLanIp() {
+    var urlInput = document.getElementById('appBaseUrlInput');
+    var display = document.getElementById('currentLanIpDisplay');
+    var ipText = display ? display.textContent.trim() : '127.0.0.1:5000';
+    if (urlInput) {
+        urlInput.value = 'http://' + ipText;
+        JescaToast.show('Alamat Wi-Fi diterapkan: http://' + ipText, 'success');
+    }
+}
+
+function copyCommandText(text) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+            JescaToast.show('Perintah disalin ke clipboard.', 'success');
+        });
+    } else {
+        var input = document.createElement('input');
+        input.value = text;
+        document.body.appendChild(input);
+        input.select();
+        document.execCommand('copy');
+        document.body.removeChild(input);
+        JescaToast.show('Perintah disalin ke clipboard.', 'success');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var urlInput = document.getElementById('appBaseUrlInput');
+    if (urlInput && urlInput.value) {
+        var v = urlInput.value.toLowerCase();
+        if (v.indexOf('localhost') !== -1 || v.indexOf('127.0.0.1') !== -1) {
+            setNetworkMode('localhost');
+        } else if (v.indexOf('192.168.') !== -1 || v.indexOf('10.') !== -1 || v.indexOf('172.') !== -1) {
+            setNetworkMode('wifi');
+        } else {
+            setNetworkMode('domain');
+        }
+    }
+});
+
 // ==========================================
 // Tab State Persistence (Remember Selected Tab)
 // ==========================================

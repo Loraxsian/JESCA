@@ -51,15 +51,17 @@ Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-mas
 
 ### 7. Keamanan, Pengaturan Sistem & Ketahanan Aplikasi
 - Sudo Mode: Konfirmasi password ulang saat membuka menu Pengaturan Sistem (/settings) demi keamanan jika laptop ditinggal sebentar di meja kantor.
+- Penyederhanaan Akses Jaringan & Deteksi Wi-Fi Kantor: Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri, Wi-Fi Kantor LAN, atau Domain Sendiri/VPS). Tersedia tombol "Cek Ulang IP" untuk mendeteksi ulang alamat IP komputer secara otomatis jika router Wi-Fi me-restart.
+- Akses Cepat Lapangan Tanpa Domain: Petunjuk perintah instan untuk menghubungkan laptop ke internet publik sementara waktu agar dapat diuji coba dari smartphone di luar kantor.
 - Dynamic SMTP: Pengaturan server email (Gmail, cPanel, Outlook, dsb.) bisa diubah langsung dari halaman web tanpa perlu restart aplikasi.
 - IP Whitelist & VPN Access: Pembatasan akses web hanya untuk jaringan kantor atau VPN internal tertentu.
 - Mode SQLite WAL & Busy Timeout: Menggunakan Write-Ahead Logging (WAL) dan timeout antrean 30 detik untuk mencegah error database terkunci saat banyak aksi dijalankan bersamaan.
 - Halaman Error Ramah & Auto-Rollback: Jika terjadi gangguan tak terduga, sistem tidak menampilkan layar putih error server, melainkan halaman kustom JESCA dengan tombol kembali yang aman dan otomatis membatalkan transaksi database (rollback) agar data tidak rusak.
 - Proteksi brute-force login dan penggantian password default otomatis pada login pertama.
 
-### 8. Panduan Sistem Interaktif (Welcome Onboarding)
-- Tampilan walkthrough otomatis saat pengguna pertama kali login ke sistem untuk memperkenalkan tata letak menu utama dan pembagian peran akun.
-- Pengguna dapat membuka kembali panduan interaktif ini kapan saja melalui menu dropdown profil pengguna ("Panduan Sistem") di pojok kanan atas.
+### 8. Tur Interaktif Tanda Tunjuk & Panduan Sistem
+- Tur Interaktif (Spotlight Tour): Panduan visual langsung dengan sorotan tanda tunjuk ke tombol dan menu utama (bilah navigasi modul, kamera QR Code, tombol tambah aset baru, lonceng notifikasi, dan shortcut Ctrl+K) agar pengguna awam langsung paham apa yang harus ditekan.
+- Buku Panduan Modul: Ringkasan lengkap peran pengguna (RBAC), alur pengadaan barang (PO), meja kerja servis teknisi, dan ekspor laporan yang dapat dibuka kembali kapan saja via menu "Panduan Sistem".
 
 ### 9. Sinkronisasi Stok Opname Lapangan Offline (IndexedDB Background Sync)
 - Petugas di area buta sinyal (seperti gudang bawah tanah atau ruang server tertutup) tetap dapat melakukan scan QR Code aset dan mencatat verifikasi fisik stok opname.

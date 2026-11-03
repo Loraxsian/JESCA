@@ -234,7 +234,7 @@
                         <!-- Notification Bell Dropdown -->
                         {% set total_notifs = (maintenance_alerts|length if maintenance_alerts else 0) + (pending_po_alerts|length if pending_po_alerts else 0) + (user_po_alerts|length if user_po_alerts else 0) + (feedback_alerts|length if feedback_alerts else 0) %}
                         <div class="dropdown me-1">
-                            <button class="btn btn-light position-relative border-0 rounded-circle p-2 shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan & Notifikasi">
+                            <button class="btn btn-light position-relative border-0 rounded-circle p-2 shadow-none" type="button" id="navbarNotifBell" data-bs-toggle="dropdown" aria-expanded="false" title="Pemberitahuan & Notifikasi">
                                 <i class="bi bi-bell fs-5 text-secondary"></i>
                                 {% if total_notifs > 0 %}
                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.65rem;">
@@ -403,12 +403,12 @@
                         </div>
 
                         <!-- Camera QR Scanner Button -->
-                        <button class="btn btn-light border-0 rounded-circle p-2 shadow-none me-1" type="button" title="Scan QR Code Aset" onclick="JescaQRScanner.open()">
+                        <button class="btn btn-light border-0 rounded-circle p-2 shadow-none me-1" type="button" id="navbarQrBtn" title="Scan QR Code Aset" onclick="JescaQRScanner.open()">
                             <i class="bi bi-camera fs-5 text-secondary"></i>
                         </button>
 
                         <!-- Quick Add Asset Button -->
-                        <a href="{{ url_for('assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
+                        <a href="{{ url_for('assets') }}" id="navbarAddAssetBtn" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-plus-lg"></i>
                             <span class="d-none d-sm-inline">Tambah Aset</span>
                         </a>
@@ -436,7 +436,7 @@
                                     <small class="text-muted">@{{ current_user.username }} &bull; {{ current_user.role }}</small>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" onclick="JescaOnboarding.show(); return false;">
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" onclick="JescaOnboarding.showMenu(); return false;">
                                         <i class="bi bi-compass text-muted"></i>
                                         <span>Panduan Sistem</span>
                                     </a>
@@ -513,13 +513,13 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.5 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.6 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
                             <i class="bi bi-printer me-1"></i>Print
                         </button>
-                        <span class="badge bg-light text-secondary border font-monospace" style="font-size: 0.68rem;">
+                        <span class="badge bg-light text-secondary border font-monospace" id="footerCommandBadge" style="font-size: 0.68rem;">
                             <kbd style="font-size:0.65rem; background:transparent; padding:0;">Ctrl+K</kbd> Command Palette
                         </span>
                     </div>
@@ -709,6 +709,68 @@
                         <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Profil</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL MODAL: PILIHAN PANDUAN SISTEM
+         ========================================== -->
+    <div class="modal fade" id="panduanMenuModal" tabindex="-1" aria-labelledby="panduanMenuModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom py-3 px-4 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                            <i class="bi bi-compass fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold mb-0 text-dark" id="panduanMenuModalLabel">Panduan Sistem JESCA</h6>
+                            <small class="text-muted">Pilih metode panduan yang Anda butuhkan</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 d-flex flex-column gap-3">
+                    <!-- Opsi 1: Tur Interaktif Tanda Tunjuk -->
+                    <div class="card border rounded-3 p-3 bg-light hover-shadow transition">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="bg-primary text-white rounded-circle p-2 mt-1 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                <i class="bi bi-cursor-fill fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-dark">Tur Interaktif (Tanda Tunjuk Langsung)</div>
+                                <p class="text-muted small mb-2" style="font-size: 0.76rem;">
+                                    Sistem akan memberikan tanda sorot dan panah penunjuk ke tombol-tombol utama (kamera QR scanner, tambah aset, notifikasi, dan bilah menu) agar Anda langsung tahu fungsi masing-masing tombol.
+                                </p>
+                                <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" onclick="JescaOnboarding.startSpotlightTour()">
+                                    <i class="bi bi-play-circle me-1"></i>Mulai Tur Tanda Tunjuk
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Opsi 2: Buku Panduan Lengkap -->
+                    <div class="card border rounded-3 p-3 bg-light hover-shadow transition">
+                        <div class="d-flex align-items-start gap-3">
+                            <div class="bg-secondary-subtle text-secondary rounded-circle p-2 mt-1 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                <i class="bi bi-book-fill fs-5"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-dark">Buku Panduan Sistem Lengkap</div>
+                                <p class="text-muted small mb-2" style="font-size: 0.76rem;">
+                                    Tinjau penjelasan lengkap hak akses pengguna (RBAC), alur pengadaan barang (PO), meja servis teknisi, dan ekspor laporan format Excel/PDF dalam bentuk slide panduan.
+                                </p>
+                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="JescaOnboarding.showModal()">
+                                    <i class="bi bi-journal-text me-1"></i>Buka Buku Panduan
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top px-4 py-2 bg-light justify-content-end">
+                    <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
+                </div>
             </div>
         </div>
     </div>

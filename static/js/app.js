@@ -1075,10 +1075,46 @@ window.AssetCompare = {
 };
 
 // ==========================================
-// 11. WELCOME ONBOARDING WALKTHROUGH
+// 11. WELCOME ONBOARDING & SPOTLIGHT TOUR
 // ==========================================
 window.JescaOnboarding = {
     modalId: 'onboardingModal',
+    menuModalId: 'panduanMenuModal',
+    currentTourStep: 0,
+    tourActive: false,
+
+    tourSteps: [
+        {
+            elementId: 'sidebar-wrapper',
+            title: '1. Navigasi & Modul Inventaris',
+            desc: 'Bilah menu samping ini adalah pusat kontrol utama Anda. Dari sini Anda bisa mengelola Inventaris Aset, Peminjaman Barang, Meja Servis Teknisi, Pengadaan (Purchase Order), dan Ekspor Laporan.',
+            actionHint: 'Akses seluruh menu operasional melalui bilah navigasi ini.'
+        },
+        {
+            elementId: 'navbarQrBtn',
+            title: '2. Pemindai Kamera QR Code',
+            desc: 'Pencet tombol kamera ini untuk membuka pemindai label fisik aset. Anda dapat memverifikasi kondisi fisik stok opname langsung di lapangan, bahkan saat perangkat offline di gudang.',
+            actionHint: 'Arahkan kamera ke label stiker aset untuk verifikasi instan.'
+        },
+        {
+            elementId: 'navbarAddAssetBtn',
+            title: '3. Tambah Aset Baru',
+            desc: 'Pencet tombol ini untuk mendaftarkan barang baru ke dalam sistem. Cukup isi nama, harga beli, kategori, dan sistem akan membuatkan label stiker QR Code secara otomatis.',
+            actionHint: 'Klik tombol ini setiap kali ada penerimaan unit barang baru.'
+        },
+        {
+            elementId: 'navbarNotifBell',
+            title: '4. Pusat Notifikasi & Servis',
+            desc: 'Ikon lonceng ini akan memberi peringatan jika ada jadwal perawatan servis aset yang mendekati jatuh tempo atau permohonan pengadaan barang (PO) yang menunggu persetujuan.',
+            actionHint: 'Periksa lonceng ini untuk memantau tugas yang perlu ditindaklanjuti.'
+        },
+        {
+            elementId: 'footerCommandBadge',
+            title: '5. Pintasan Cepat (Command Palette)',
+            desc: 'Tekan tombol Ctrl + K pada keyboard Anda kapan saja. Jendela pencarian pintar akan terbuka untuk mencari aset, membuka menu, atau berpindah halaman secara instan tanpa perlu klik mouse.',
+            actionHint: 'Gunakan Ctrl + K untuk navigasi super cepat.'
+        }
+    ],
 
     init: function() {
         if (!document.getElementById('sidebar-wrapper')) {
@@ -1087,7 +1123,7 @@ window.JescaOnboarding = {
         var seen = localStorage.getItem('jesca_onboarding_seen');
         if (!seen) {
             setTimeout(function() {
-                JescaOnboarding.show();
+                JescaOnboarding.startSpotlightTour();
             }, 800);
         }
 
@@ -1109,7 +1145,22 @@ window.JescaOnboarding = {
         }
     },
 
-    show: function() {
+    showMenu: function() {
+        var menuEl = document.getElementById(this.menuModalId);
+        if (menuEl) {
+            var bsModal = bootstrap.Modal.getOrCreateInstance(menuEl);
+            bsModal.show();
+        } else {
+            this.showModal();
+        }
+    },
+
+    showModal: function() {
+        var menuEl = document.getElementById(this.menuModalId);
+        if (menuEl) {
+            var bsMenu = bootstrap.Modal.getInstance(menuEl);
+            if (bsMenu) bsMenu.hide();
+        }
         var modalEl = document.getElementById(this.modalId);
         if (!modalEl) return;
         var carouselEl = document.getElementById('onboardingCarousel');
@@ -1133,6 +1184,147 @@ window.JescaOnboarding = {
             var bsModal = bootstrap.Modal.getInstance(modalEl);
             if (bsModal) bsModal.hide();
         }
+        var menuEl = document.getElementById(this.menuModalId);
+        if (menuEl) {
+            var bsMenu = bootstrap.Modal.getInstance(menuEl);
+            if (bsMenu) bsMenu.hide();
+        }
+    },
+
+    startSpotlightTour: function() {
+        this.complete();
+        this.tourActive = true;
+        this.currentTourStep = 0;
+        this.renderTourStep();
+    },
+
+    renderTourStep: function() {
+        if (!this.tourActive) return;
+        var step = this.tourSteps[this.currentTourStep];
+        if (!step) {
+            this.endTour();
+            return;
+        }
+
+        var target = document.getElementById(step.elementId);
+        if (!target) {
+            this.currentTourStep++;
+            if (this.currentTourStep < this.tourSteps.length) {
+                this.renderTourStep();
+            } else {
+                this.endTour();
+            }
+            return;
+        }
+
+        try {
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (e) {}
+
+        setTimeout(function() {
+            var rect = target.getBoundingClientRect();
+            JescaOnboarding.renderSpotlightUI(rect, step);
+        }, 250);
+    },
+
+    renderSpotlightUI: function(rect, step) {
+        var overlay = document.getElementById('jesca-spotlight-overlay');
+        if (!overlay) {
+            overlay = document.createElement('div');
+            overlay.id = 'jesca-spotlight-overlay';
+            document.body.appendChild(overlay);
+        }
+
+        var box = document.getElementById('jesca-spotlight-box');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'jesca-spotlight-box';
+            document.body.appendChild(box);
+        }
+
+        var pad = 6;
+        box.style.top = Math.max(0, rect.top - pad) + 'px';
+        box.style.left = Math.max(0, rect.left - pad) + 'px';
+        box.style.width = (rect.width + (pad * 2)) + 'px';
+        box.style.height = (rect.height + (pad * 2)) + 'px';
+
+        var popover = document.getElementById('jesca-spotlight-popover');
+        if (!popover) {
+            popover = document.createElement('div');
+            popover.id = 'jesca-spotlight-popover';
+            document.body.appendChild(popover);
+        }
+
+        var total = this.tourSteps.length;
+        var cur = this.currentTourStep + 1;
+        var isLast = (cur === total);
+
+        popover.innerHTML = '<div class="d-flex justify-content-between align-items-center mb-2">' +
+            '<span class="badge bg-primary-subtle text-primary font-monospace rounded-pill px-2.5 py-1" style="font-size:0.7rem;">Langkah ' + cur + ' dari ' + total + '</span>' +
+            '<button type="button" class="btn-close" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour()"></button>' +
+            '</div>' +
+            '<div class="fw-bold text-dark mb-1" style="font-size:0.92rem;">' + step.title + '</div>' +
+            '<p class="text-secondary small mb-2" style="font-size:0.78rem;line-height:1.45;">' + step.desc + '</p>' +
+            '<div class="p-2 rounded-2 bg-light border mb-3 small text-muted d-flex align-items-center gap-2" style="font-size:0.72rem;">' +
+            '<i class="bi bi-hand-index-thumb text-primary fs-6 flex-shrink-0"></i>' +
+            '<span>' + step.actionHint + '</span>' +
+            '</div>' +
+            '<div class="d-flex justify-content-between align-items-center">' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour()">Lewati</button>' +
+            '<div class="d-flex gap-1.5">' +
+            (this.currentTourStep > 0 ? '<button type="button" class="btn btn-light border btn-sm rounded-pill px-2.5 py-1 me-1" style="font-size:0.75rem;" onclick="JescaOnboarding.prevTourStep()"><i class="bi bi-chevron-left"></i></button>' : '') +
+            '<button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold" style="font-size:0.75rem;" onclick="JescaOnboarding.nextTourStep()">' +
+            (isLast ? 'Selesai & Mulai <i class="bi bi-check2 ms-1"></i>' : 'Lanjut <i class="bi bi-chevron-right ms-1"></i>') +
+            '</button>' +
+            '</div>' +
+            '</div>';
+
+        var popW = 340;
+        var popH = 240;
+        var winW = window.innerWidth;
+        var winH = window.innerHeight;
+
+        var top = rect.bottom + 14;
+        var left = rect.left;
+
+        if (top + popH > winH - 20) {
+            top = Math.max(20, rect.top - popH - 14);
+        }
+        if (left + popW > winW - 20) {
+            left = Math.max(20, winW - popW - 20);
+        }
+        if (left < 20) left = 20;
+
+        popover.style.top = top + 'px';
+        popover.style.left = left + 'px';
+    },
+
+    nextTourStep: function() {
+        this.currentTourStep++;
+        if (this.currentTourStep < this.tourSteps.length) {
+            this.renderTourStep();
+        } else {
+            this.endTour();
+            JescaToast.show('Tur panduan selesai. Anda siap menggunakan JESCA!', 'success');
+        }
+    },
+
+    prevTourStep: function() {
+        if (this.currentTourStep > 0) {
+            this.currentTourStep--;
+            this.renderTourStep();
+        }
+    },
+
+    endTour: function() {
+        this.tourActive = false;
+        var overlay = document.getElementById('jesca-spotlight-overlay');
+        var box = document.getElementById('jesca-spotlight-box');
+        var popover = document.getElementById('jesca-spotlight-popover');
+        if (overlay) overlay.remove();
+        if (box) box.remove();
+        if (popover) popover.remove();
+        localStorage.setItem('jesca_onboarding_seen', 'true');
     }
 };
 

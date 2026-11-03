@@ -1085,3 +1085,39 @@ footer {
     border-radius: 10px;
     opacity: 1;
 }
+
+/* Spotlight Tour Styles */
+#jesca-spotlight-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10000;
+    pointer-events: auto;
+    background: transparent;
+}
+#jesca-spotlight-box {
+    position: fixed;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.72), 0 0 20px rgba(37, 99, 235, 0.6);
+    border: 2px solid #3b82f6;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
+    z-index: 10001;
+}
+#jesca-spotlight-popover {
+    position: fixed;
+    width: 340px;
+    max-width: 90vw;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    border: 1px solid #e2e8f0;
+    padding: 16px;
+    z-index: 10002;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    animation: fadeIn 0.2s ease;
+}
+[data-theme="dark"] #jesca-spotlight-popover {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f8fafc;
+}

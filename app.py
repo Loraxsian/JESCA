@@ -11,6 +11,7 @@ import threading
 import base64
 import hashlib
 import ipaddress
+import socket
 import traceback
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -57,7 +58,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.5'
+APP_VERSION = '2.5.6'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -4900,14 +4901,76 @@ def system_settings():
         }
     }
 
+    # Detect current local network IP for Wi-Fi mode
+    detected_lan_ip = '127.0.0.1'
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0.2)
+        s.connect(('8.8.8.8', 80))
+        sock_ip = s.getsockname()[0]
+        s.close()
+        if sock_ip and not sock_ip.startswith('127.'):
+            detected_lan_ip = sock_ip
+    except Exception:
+        pass
+
     return render_template(
         'settings.html',
         setting=setting,
         has_password=bool(setting.mail_password),
         runtime=runtime_info,
+        detected_lan_ip=detected_lan_ip,
         app_version=APP_VERSION,
         github_repo=GITHUB_REPO
     )
+
+
+@app.route('/api/system/detect-network', methods=['GET'])
+@login_required
+@role_required('Admin')
+def api_detect_network():
+    """Detect current local network IP address and port for Wi-Fi / LAN mode."""
+    detected_ip = '127.0.0.1'
+    port = 5000
+
+    # 1. Check host header from browser request
+    host_header = request.headers.get('Host', '')
+    if host_header:
+        host_parts = host_header.split(':')
+        host_name = host_parts[0]
+        if len(host_parts) > 1 and host_parts[1].isdigit():
+            port = int(host_parts[1])
+        if host_name not in ('localhost', '127.0.0.1', '0.0.0.0') and not host_name.startswith('172.'):
+            detected_ip = host_name
+
+    # 2. Try socket connection lookup
+    if detected_ip in ('127.0.0.1', 'localhost') or detected_ip.startswith('172.'):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.settimeout(0.2)
+            s.connect(('8.8.8.8', 80))
+            sock_ip = s.getsockname()[0]
+            s.close()
+            if sock_ip and not sock_ip.startswith(('127.', '172.')):
+                detected_ip = sock_ip
+        except Exception:
+            pass
+
+    # 3. If running inside container / proxy, inspect client IP as potential LAN peer
+    if detected_ip == '127.0.0.1' or detected_ip.startswith('172.'):
+        client_ip = get_client_ip()
+        if client_ip and (client_ip.startswith('192.168.') or client_ip.startswith('10.')):
+            detected_ip = client_ip
+
+    suggested_url = f"http://{detected_ip}:{port}"
+
+    return jsonify({
+        'status': 'success',
+        'detected_ip': detected_ip,
+        'port': port,
+        'suggested_url': suggested_url,
+        'timestamp': datetime.utcnow().strftime('%H:%M:%S')
+    })
 
 
 @app.route('/settings/test-smtp', methods=['POST'])
