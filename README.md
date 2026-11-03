@@ -165,15 +165,34 @@ jesca-assets/
 
 ## Rencana Pengembangan Selanjutnya (Roadmap)
 
-Untuk pengembangan sistem ke depannya, beberapa hal yang ada di dalam rencana kami meliputi:
+Untuk pengembangan sistem ke depannya (rencana rilis versi besar selanjutnya), beberapa ide dan masukan operasional yang telah kami catat meliputi:
 
-1. Optimalisasi database jika pengguna dan volume data semakin banyak (status: soon / rencana ke depan):
-   - Menyiapkan opsi migrasi ke database server seperti PostgreSQL atau MySQL jika kantor membutuhkan kapasitas transaksi yang jauh lebih besar secara bersamaan.
-   - Peningkatan indexing pada tabel-tabel utama agar pencarian data tetap cepat saat jumlah aset mencapai puluhan ribu.
-   - Penambahan caching (seperti Redis) untuk data analitik dashboard.
+1. Efisiensi Media & Penyimpanan (Storage Management):
+   - Kompresi gambar otomatis menggunakan pustaka Pillow di Python.
+   - Mengubah ukuran foto aset, bukti nota servis, dan surat jalan secara otomatis ke resolusi maksimal 1080p serta konversi ke format modern WebP agar menghemat kapasitas disk server hingga 80-90% dan mempercepat loading di HP.
 
-2. Integrasi notifikasi pesan instan:
-   - Notifikasi otomatis lewat bot Telegram atau WhatsApp saat ada pengajuan Purchase Order baru yang butuh persetujuan segera atau saat ada barang yang dilaporkan rusak berat.
+2. Webhook & Notifikasi Cepat Tim:
+   - Integrasi Webhook ke grup Telegram Bot atau Slack agar teknisi dan admin langsung mendapat notifikasi instan saat ada staf yang melaporkan barang rusak atau saat ada pengajuan Purchase Order baru.
+
+3. Logika Pemeliharaan Pintar (Smart Maintenance):
+   - Menambahkan deteksi otomatis untuk aset yang terlalu sering rusak (misalnya dilaporkan rusak lebih dari 3 kali dalam 2 bulan).
+   - Sistem akan menandai aset tersebut sebagai prioritas kritis dan memberikan saran ke Admin untuk mempertimbangkan pengadaan unit baru (replacement) daripada terus mengeluarkan biaya servis rutin.
+
+4. Verifikasi Dua Langkah (2FA / TOTP):
+   - Penambahan opsi keamanan login 2FA menggunakan aplikasi authenticator (seperti Google Authenticator) khusus untuk akun Admin, terutama saat mengakses menu pengaturan sistem atau menyetujui Purchase Order bernilai besar.
+
+5. Struktur Lokasi Bertingkat (Hierarchical Multi-Location):
+   - Mengembangkan struktur lokasi fisik aset yang bercabang/nested (contoh: Kantor Pusat -> Lantai 3 -> Ruang IT -> Rak Server A) untuk mempermudah pencarian aset berukuran kecil.
+
+6. Fitur Lapangan Offline (PWA & Stok Opname):
+   - Pengembangan frontend menjadi Progressive Web App (PWA) agar petugas inventaris tetap bisa melakukan scan QR Code dan cek fisik stok opname di area tanpa sinyal (seperti gudang bawah tanah). Data tersimpan di browser sementara (IndexedDB) dan otomatis tersinkronisasi saat tersambung internet kembali.
+
+7. Optimalisasi Database Skala Besar (status: soon / rencana ke depan):
+   - Opsi migrasi dari SQLite ke database server seperti PostgreSQL atau MySQL jika jumlah aset sudah mencapai puluhan ribu dan pengguna aktif bersamaan semakin banyak.
+   - Pemanfaatan caching (seperti Redis) untuk data analitik dashboard dan token sesi.
+
+8. Pemisahan Arsitektur Kode (Flask Blueprint):
+   - Restrukturisasi file utama app.py menjadi modul-modul terpisah (routes, models, services) menggunakan Flask Blueprints agar kode lebih rapi dan bebas konflik saat dikembangkan bersama tim developer di Git.
 
 ---
 
