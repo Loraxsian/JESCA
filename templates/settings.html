@@ -236,6 +236,32 @@
                                             </button>
                                         </div>
                                     </div>
+
+                                    <!-- Daftar Pilihan Adaptor Jaringan Aktif -->
+                                    <div id="adapterSelectionList" class="mb-2">
+                                        <div class="small text-muted mb-1.5 fw-semibold" style="font-size:0.72rem;">
+                                            Pilihan adaptor terdeteksi (Klik untuk memilih):
+                                        </div>
+                                        <div class="d-flex flex-wrap gap-2" id="adapterBadgesContainer">
+                                            {% if adapters and adapters|length > 0 %}
+                                                {% for adp in adapters %}
+                                                <button type="button" class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-start d-flex align-items-center gap-2 shadow-xs" onclick="selectAdapterIp('{{ adp.ip }}', 5000)">
+                                                    <i class="bi {% if adp.type == 'Kabel LAN' %}bi-ethernet text-success{% elif adp.type == 'Wi-Fi' %}bi-wifi text-primary{% else %}bi-hdd-network text-info{% endif %}"></i>
+                                                    <span class="fw-bold small">{{ adp.type }}:</span>
+                                                    <span class="font-monospace text-dark small">{{ adp.ip }}:5000</span>
+                                                    <span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">{{ adp.name }}</span>
+                                                </button>
+                                                {% endfor %}
+                                            {% else %}
+                                                <button type="button" class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-start d-flex align-items-center gap-2 shadow-xs" onclick="selectAdapterIp('{{ detected_lan_ip }}', 5000)">
+                                                    <i class="bi bi-ethernet text-success"></i>
+                                                    <span class="fw-bold small">Jaringan Lokal:</span>
+                                                    <span class="font-monospace text-dark small">{{ detected_lan_ip }}:5000</span>
+                                                </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
                                     <small class="text-muted d-block" style="font-size: 0.73rem;">
                                         Staf cukup menyambungkan laptop atau smartphone ke jaringan kantor yang sama (baik melalui colokan kabel LAN maupun sinyal Wi-Fi) untuk membuka sistem dan memindai QR Code tanpa perlu kuota internet. Jika router me-restart atau kabel dipindahkan dan IP berubah, klik <strong>Cek Ulang IP Jaringan</strong> lalu simpan.
                                     </small>
@@ -874,6 +900,37 @@ function setNetworkMode(mode) {
     }
 }
 
+function selectAdapterIp(ip, port) {
+    port = port || 5000;
+    var display = document.getElementById('currentLanIpDisplay');
+    if (display) display.textContent = ip + ':' + port;
+    var urlInput = document.getElementById('appBaseUrlInput');
+    if (urlInput) {
+        urlInput.value = 'http://' + ip + ':' + port;
+    }
+    JescaToast.show('Adaptor dipilih: http://' + ip + ':' + port, 'info');
+}
+
+function renderAdapterList(adapters, port) {
+    var container = document.getElementById('adapterBadgesContainer');
+    if (!container) return;
+    if (!adapters || adapters.length === 0) {
+        container.innerHTML = '<span class="text-muted small">Tidak ada adaptor fisik terdeteksi.</span>';
+        return;
+    }
+    container.innerHTML = adapters.map(function(adp) {
+        var icon = 'bi-hdd-network text-info';
+        if (adp.type === 'Kabel LAN') icon = 'bi-ethernet text-success';
+        else if (adp.type === 'Wi-Fi') icon = 'bi-wifi text-primary';
+        return '<button type="button" class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-start d-flex align-items-center gap-2 shadow-xs" onclick="selectAdapterIp(\'' + adp.ip + '\', ' + port + ')">' +
+            '<i class="bi ' + icon + '"></i>' +
+            '<span class="fw-bold small">' + adp.type + ':</span>' +
+            '<span class="font-monospace text-dark small">' + adp.ip + ':' + port + '</span>' +
+            '<span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">' + (adp.name || '') + '</span>' +
+            '</button>';
+    }).join('');
+}
+
 function refreshLanIp() {
     var btn = document.getElementById('btnRefreshLanIp');
     var display = document.getElementById('currentLanIpDisplay');
@@ -887,19 +944,20 @@ function refreshLanIp() {
         .then(function(data) {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP';
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP Jaringan';
             }
             if (data.status === 'success') {
                 if (display) display.textContent = data.detected_ip + ':' + data.port;
-                JescaToast.show('IP Wi-Fi berhasil diperbarui: ' + data.detected_ip + ':' + data.port, 'info');
+                if (data.adapters) renderAdapterList(data.adapters, data.port);
+                JescaToast.show('IP jaringan berhasil diperbarui: ' + data.detected_ip + ':' + data.port, 'info');
             }
         })
         .catch(function(err) {
             if (btn) {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP';
+                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP Jaringan';
             }
-            JescaToast.show('Gagal mendeteksi ulang IP Wi-Fi: ' + err.message, 'danger');
+            JescaToast.show('Gagal mendeteksi ulang IP jaringan: ' + err.message, 'danger');
         });
 }
 
