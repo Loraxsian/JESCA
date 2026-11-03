@@ -1069,3 +1069,19 @@ footer {
 [data-theme="dark"] .po-step-title {
     color: #94a3b8;
 }
+
+/* Onboarding Carousel Indicators */
+#onboardingCarousel .carousel-indicators [data-bs-target] {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin: 0 4px;
+    opacity: 0.35;
+    background-color: var(--primary-color, #2563eb);
+    transition: all 0.25s ease;
+}
+#onboardingCarousel .carousel-indicators .active {
+    width: 22px;
+    border-radius: 10px;
+    opacity: 1;
+}

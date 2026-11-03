@@ -57,6 +57,15 @@ Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-mas
 - Halaman Error Ramah & Auto-Rollback: Jika terjadi gangguan tak terduga, sistem tidak menampilkan layar putih error server, melainkan halaman kustom JESCA dengan tombol kembali yang aman dan otomatis membatalkan transaksi database (rollback) agar data tidak rusak.
 - Proteksi brute-force login dan penggantian password default otomatis pada login pertama.
 
+### 8. Panduan Sistem Interaktif (Welcome Onboarding)
+- Tampilan walkthrough otomatis saat pengguna pertama kali login ke sistem untuk memperkenalkan tata letak menu utama dan pembagian peran akun.
+- Pengguna dapat membuka kembali panduan interaktif ini kapan saja melalui menu dropdown profil pengguna ("Panduan Sistem") di pojok kanan atas.
+
+### 9. Sinkronisasi Stok Opname Lapangan Offline (IndexedDB Background Sync)
+- Petugas di area buta sinyal (seperti gudang bawah tanah atau ruang server tertutup) tetap dapat melakukan scan QR Code aset dan mencatat verifikasi fisik stok opname.
+- Data verifikasi disimpan sementara di penyimpanan browser menggunakan IndexedDB tanpa memerlukan koneksi internet aktif.
+- Begitu perangkat kembali terhubung ke internet, sistem secara otomatis menyinkronkan seluruh antrean data opname ke server di latar belakang tanpa mengganggu alur kerja pengguna.
+
 ---
 
 ## Cara Menjalankan Aplikasi
@@ -184,8 +193,8 @@ Untuk pengembangan sistem ke depannya (rencana rilis versi besar selanjutnya), b
 5. Struktur Lokasi Bertingkat (Hierarchical Multi-Location):
    - Mengembangkan struktur lokasi fisik aset yang bercabang/nested (contoh: Kantor Pusat -> Lantai 3 -> Ruang IT -> Rak Server A) untuk mempermudah pencarian aset berukuran kecil.
 
-6. Fitur Lapangan Offline (PWA & Stok Opname):
-   - Pengembangan frontend menjadi Progressive Web App (PWA) agar petugas inventaris tetap bisa melakukan scan QR Code dan cek fisik stok opname di area tanpa sinyal (seperti gudang bawah tanah). Data tersimpan di browser sementara (IndexedDB) dan otomatis tersinkronisasi saat tersambung internet kembali.
+6. Sinkronisasi Stok Opname Lapangan Offline (Selesai pada v2.5.5):
+   - Fitur scan QR dan pencatatan kondisi fisik barang saat stok opname di area tanpa sinyal telah diimplementasikan menggunakan IndexedDB browser lokal dan otomatis sinkron saat online kembali di latar belakang.
 
 7. Optimalisasi Database Skala Besar (status: soon / rencana ke depan):
    - Opsi migrasi dari SQLite ke database server seperti PostgreSQL atau MySQL jika jumlah aset sudah mencapai puluhan ribu dan pengguna aktif bersamaan semakin banyak.

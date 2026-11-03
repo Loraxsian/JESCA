@@ -402,6 +402,11 @@
                             </ul>
                         </div>
 
+                        <!-- Camera QR Scanner Button -->
+                        <button class="btn btn-light border-0 rounded-circle p-2 shadow-none me-1" type="button" title="Scan QR Code Aset" onclick="JescaQRScanner.open()">
+                            <i class="bi bi-camera fs-5 text-secondary"></i>
+                        </button>
+
                         <!-- Quick Add Asset Button -->
                         <a href="{{ url_for('assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-plus-lg"></i>
@@ -429,6 +434,12 @@
                                 <li class="px-3 py-2 border-bottom">
                                     <div class="fw-bold text-dark">{{ current_user.full_name }}</div>
                                     <small class="text-muted">@{{ current_user.username }} &bull; {{ current_user.role }}</small>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" onclick="JescaOnboarding.show(); return false;">
+                                        <i class="bi bi-compass text-muted"></i>
+                                        <span>Panduan Sistem</span>
+                                    </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">
@@ -502,7 +513,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.4.1 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.5 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
@@ -698,6 +709,173 @@
                         <button type="submit" class="btn btn-primary btn-sm fw-bold">Simpan Profil</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         GLOBAL MODAL: PANDUAN AWAL SISTEM (ONBOARDING)
+         ========================================== -->
+    <div class="modal fade" id="onboardingModal" tabindex="-1" aria-labelledby="onboardingModalLabel" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <div class="modal-header border-bottom py-3 px-4 bg-light">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                            <i class="bi bi-compass fs-5"></i>
+                        </div>
+                        <div>
+                            <h6 class="modal-title fw-bold mb-0 text-dark" id="onboardingModalLabel">Panduan Sistem JESCA</h6>
+                            <small class="text-muted">Jessica Assets Management System</small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="JescaOnboarding.complete()"></button>
+                </div>
+                
+                <div class="modal-body p-0">
+                    <div id="onboardingCarousel" class="carousel slide" data-bs-interval="false">
+                        <!-- Indicators -->
+                        <div class="carousel-indicators mb-2" style="position: relative; margin-top: 15px;">
+                            <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="0" class="active bg-primary" aria-current="true" aria-label="Slide 1"></button>
+                            <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="1" class="bg-primary" aria-label="Slide 2"></button>
+                            <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="2" class="bg-primary" aria-label="Slide 3"></button>
+                            <button type="button" data-bs-target="#onboardingCarousel" data-bs-slide-to="3" class="bg-primary" aria-label="Slide 4"></button>
+                        </div>
+
+                        <div class="carousel-inner px-4 pb-4">
+                            <!-- Slide 1: Pengenalan & Role RBAC -->
+                            <div class="carousel-item active">
+                                <div class="text-center py-2 mb-3">
+                                    <span class="badge bg-primary-subtle text-primary font-monospace px-3 py-1 rounded-pill mb-2">Langkah 1 dari 4 &bull; Fondasi Sistem</span>
+                                    <h5 class="fw-bold text-dark">Selamat Datang di JESCA</h5>
+                                    <p class="text-muted small mx-auto" style="max-width: 580px;">Sistem manajemen aset terintegrasi untuk mengelola inventaris, sirkulasi peminjaman, pemeliharaan teknisi, dan pengadaan barang secara transparan.</p>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border bg-light h-100">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="bi bi-shield-check text-primary"></i>
+                                                <span class="fw-bold small text-dark">Hak Akses Terbagi (RBAC)</span>
+                                            </div>
+                                            <p class="text-muted small mb-0" style="font-size: 0.78rem;">Sistem membedakan akses Admin, Administrator, Auditor, Staff, dan Teknisi sesuai tanggung jawab operasional masing-masing.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border bg-light h-100">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="bi bi-person-lock text-success"></i>
+                                                <span class="fw-bold small text-dark">Keamanan Sudo &amp; IP Whitelist</span>
+                                            </div>
+                                            <p class="text-muted small mb-0" style="font-size: 0.78rem;">Area pengaturan sistem dilindungi verifikasi password berkala dan pembatasan akses jaringan kantor.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 2: Inventaris & QR Code -->
+                            <div class="carousel-item">
+                                <div class="text-center py-2 mb-3">
+                                    <span class="badge bg-primary-subtle text-primary font-monospace px-3 py-1 rounded-pill mb-2">Langkah 2 dari 4 &bull; Pengelolaan Aset</span>
+                                    <h5 class="fw-bold text-dark">Inventaris &amp; Label QR Code Otomatis</h5>
+                                    <p class="text-muted small mx-auto" style="max-width: 580px;">Setiap unit aset yang didaftarkan memiliki identitas digital yang lengkap dan dapat dilacak kapan saja.</p>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-4">
+                                        <div class="p-3 rounded-3 border bg-light text-center h-100">
+                                            <i class="bi bi-upc-scan fs-3 text-primary d-block mb-2"></i>
+                                            <div class="fw-bold small text-dark mb-1">Kode Otomatis</div>
+                                            <small class="text-muted d-block" style="font-size: 0.75rem;">Penomoran otomatis sesuai kategori (Tech, Tools, Furn, Vehicle, Office).</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 rounded-3 border bg-light text-center h-100">
+                                            <i class="bi bi-qr-code fs-3 text-info d-block mb-2"></i>
+                                            <div class="fw-bold small text-dark mb-1">Cetak Label QR</div>
+                                            <small class="text-muted d-block" style="font-size: 0.75rem;">QR Code instan siap cetak untuk ditempel pada stiker fisik perangkat.</small>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="p-3 rounded-3 border bg-light text-center h-100">
+                                            <i class="bi bi-graph-down-arrow fs-3 text-warning d-block mb-2"></i>
+                                            <div class="fw-bold small text-dark mb-1">Nilai Buku &amp; Depresiasi</div>
+                                            <small class="text-muted d-block" style="font-size: 0.75rem;">Perhitungan depresiasi garis lurus untuk estimasi nilai buku terkini.</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 3: Purchase Order & Pemeliharaan -->
+                            <div class="carousel-item">
+                                <div class="text-center py-2 mb-3">
+                                    <span class="badge bg-primary-subtle text-primary font-monospace px-3 py-1 rounded-pill mb-2">Langkah 3 dari 4 &bull; Operasional Terstruktur</span>
+                                    <h5 class="fw-bold text-dark">Alur Pengadaan &amp; Meja Kerja Servis</h5>
+                                    <p class="text-muted small mx-auto" style="max-width: 580px;">Seluruh pengeluaran biaya dan perawatan fisik tercatat dengan bukti dokumen yang sah.</p>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border bg-light h-100">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="bi bi-cart-check text-primary"></i>
+                                                <span class="fw-bold small text-dark">Alur Purchase Order (PO)</span>
+                                            </div>
+                                            <p class="text-muted small mb-0" style="font-size: 0.78rem;">Pengajuan kebutuhan barang melalui tahap approval Admin, upload invoice vendor, dan konversi resmi menjadi aset saat barang tiba.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border bg-light h-100">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="bi bi-wrench-adjustable text-warning"></i>
+                                                <span class="fw-bold small text-dark">Pemeliharaan Berkala</span>
+                                            </div>
+                                            <p class="text-muted small mb-0" style="font-size: 0.78rem;">Teknisi mencatat tanggal perbaikan, rincian biaya komponen, dan nota servis dengan interval servis yang terhitung otomatis.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Slide 4: Ekspor Dokumen & Stok Opname Offline -->
+                            <div class="carousel-item">
+                                <div class="text-center py-2 mb-3">
+                                    <span class="badge bg-primary-subtle text-primary font-monospace px-3 py-1 rounded-pill mb-2">Langkah 4 dari 4 &bull; Fleksibilitas Lapangan</span>
+                                    <h5 class="fw-bold text-dark">Ekspor Laporan &amp; Stok Opname Offline</h5>
+                                    <p class="text-muted small mx-auto" style="max-width: 580px;">Kemudahan pelaporan data dan kelancaran audit fisik lapangan tanpa kendala jaringan.</p>
+                                </div>
+                                <div class="row g-2">
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border bg-light h-100">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="bi bi-file-earmark-spreadsheet text-success"></i>
+                                                <span class="fw-bold small text-dark">Ekspor Excel, PDF, &amp; CSV</span>
+                                            </div>
+                                            <p class="text-muted small mb-0" style="font-size: 0.78rem;">Satu jendela dialog unduh data inventaris ke format Excel (.xlsx), dokumen PDF landscape, atau berkas CSV universal.</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="p-3 rounded-3 border bg-light h-100">
+                                            <div class="d-flex align-items-center gap-2 mb-1">
+                                                <i class="bi bi-cloud-arrow-up text-primary"></i>
+                                                <span class="fw-bold small text-dark">Stok Opname Offline (IndexedDB)</span>
+                                            </div>
+                                            <p class="text-muted small mb-0" style="font-size: 0.78rem;">Scan QR di gudang bawah tanah yang minim sinyal tetap tersimpan di browser dan otomatis tersinkronisasi saat online.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between align-items-center">
+                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal" onclick="JescaOnboarding.complete()">Lewati Panduan</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-target="#onboardingCarousel" data-bs-slide="prev">
+                            <i class="bi bi-chevron-left me-1"></i>Sebelumnya
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" data-bs-target="#onboardingCarousel" data-bs-slide="next" id="btn-onboarding-next">
+                            Selanjutnya<i class="bi bi-chevron-right ms-1"></i>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

@@ -476,7 +476,228 @@ window.BulkSelect = {
 };
 
 // ==========================================
-// 8. CAMERA QR SCANNER
+// 8. OFFLINE INDEXEDDB & STOCK OPNAME SYNC
+// ==========================================
+window.JescaOfflineDB = {
+    db: null,
+    dbName: 'jesca_offline_db',
+    dbVersion: 1,
+
+    init: function() {
+        return new Promise(function(resolve) {
+            if (JescaOfflineDB.db) {
+                resolve(JescaOfflineDB.db);
+                return;
+            }
+            if (!window.indexedDB) {
+                resolve(null);
+                return;
+            }
+            var request = window.indexedDB.open(JescaOfflineDB.dbName, JescaOfflineDB.dbVersion);
+            request.onupgradeneeded = function(e) {
+                var db = e.target.result;
+                if (!db.objectStoreNames.contains('assets_cache')) {
+                    db.createObjectStore('assets_cache', { keyPath: 'code' });
+                }
+                if (!db.objectStoreNames.contains('opname_queue')) {
+                    db.createObjectStore('opname_queue', { keyPath: 'id', autoIncrement: true });
+                }
+            };
+            request.onsuccess = function(e) {
+                JescaOfflineDB.db = e.target.result;
+                resolve(JescaOfflineDB.db);
+            };
+            request.onerror = function() {
+                resolve(null);
+            };
+        });
+    },
+
+    cacheAssets: function() {
+        if (!navigator.onLine) return Promise.resolve();
+        return fetch('/api/assets/cache-summary')
+            .then(function(res) {
+                if (!res.ok) return null;
+                return res.json();
+            })
+            .then(function(data) {
+                if (!data || !data.data) return;
+                return JescaOfflineDB.init().then(function(db) {
+                    if (!db) return;
+                    try {
+                        var tx = db.transaction('assets_cache', 'readwrite');
+                        var store = tx.objectStore('assets_cache');
+                        data.data.forEach(function(item) {
+                            store.put(item);
+                        });
+                    } catch (e) {}
+                });
+            })
+            .catch(function() {});
+    },
+
+    getAsset: function(code) {
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return null;
+            return new Promise(function(resolve) {
+                try {
+                    var tx = db.transaction('assets_cache', 'readonly');
+                    var store = tx.objectStore('assets_cache');
+                    var req = store.get(code);
+                    req.onsuccess = function() {
+                        resolve(req.result || null);
+                    };
+                    req.onerror = function() {
+                        resolve(null);
+                    };
+                } catch (e) {
+                    resolve(null);
+                }
+            });
+        });
+    },
+
+    queueOpname: function(record) {
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return false;
+            return new Promise(function(resolve, reject) {
+                try {
+                    var tx = db.transaction('opname_queue', 'readwrite');
+                    var store = tx.objectStore('opname_queue');
+                    record.is_offline = !navigator.onLine;
+                    record.scanned_at = record.scanned_at || new Date().toISOString();
+                    var req = store.add(record);
+                    req.onsuccess = function() {
+                        JescaOfflineDB.updateBadges();
+                        resolve(true);
+                    };
+                    req.onerror = function(err) {
+                        reject(err);
+                    };
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        });
+    },
+
+    getQueueCount: function() {
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return 0;
+            return new Promise(function(resolve) {
+                try {
+                    var tx = db.transaction('opname_queue', 'readonly');
+                    var store = tx.objectStore('opname_queue');
+                    var req = store.count();
+                    req.onsuccess = function() {
+                        resolve(req.result || 0);
+                    };
+                    req.onerror = function() {
+                        resolve(0);
+                    };
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        });
+    },
+
+    syncQueue: function() {
+        if (!navigator.onLine) return Promise.resolve(0);
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return 0;
+            return new Promise(function(resolve) {
+                try {
+                    var tx = db.transaction('opname_queue', 'readonly');
+                    var store = tx.objectStore('opname_queue');
+                    var req = store.getAll();
+                    req.onsuccess = function() {
+                        var items = req.result || [];
+                        if (!items || items.length === 0) {
+                            resolve(0);
+                            return;
+                        }
+                        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                        var headers = { 'Content-Type': 'application/json' };
+                        if (csrfMeta) {
+                            headers['X-CSRFToken'] = csrfMeta.getAttribute('content');
+                        }
+                        fetch('/api/stock-opname/sync', {
+                            method: 'POST',
+                            headers: headers,
+                            body: JSON.stringify({ items: items })
+                        })
+                        .then(function(res) {
+                            if (!res.ok) throw new Error('Status ' + res.status);
+                            return res.json();
+                        })
+                        .then(function(resp) {
+                            if (resp && resp.status === 'success') {
+                                var clearTx = db.transaction('opname_queue', 'readwrite');
+                                clearTx.objectStore('opname_queue').clear();
+                                clearTx.oncomplete = function() {
+                                    JescaToast.show('Sinkronisasi selesai: ' + items.length + ' data stok opname offline berhasil disimpan ke server.', 'success');
+                                    JescaOfflineDB.updateBadges();
+                                    resolve(items.length);
+                                };
+                            } else {
+                                resolve(0);
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('Stock opname sync error:', err);
+                            resolve(0);
+                        });
+                    };
+                    req.onerror = function() {
+                        resolve(0);
+                    };
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        });
+    },
+
+    updateBadges: function() {
+        var netBadge = document.getElementById('qr-net-badge');
+        var queueBadge = document.getElementById('qr-queue-badge');
+        if (netBadge) {
+            if (navigator.onLine) {
+                netBadge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace';
+                netBadge.textContent = 'Online';
+            } else {
+                netBadge.className = 'badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill font-monospace';
+                netBadge.textContent = 'Offline (Lokal)';
+            }
+        }
+        if (queueBadge) {
+            JescaOfflineDB.getQueueCount().then(function(count) {
+                if (count > 0) {
+                    queueBadge.classList.remove('d-none');
+                    queueBadge.textContent = 'Antrean: ' + count;
+                } else {
+                    queueBadge.classList.add('d-none');
+                }
+            });
+        }
+    }
+};
+
+window.addEventListener('online', function() {
+    JescaOfflineDB.updateBadges();
+    JescaToast.show('Koneksi internet kembali aktif. Menyinkronkan data di latar belakang...', 'info');
+    JescaOfflineDB.syncQueue();
+    JescaOfflineDB.cacheAssets();
+});
+
+window.addEventListener('offline', function() {
+    JescaOfflineDB.updateBadges();
+    JescaToast.show('Perangkat beralih ke mode offline. Hasil scan tetap dicatat ke memori lokal.', 'warning');
+});
+
+// ==========================================
+// 9. CAMERA QR SCANNER & STOK OPNAME
 // ==========================================
 window.JescaQRScanner = {
     scanner: null,
@@ -490,15 +711,25 @@ window.JescaQRScanner = {
             modal.setAttribute('tabindex', '-1');
             modal.innerHTML = '<div class="modal-dialog modal-dialog-centered">' +
                 '<div class="modal-content border-0 shadow-lg rounded-4">' +
-                '<div class="modal-header border-bottom py-3 px-4">' +
-                '<h6 class="modal-title fw-bold"><i class="bi bi-camera me-2 text-primary"></i>Scan QR Code Aset</h6>' +
+                '<div class="modal-header border-bottom py-3 px-4 d-flex justify-content-between align-items-center">' +
+                '<div class="d-flex align-items-center gap-2">' +
+                '<i class="bi bi-camera fs-5 text-primary"></i>' +
+                '<div>' +
+                '<h6 class="modal-title fw-bold mb-0">Scan QR Code &amp; Stok Opname</h6>' +
+                '<div class="d-flex align-items-center gap-1 mt-1">' +
+                '<span id="qr-net-badge" class="badge rounded-pill font-monospace" style="font-size:0.65rem;"></span>' +
+                '<span id="qr-queue-badge" class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill font-monospace d-none" style="font-size:0.65rem;"></span>' +
+                '</div>' +
+                '</div>' +
+                '</div>' +
                 '<button type="button" class="btn-close" data-bs-dismiss="modal" onclick="JescaQRScanner.stop()"></button>' +
                 '</div>' +
                 '<div class="modal-body p-3">' +
                 '<div id="qr-reader" style="width:100%;min-height:280px;border-radius:12px;overflow:hidden;background:#000;"></div>' +
-                '<p class="text-muted small text-center mt-2 mb-0">Arahkan kamera perangkat ke QR Code pada label aset JESCA</p>' +
+                '<div id="qr-verify-container" class="d-none"></div>' +
+                '<p id="qr-hint-text" class="text-muted small text-center mt-2 mb-0">Arahkan kamera ke QR Code pada label aset JESCA</p>' +
                 '</div>' +
-                '<div class="modal-footer border-top px-4 py-2">' +
+                '<div class="modal-footer border-top px-4 py-2" id="qr-modal-footer">' +
                 '<button type="button" class="btn btn-light border btn-sm" data-bs-dismiss="modal" onclick="JescaQRScanner.stop()">Tutup</button>' +
                 '</div>' +
                 '</div></div>';
@@ -507,6 +738,20 @@ window.JescaQRScanner = {
             modal.addEventListener('hidden.bs.modal', function() {
                 JescaQRScanner.stop();
             });
+        }
+
+        JescaOfflineDB.updateBadges();
+        JescaOfflineDB.cacheAssets();
+
+        // Reset display state inside modal
+        var readerEl = document.getElementById('qr-reader');
+        var verifyContainer = document.getElementById('qr-verify-container');
+        var hintEl = document.getElementById('qr-hint-text');
+        if (readerEl) readerEl.classList.remove('d-none');
+        if (hintEl) hintEl.classList.remove('d-none');
+        if (verifyContainer) {
+            verifyContainer.classList.add('d-none');
+            verifyContainer.innerHTML = '';
         }
 
         var bsModal = bootstrap.Modal.getOrCreateInstance(modal);
@@ -520,6 +765,12 @@ window.JescaQRScanner = {
     start: function(bsModal) {
         JescaQRScanner.stop();
         var readerEl = document.getElementById('qr-reader');
+        var verifyContainer = document.getElementById('qr-verify-container');
+        var hintEl = document.getElementById('qr-hint-text');
+        if (readerEl) readerEl.classList.remove('d-none');
+        if (hintEl) hintEl.classList.remove('d-none');
+        if (verifyContainer) verifyContainer.classList.add('d-none');
+
         if (!readerEl) return;
         readerEl.innerHTML = '';
 
@@ -530,12 +781,10 @@ window.JescaQRScanner = {
                     { facingMode: 'environment' },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     function(decodedText) {
-                        JescaQRScanner.stop();
-                        if (bsModal) bsModal.hide();
-                        window.location.href = decodedText;
+                        JescaQRScanner.handleDecoded(decodedText, bsModal);
                     },
-                    function(error) {}
-                ).catch(function(err) {
+                    function() {}
+                ).catch(function() {
                     readerEl.innerHTML = '<div class="text-center py-5 text-white"><i class="bi bi-camera-video-off fs-2 d-block mb-2 text-warning"></i><small>Tidak dapat mengakses kamera.<br>Pastikan izin kamera diberikan pada browser atau gunakan HTTPS.</small></div>';
                 });
             } catch (e) {
@@ -544,6 +793,126 @@ window.JescaQRScanner = {
         } else {
             readerEl.innerHTML = '<div class="text-center py-5 text-white"><i class="bi bi-qr-code fs-2 d-block mb-2 text-info"></i><small>Library kamera scanner belum siap.<br>Pastikan tersambung ke internet untuk memuat library.</small></div>';
         }
+    },
+
+    handleDecoded: function(decodedText, bsModal) {
+        JescaQRScanner.stop();
+
+        var raw = (decodedText || '').trim();
+        var assetCode = raw;
+        if (raw.indexOf('/scan/') !== -1) {
+            assetCode = raw.substring(raw.lastIndexOf('/scan/') + 6).split('?')[0].split('#')[0];
+        } else if (raw.indexOf('/') !== -1) {
+            var parts = raw.split('/');
+            assetCode = parts[parts.length - 1];
+        }
+        assetCode = decodeURIComponent(assetCode).trim();
+
+        var readerEl = document.getElementById('qr-reader');
+        var verifyContainer = document.getElementById('qr-verify-container');
+        var hintEl = document.getElementById('qr-hint-text');
+
+        if (readerEl) readerEl.classList.add('d-none');
+        if (hintEl) hintEl.classList.add('d-none');
+        if (verifyContainer) {
+            verifyContainer.classList.remove('d-none');
+            verifyContainer.innerHTML = '<div class="text-center py-4 text-muted"><div class="spinner-border spinner-border-sm text-primary me-2"></div>Memuat data aset ' + assetCode + '...</div>';
+        }
+
+        JescaOfflineDB.getAsset(assetCode).then(function(cachedAsset) {
+            var name = cachedAsset ? cachedAsset.name : 'Aset Fisik';
+            var cat = cachedAsset ? cachedAsset.category : 'Umum';
+            var loc = cachedAsset ? cachedAsset.location : 'Kantor Pusat';
+            var status = cachedAsset ? cachedAsset.status : 'Aktif';
+
+            var cardHtml = '<div class="card border rounded-3 p-3 bg-light shadow-sm">' +
+                '<div class="d-flex justify-content-between align-items-start mb-2">' +
+                '<div>' +
+                '<span class="badge bg-primary font-monospace" style="font-size:0.75rem;">' + assetCode + '</span>' +
+                '<h6 class="fw-bold text-dark mt-1 mb-0">' + name + '</h6>' +
+                '<small class="text-muted">' + cat + ' &bull; Lokasi: ' + loc + '</small>' +
+                '</div>' +
+                '<span class="badge bg-secondary-subtle text-secondary border font-monospace">' + status + '</span>' +
+                '</div>' +
+                '<div class="border-top pt-2 mt-2">' +
+                '<label class="form-label small fw-bold mb-1 text-secondary">Kondisi Fisik Verifikasi:</label>' +
+                '<div class="d-flex flex-column gap-1 mb-2">' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="opname_cond" id="cond1" value="Sesuai & Baik" checked>' +
+                '<label class="form-check-label small" for="cond1">Sesuai &amp; Baik</label>' +
+                '</div>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="opname_cond" id="cond2" value="Rusak Ringan">' +
+                '<label class="form-check-label small" for="cond2">Rusak Ringan</label>' +
+                '</div>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="opname_cond" id="cond3" value="Lokasi Berpindah">' +
+                '<label class="form-check-label small" for="cond3">Lokasi Berpindah</label>' +
+                '</div>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="opname_cond" id="cond4" value="Hilang/Tidak Ditemukan">' +
+                '<label class="form-check-label small" for="cond4">Hilang / Tidak Ditemukan</label>' +
+                '</div>' +
+                '</div>' +
+                '<div class="mb-2">' +
+                '<label class="form-label small fw-bold mb-1 text-secondary">Lokasi Dicek:</label>' +
+                '<input type="text" id="opname_loc" class="form-control form-control-sm" value="' + loc + '" placeholder="Lokasi fisik ditemukan">' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label class="form-label small fw-bold mb-1 text-secondary">Catatan Verifikasi (Opsional):</label>' +
+                '<input type="text" id="opname_notes" class="form-control form-control-sm" placeholder="Contoh: Unit bersih, stiker label utuh">' +
+                '</div>' +
+                '<div class="d-flex gap-2">' +
+                '<button type="button" class="btn btn-primary btn-sm flex-grow-1 fw-bold" id="btn-save-opname">' +
+                '<i class="bi bi-check2-circle me-1"></i>Simpan &amp; Lanjut Scan' +
+                '</button>' +
+                '<button type="button" class="btn btn-light border btn-sm" id="btn-cancel-opname">Scan Ulang</button>' +
+                '</div>' +
+                '</div>' +
+                '</div>';
+
+            if (verifyContainer) {
+                verifyContainer.innerHTML = cardHtml;
+
+                var btnSave = document.getElementById('btn-save-opname');
+                var btnCancel = document.getElementById('btn-cancel-opname');
+
+                if (btnCancel) {
+                    btnCancel.onclick = function() {
+                        JescaQRScanner.start(bsModal);
+                    };
+                }
+
+                if (btnSave) {
+                    btnSave.onclick = function() {
+                        var checkedRadio = document.querySelector('input[name="opname_cond"]:checked');
+                        var condition = checkedRadio ? checkedRadio.value : 'Sesuai & Baik';
+                        var locInput = document.getElementById('opname_loc');
+                        var notesInput = document.getElementById('opname_notes');
+
+                        var opnameData = {
+                            asset_code: assetCode,
+                            asset_name: name,
+                            physical_condition: condition,
+                            location_checked: locInput ? locInput.value.trim() : loc,
+                            notes: notesInput ? notesInput.value.trim() : '',
+                            scanned_at: new Date().toISOString()
+                        };
+
+                        JescaOfflineDB.queueOpname(opnameData).then(function() {
+                            if (navigator.onLine) {
+                                JescaOfflineDB.syncQueue();
+                            } else {
+                                JescaToast.show('Data opname [' + assetCode + '] disimpan ke memori lokal.', 'info');
+                            }
+                            JescaQRScanner.start(bsModal);
+                        }).catch(function() {
+                            JescaQRScanner.start(bsModal);
+                        });
+                    };
+                }
+            }
+        });
     },
 
     stop: function() {
@@ -706,7 +1075,69 @@ window.AssetCompare = {
 };
 
 // ==========================================
-// 11. INITIALIZATION & THEME LISTENERS
+// 11. WELCOME ONBOARDING WALKTHROUGH
+// ==========================================
+window.JescaOnboarding = {
+    modalId: 'onboardingModal',
+
+    init: function() {
+        if (!document.getElementById('sidebar-wrapper')) {
+            return;
+        }
+        var seen = localStorage.getItem('jesca_onboarding_seen');
+        if (!seen) {
+            setTimeout(function() {
+                JescaOnboarding.show();
+            }, 800);
+        }
+
+        var carouselEl = document.getElementById('onboardingCarousel');
+        if (carouselEl) {
+            carouselEl.addEventListener('slid.bs.carousel', function(e) {
+                var nextBtn = document.getElementById('btn-onboarding-next');
+                if (!nextBtn) return;
+                if (e.to === 3) {
+                    nextBtn.innerHTML = 'Mulai Gunakan JESCA <i class="bi bi-check2 ms-1"></i>';
+                    nextBtn.onclick = function() {
+                        JescaOnboarding.complete();
+                    };
+                } else {
+                    nextBtn.innerHTML = 'Selanjutnya <i class="bi bi-chevron-right ms-1"></i>';
+                    nextBtn.onclick = null;
+                }
+            });
+        }
+    },
+
+    show: function() {
+        var modalEl = document.getElementById(this.modalId);
+        if (!modalEl) return;
+        var carouselEl = document.getElementById('onboardingCarousel');
+        if (carouselEl && typeof bootstrap !== 'undefined') {
+            var c = bootstrap.Carousel.getOrCreateInstance(carouselEl);
+            c.to(0);
+        }
+        var nextBtn = document.getElementById('btn-onboarding-next');
+        if (nextBtn) {
+            nextBtn.innerHTML = 'Selanjutnya <i class="bi bi-chevron-right ms-1"></i>';
+            nextBtn.onclick = null;
+        }
+        var bsModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        bsModal.show();
+    },
+
+    complete: function() {
+        localStorage.setItem('jesca_onboarding_seen', 'true');
+        var modalEl = document.getElementById(this.modalId);
+        if (modalEl) {
+            var bsModal = bootstrap.Modal.getInstance(modalEl);
+            if (bsModal) bsModal.hide();
+        }
+    }
+};
+
+// ==========================================
+// 12. INITIALIZATION & THEME LISTENERS
 // ==========================================
 document.addEventListener('DOMContentLoaded', function() {
     // Theme options click binding
@@ -726,4 +1157,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Init Lazy Charts
     JescaCharts.init();
+
+    // Init Background Cache & Offline Sync if authenticated
+    if (document.getElementById('sidebar-wrapper')) {
+        JescaOfflineDB.cacheAssets();
+        JescaOfflineDB.syncQueue();
+        JescaOnboarding.init();
+    }
 });

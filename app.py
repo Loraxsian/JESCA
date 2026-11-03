@@ -57,7 +57,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.4.1'
+APP_VERSION = '2.5.5'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -705,6 +705,39 @@ class SystemFeedback(db.Model):
             'status': self.status,
             'resolved_by': self.resolved_by or '-',
             'created_at': self.created_at.strftime('%d/%m/%Y %H:%M') if self.created_at else '-'
+        }
+
+
+class StockOpnameRecord(db.Model):
+    """Log of physical asset verification (stock opname) performed online or synced from offline cache."""
+    __tablename__ = 'stock_opname_records'
+
+    id = db.Column(db.Integer, primary_key=True)
+    asset_id = db.Column(db.Integer, db.ForeignKey('assets.id'), nullable=True, index=True)
+    asset_code = db.Column(db.String(50), nullable=False, index=True)
+    asset_name = db.Column(db.String(150), nullable=True)
+    physical_condition = db.Column(db.String(50), default='Sesuai & Baik')  # 'Sesuai & Baik', 'Rusak Ringan', 'Lokasi Berpindah', 'Hilang/Tidak Ditemukan'
+    location_checked = db.Column(db.String(100), nullable=True)
+    notes = db.Column(db.Text, nullable=True)
+    verified_by = db.Column(db.String(80), nullable=False)
+    is_offline_sync = db.Column(db.Boolean, default=False)
+    scanned_at = db.Column(db.DateTime, default=datetime.utcnow)
+    synced_at = db.Column(db.DateTime, default=datetime.utcnow, index=True)
+
+    asset = db.relationship('Asset', backref=db.backref('opname_records', lazy=True, order_by='StockOpnameRecord.scanned_at.desc()'))
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'asset_code': self.asset_code,
+            'asset_name': self.asset_name or '',
+            'physical_condition': self.physical_condition,
+            'location_checked': self.location_checked or '',
+            'notes': self.notes or '',
+            'verified_by': self.verified_by,
+            'is_offline_sync': self.is_offline_sync,
+            'scanned_at': self.scanned_at.strftime('%d/%m/%Y %H:%M') if self.scanned_at else '-',
+            'synced_at': self.synced_at.strftime('%d/%m/%Y %H:%M') if self.synced_at else '-'
         }
 
 
@@ -1450,7 +1483,9 @@ def check_and_update_schema():
                 "CREATE INDEX IF NOT EXISTS idx_activity_created_at ON activity_logs(created_at);",
                 "CREATE INDEX IF NOT EXISTS idx_activity_action ON activity_logs(action);",
                 "CREATE INDEX IF NOT EXISTS idx_feedback_status ON system_feedbacks(status);",
-                "CREATE INDEX IF NOT EXISTS idx_feedback_category ON system_feedbacks(category);"
+                "CREATE INDEX IF NOT EXISTS idx_feedback_category ON system_feedbacks(category);",
+                "CREATE INDEX IF NOT EXISTS idx_opname_code ON stock_opname_records(asset_code);",
+                "CREATE INDEX IF NOT EXISTS idx_opname_synced ON stock_opname_records(synced_at);"
             ]
             for idx_sql in indexes:
                 try:
@@ -3590,6 +3625,94 @@ def api_warranty_alerts():
         'count': len(alerts),
         'data': [a.to_dict() for a in alerts]
     })
+
+
+@app.route('/api/assets/cache-summary', methods=['GET'])
+@login_required
+def api_assets_cache_summary():
+    """Lightweight asset summary list for offline browser caching (IndexedDB)."""
+    try:
+        assets = Asset.query.with_entities(
+            Asset.id, Asset.asset_code, Asset.name, Asset.category, Asset.location, Asset.status
+        ).order_by(Asset.asset_code.asc()).all()
+        data = [
+            {
+                'id': a[0],
+                'code': a[1],
+                'name': a[2],
+                'category': a[3],
+                'location': a[4] or 'Kantor Pusat',
+                'status': a[5] or 'Aktif'
+            } for a in assets
+        ]
+        return jsonify({'status': 'success', 'count': len(data), 'data': data})
+    except Exception as e:
+        app.logger.error(f"Error fetching assets cache summary: {e}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+
+
+@app.route('/api/stock-opname/sync', methods=['POST'])
+@login_required
+def api_stock_opname_sync():
+    """Receives single or batch stock opname verification records (online or synced from offline cache)."""
+    payload = request.get_json(silent=True) or {}
+    items = payload.get('items', [])
+    if not items and 'asset_code' in payload:
+        items = [payload]
+
+    if not items:
+        return jsonify({'status': 'error', 'message': 'Tidak ada data opname yang dikirim.'}), 400
+
+    synced_records = []
+
+    for item in items:
+        code = str(item.get('asset_code', '')).strip()
+        if not code:
+            continue
+        condition = str(item.get('physical_condition', 'Sesuai & Baik')).strip()
+        notes = str(item.get('notes', '')).strip()
+        location_checked = str(item.get('location_checked', '')).strip()
+        is_offline = bool(item.get('is_offline', True))
+        scanned_at_str = item.get('scanned_at')
+
+        try:
+            scanned_at = datetime.fromisoformat(scanned_at_str) if scanned_at_str else datetime.utcnow()
+        except Exception:
+            scanned_at = datetime.utcnow()
+
+        asset = Asset.query.filter_by(asset_code=code).first()
+
+        rec = StockOpnameRecord(
+            asset_id=asset.id if asset else None,
+            asset_code=code,
+            asset_name=asset.name if asset else item.get('asset_name', 'Tidak Terdaftar'),
+            physical_condition=condition,
+            location_checked=location_checked or (asset.location if asset else None),
+            notes=notes,
+            verified_by=current_user.username,
+            is_offline_sync=is_offline,
+            scanned_at=scanned_at,
+            synced_at=datetime.utcnow()
+        )
+        db.session.add(rec)
+        synced_records.append(code)
+
+    try:
+        db.session.commit()
+        if synced_records:
+            log_activity(
+                'STOK_OPNAME',
+                details=f"Verifikasi stok opname {len(synced_records)} unit ({', '.join(synced_records[:5])}{'...' if len(synced_records)>5 else ''}) oleh {current_user.username}."
+            )
+        return jsonify({
+            'status': 'success',
+            'synced_count': len(synced_records),
+            'synced_codes': synced_records
+        })
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error syncing stock opname: {e}")
+        return jsonify({'status': 'error', 'message': f'Gagal menyimpan ke database: {e}'}), 500
 
 
 @app.route('/assets/export/excel')
