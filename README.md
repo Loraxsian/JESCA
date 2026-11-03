@@ -51,8 +51,8 @@ Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-mas
 
 ### 7. Keamanan, Pengaturan Sistem & Ketahanan Aplikasi
 - Sudo Mode: Konfirmasi password ulang saat membuka menu Pengaturan Sistem (/settings) demi keamanan jika laptop ditinggal sebentar di meja kantor.
-- Penyederhanaan Akses Jaringan & Deteksi Wi-Fi Kantor: Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri, Wi-Fi Kantor LAN, atau Domain Sendiri/VPS). Tersedia tombol "Cek Ulang IP" untuk mendeteksi ulang alamat IP komputer secara otomatis jika router Wi-Fi me-restart.
-- Akses Cepat Lapangan Tanpa Domain: Petunjuk perintah instan untuk menghubungkan laptop ke internet publik sementara waktu agar dapat diuji coba dari smartphone di luar kantor.
+- Penyederhanaan Akses Jaringan & Deteksi Jaringan Kantor: Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri, Jaringan Lokal Kabel LAN / Wi-Fi, atau Domain Sendiri/VPS). Tersedia tombol "Cek Ulang IP Jaringan" untuk mendeteksi ulang alamat IP komputer secara otomatis jika router me-restart atau kabel LAN dipindahkan.
+- Uji Coba Akses Luar Otomatis (Tunnel Instan 1-Klik): Sistem dapat membuatkan tautan internet sementara yang aman (HTTPS) secara otomatis langsung dari dalam aplikasi tanpa perlu membeli domain atau membuka terminal. Dilengkapi keterangan lengkap fungsi tautan, batas waktu aktif (expired), dan tombol salin/terapkan ke Base URL.
 - Dynamic SMTP: Pengaturan server email (Gmail, cPanel, Outlook, dsb.) bisa diubah langsung dari halaman web tanpa perlu restart aplikasi.
 - IP Whitelist & VPN Access: Pembatasan akses web hanya untuk jaringan kantor atau VPN internal tertentu.
 - Mode SQLite WAL & Busy Timeout: Menggunakan Write-Ahead Logging (WAL) dan timeout antrean 30 detik untuk mencegah error database terkunci saat banyak aksi dijalankan bersamaan.

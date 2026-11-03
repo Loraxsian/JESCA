@@ -199,7 +199,7 @@
                                         <i class="bi bi-laptop me-1"></i>Komputer Ini
                                     </button>
                                     <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 net-mode-btn active" id="mode-btn-wifi" onclick="setNetworkMode('wifi')">
-                                        <i class="bi bi-wifi me-1"></i>Wi-Fi Kantor
+                                        <i class="bi bi-diagram-3 me-1"></i>Jaringan Lokal (LAN / Wi-Fi)
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 net-mode-btn" id="mode-btn-domain" onclick="setNetworkMode('domain')">
                                         <i class="bi bi-cloud-check me-1"></i>Domain Sendiri
@@ -216,28 +216,28 @@
                                     </p>
                                 </div>
 
-                                <!-- Konten Mode 2: Wi-Fi Kantor (LAN) -->
+                                <!-- Konten Mode 2: Jaringan Lokal (Kabel LAN / Wi-Fi) -->
                                 <div id="net-mode-content-wifi" class="net-mode-content mb-3 p-3 rounded-3 border bg-light">
                                     <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
                                         <div>
                                             <div class="small fw-bold text-dark">
-                                                <i class="bi bi-router text-success me-1"></i>Alamat Wi-Fi Terdeteksi:
+                                                <i class="bi bi-ethernet text-success me-1"></i>Alamat IP Jaringan Terdeteksi:
                                             </div>
                                             <div class="font-monospace fw-bold fs-6 text-primary" id="currentLanIpDisplay">
                                                 {{ detected_lan_ip }}:5000
                                             </div>
                                         </div>
                                         <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" id="btnRefreshLanIp" onclick="refreshLanIp()" title="Cek ulang IP jika Wi-Fi me-restart">
-                                                <i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP
+                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" id="btnRefreshLanIp" onclick="refreshLanIp()" title="Cek ulang IP jika kabel LAN atau Wi-Fi me-restart">
+                                                <i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP Jaringan
                                             </button>
                                             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="btnApplyLanIp" onclick="applyLanIp()">
-                                                <i class="bi bi-check2-circle me-1"></i>Terapkan
+                                                <i class="bi bi-check2-circle me-1"></i>Terapkan Alamat Jaringan
                                             </button>
                                         </div>
                                     </div>
                                     <small class="text-muted d-block" style="font-size: 0.73rem;">
-                                        Staf cukup menyambungkan HP ke Wi-Fi kantor yang sama untuk memindai label QR Code tanpa perlu kuota internet. Jika router Wi-Fi me-restart dan alamat IP berubah, klik <strong>Cek Ulang IP</strong> lalu simpan.
+                                        Staf cukup menyambungkan laptop atau smartphone ke jaringan kantor yang sama (baik melalui colokan kabel LAN maupun sinyal Wi-Fi) untuk membuka sistem dan memindai QR Code tanpa perlu kuota internet. Jika router me-restart atau kabel dipindahkan dan IP berubah, klik <strong>Cek Ulang IP Jaringan</strong> lalu simpan.
                                     </small>
                                 </div>
 
@@ -267,29 +267,69 @@
                                     </small>
                                 </div>
 
-                                <!-- Akses Cepat Lapangan / Tunnel -->
-                                <div class="accordion mb-3" id="accordionQuickTunnel">
-                                    <div class="accordion-item border rounded-3 overflow-hidden">
-                                        <h2 class="accordion-header">
-                                            <button class="accordion-button collapsed py-2 px-3 bg-light small fw-bold text-dark shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTunnel">
-                                                <i class="bi bi-broadcast-pin text-primary me-2"></i>Uji Coba Online dari Luar Kantor (Tanpa Beli Domain)
-                                            </button>
-                                        </h2>
-                                        <div id="collapseTunnel" class="accordion-collapse collapse" data-bs-parent="#accordionQuickTunnel">
-                                            <div class="accordion-body p-3 bg-white small text-muted">
-                                                <p class="mb-2" style="font-size: 0.75rem;">
-                                                    Buka <strong>Command Prompt / PowerShell</strong> (Windows) atau <strong>Terminal</strong> (Linux) di komputer server Anda, lalu jalankan perintah instan berikut:
-                                                </p>
-                                                <div class="d-flex align-items-center gap-2 p-2 rounded-2 bg-dark text-white font-monospace mb-2" style="font-size: 0.75rem;">
-                                                    <span class="flex-grow-1 user-select-all text-truncate">ssh -p 443 -R0:localhost:5000 a.pinggy.io</span>
-                                                    <button type="button" class="btn btn-outline-light btn-sm py-0 px-2 rounded-pill" style="font-size: 0.68rem;" onclick="copyCommandText('ssh -p 443 -R0:localhost:5000 a.pinggy.io')">
-                                                        <i class="bi bi-clipboard me-1"></i>Salin
-                                                    </button>
-                                                </div>
-                                                <p class="mb-0" style="font-size: 0.72rem;">
-                                                    Salin tautan <code>https://...</code> yang tampil di terminal Anda, lalu tempelkan ke kolom Base URL di atas agar dapat dibuka dari smartphone mana pun.
-                                                </p>
+                                <!-- Uji Coba Akses Luar Otomatis (Tunnel Instan) -->
+                                <div class="card border rounded-3 p-3 bg-light mb-3">
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="small fw-bold text-dark d-flex align-items-center gap-2">
+                                            <i class="bi bi-broadcast text-primary fs-6"></i>
+                                            Uji Coba Akses Luar Otomatis (Tunnel Instan)
+                                        </div>
+                                        <span id="tunnelStatusBadge" class="badge bg-secondary-subtle text-secondary border rounded-pill font-monospace" style="font-size:0.68rem;">Nonaktif</span>
+                                    </div>
+                                    <p class="text-muted small mb-2" style="font-size:0.74rem;">
+                                        Ingin mencoba membuka JESCA dari smartphone di luar kantor tanpa perlu menyewa domain atau VPS? Sistem dapat membuatkan tautan internet sementara yang aman secara otomatis.
+                                    </p>
+
+                                    <!-- Panel Kontrol Tunnel Inactive -->
+                                    <div id="tunnelInactiveBox">
+                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold" id="btnStartTunnel" onclick="startSystemTunnel()">
+                                            <i class="bi bi-play-circle me-1"></i>Buat Tautan Akses Luar Otomatis
+                                        </button>
+                                    </div>
+
+                                    <!-- Panel Kontrol Tunnel Active -->
+                                    <div id="tunnelActiveBox" class="d-none mt-2 p-3 rounded-3 bg-white border border-success-subtle shadow-sm">
+                                        <div class="d-flex justify-content-between align-items-start mb-2 flex-wrap gap-2">
+                                            <div>
+                                                <small class="text-success fw-bold d-block" style="font-size:0.72rem;">
+                                                    <i class="bi bi-check-circle-fill me-1"></i>Tautan Publik Aktif (Siap Diklik / Dibagikan):
+                                                </small>
+                                                <a id="tunnelActiveUrlLink" href="#" target="_blank" class="fw-bold font-monospace text-primary text-break fs-6 text-decoration-none">
+                                                    -
+                                                </a>
                                             </div>
+                                            <div class="d-flex gap-1.5 flex-shrink-0">
+                                                <button type="button" class="btn btn-light border btn-sm rounded-pill px-2.5" onclick="copyTunnelActiveUrl()" title="Salin Tautan">
+                                                    <i class="bi bi-clipboard me-1"></i>Salin
+                                                </button>
+                                                <button type="button" class="btn btn-success btn-sm rounded-pill px-2.5" onclick="applyTunnelActiveUrl()" title="Gunakan sebagai Base URL sistem">
+                                                    <i class="bi bi-check2-circle me-1"></i>Terapkan ke Base URL
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <!-- Penjelasan Lengkap Komponen Tautan -->
+                                        <div class="p-2.5 rounded-2 bg-light border small text-secondary mt-2" style="font-size:0.74rem; line-height:1.45;">
+                                            <div class="mb-1">
+                                                <strong>Ini tautan apa?</strong> Tautan internet sementara yang aman (HTTPS) yang langsung menghubungkan smartphone/laptop di luar kantor ke aplikasi JESCA di komputer Anda.
+                                            </div>
+                                            <div class="mb-1">
+                                                <strong>Masa aktif (Expired):</strong> Tautan aktif selama <span id="tunnelExpiresDisplay" class="fw-bold text-dark">60 Menit</span> (atau selama komputer Anda menyala dan tidak dimatikan).
+                                            </div>
+                                            <div>
+                                                <strong>Langkah selanjutnya:</strong>
+                                                <ol class="mb-0 ps-3 mt-0.5">
+                                                    <li>Klik tautan di atas untuk membuka langsung atau salin untuk dikirim ke WhatsApp/email staf atau pimpinan di luar kantor.</li>
+                                                    <li>Klik tombol <strong>"Terapkan ke Base URL"</strong> agar stiker QR Code yang dicetak otomatis menggunakan tautan ini.</li>
+                                                    <li>Setelah selesai pengujian, klik tombol <strong>"Hentikan Akses Luar"</strong> di bawah untuk menutup koneksi.</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-end mt-2">
+                                            <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1" id="btnStopTunnel" onclick="stopSystemTunnel()" style="font-size:0.72rem;">
+                                                <i class="bi bi-stop-circle me-1"></i>Hentikan Akses Luar
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -869,14 +909,129 @@ function applyLanIp() {
     var ipText = display ? display.textContent.trim() : '127.0.0.1:5000';
     if (urlInput) {
         urlInput.value = 'http://' + ipText;
-        JescaToast.show('Alamat Wi-Fi diterapkan: http://' + ipText, 'success');
+        JescaToast.show('Alamat jaringan diterapkan: http://' + ipText, 'success');
+    }
+}
+
+// ==========================================
+// Quick Tunnel System Integration
+// ==========================================
+window._currentTunnelUrl = null;
+
+function startSystemTunnel() {
+    var btn = document.getElementById('btnStartTunnel');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Membuat Tautan Akses...';
+    }
+
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Content-Type': 'application/json' };
+    if (csrfMeta) headers['X-CSRFToken'] = csrfMeta.getAttribute('content');
+
+    fetch('/api/system/quick-tunnel/start', { method: 'POST', headers: headers })
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-circle me-1"></i>Buat Tautan Akses Luar Otomatis';
+            }
+            if (data.active && data.public_url) {
+                renderTunnelActive(data);
+                JescaToast.show('Tautan akses luar berhasil dibuat!', 'success');
+            } else {
+                JescaToast.show('Gagal membuat tautan: ' + (data.error || 'Server sibuk, coba lagi.'), 'danger');
+            }
+        })
+        .catch(function(err) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-play-circle me-1"></i>Buat Tautan Akses Luar Otomatis';
+            }
+            JescaToast.show('Gagal menghubungi server: ' + err.message, 'danger');
+        });
+}
+
+function stopSystemTunnel() {
+    var btn = document.getElementById('btnStopTunnel');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Menghentikan...';
+    }
+
+    var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    var headers = { 'Content-Type': 'application/json' };
+    if (csrfMeta) headers['X-CSRFToken'] = csrfMeta.getAttribute('content');
+
+    fetch('/api/system/quick-tunnel/stop', { method: 'POST', headers: headers })
+        .then(function(r) { return r.json(); })
+        .then(function() {
+            renderTunnelInactive();
+            JescaToast.show('Akses luar telah dinonaktifkan.', 'info');
+        })
+        .catch(function() {
+            renderTunnelInactive();
+        });
+}
+
+function renderTunnelActive(data) {
+    var inactiveBox = document.getElementById('tunnelInactiveBox');
+    var activeBox = document.getElementById('tunnelActiveBox');
+    var link = document.getElementById('tunnelActiveUrlLink');
+    var expires = document.getElementById('tunnelExpiresDisplay');
+    var badge = document.getElementById('tunnelStatusBadge');
+
+    if (inactiveBox) inactiveBox.classList.add('d-none');
+    if (activeBox) activeBox.classList.remove('d-none');
+    if (link) {
+        link.href = data.public_url;
+        link.textContent = data.public_url;
+    }
+    if (expires) expires.textContent = data.expires_in || '60 Menit';
+    if (badge) {
+        badge.className = 'badge bg-success-subtle text-success border border-success-subtle rounded-pill font-monospace';
+        badge.textContent = 'Aktif (' + (data.expires_in || '60 Menit') + ')';
+    }
+    window._currentTunnelUrl = data.public_url;
+}
+
+function renderTunnelInactive() {
+    var inactiveBox = document.getElementById('tunnelInactiveBox');
+    var activeBox = document.getElementById('tunnelActiveBox');
+    var badge = document.getElementById('tunnelStatusBadge');
+    var btn = document.getElementById('btnStopTunnel');
+
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-stop-circle me-1"></i>Hentikan Akses Luar';
+    }
+    if (activeBox) activeBox.classList.add('d-none');
+    if (inactiveBox) inactiveBox.classList.remove('d-none');
+    if (badge) {
+        badge.className = 'badge bg-secondary-subtle text-secondary border rounded-pill font-monospace';
+        badge.textContent = 'Nonaktif';
+    }
+    window._currentTunnelUrl = null;
+}
+
+function copyTunnelActiveUrl() {
+    if (window._currentTunnelUrl) {
+        copyCommandText(window._currentTunnelUrl);
+    }
+}
+
+function applyTunnelActiveUrl() {
+    var urlInput = document.getElementById('appBaseUrlInput');
+    if (urlInput && window._currentTunnelUrl) {
+        urlInput.value = window._currentTunnelUrl;
+        JescaToast.show('Tautan akses luar diterapkan ke Base URL.', 'success');
     }
 }
 
 function copyCommandText(text) {
     if (navigator.clipboard) {
         navigator.clipboard.writeText(text).then(function() {
-            JescaToast.show('Perintah disalin ke clipboard.', 'success');
+            JescaToast.show('Disalin ke clipboard.', 'success');
         });
     } else {
         var input = document.createElement('input');
@@ -885,9 +1040,21 @@ function copyCommandText(text) {
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-        JescaToast.show('Perintah disalin ke clipboard.', 'success');
+        JescaToast.show('Disalin ke clipboard.', 'success');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Check initial tunnel status
+    fetch('/api/system/quick-tunnel/status')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+            if (data.active && data.public_url) {
+                renderTunnelActive(data);
+            }
+        })
+        .catch(function() {});
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     var urlInput = document.getElementById('appBaseUrlInput');

@@ -10,10 +10,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# Install system dependencies (curl for healthcheck, git for self-update)
+# Install system dependencies (curl for healthcheck, git for self-update, openssh-client for quick tunnel)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     git \
+    openssh-client \
     && rm -rf /var/lib/apt/lists/*
 
 # Install python dependencies
