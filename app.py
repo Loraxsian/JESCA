@@ -4829,93 +4829,6 @@ def lock_sudo():
     return redirect(url_for('dashboard'))
 
 
-def get_system_network_adapters():
-    """Detect and classify network adapters, strictly filtering out docker/virbr/veth/loopback."""
-    adapters = []
-    seen_ips = set()
-
-    def is_virtual_or_docker(name, ip):
-        if not ip or ip.startswith('127.') or ip == '0.0.0.0':
-            return True
-        name_lower = (name or '').lower()
-        if any(x in name_lower for x in ['docker', 'virbr', 'veth', 'br-', 'lo', 'vmnet', 'cni']):
-            return True
-        if ip.startswith(('172.17.', '172.18.', '172.19.', '172.20.', '172.21.', '172.22.', '192.168.122.')):
-            return True
-        return False
-
-    def categorize_adapter(name):
-        n = (name or '').lower()
-        if any(x in n for x in ['wl', 'wlan', 'wi-fi', 'wifi', 'wireless']):
-            return 'Wi-Fi'
-        elif any(x in n for x in ['en', 'eth', 'ethernet', 'lan', 'cable']):
-            return 'Kabel LAN'
-        elif any(x in n for x in ['zt', 'tun', 'tap', 'vpn', 'tailscale', 'zerotier']):
-            return 'Jaringan VPN'
-        return 'Jaringan Lokal'
-
-    # Method 1: Linux ip command
-    ip_bin = shutil.which('ip') or '/sbin/ip' or '/bin/ip'
-    if os.path.exists(ip_bin) if isinstance(ip_bin, str) and os.path.isabs(ip_bin) else shutil.which('ip'):
-        try:
-            out = subprocess.check_output([ip_bin, '-4', '-o', 'addr', 'show'], text=True, stderr=subprocess.DEVNULL)
-            for line in out.splitlines():
-                parts = line.strip().split()
-                if len(parts) >= 4:
-                    iface = parts[1]
-                    ip = parts[3].split('/')[0]
-                    if not is_virtual_or_docker(iface, ip) and ip not in seen_ips:
-                        seen_ips.add(ip)
-                        adapters.append({
-                            'name': iface,
-                            'type': categorize_adapter(iface),
-                            'ip': ip
-                        })
-        except Exception:
-            pass
-
-    # Method 2: Windows ipconfig command
-    if not adapters and shutil.which('ipconfig'):
-        try:
-            out = subprocess.check_output(['ipconfig'], text=True, stderr=subprocess.DEVNULL)
-            current_adapter = ''
-            for line in out.splitlines():
-                line = line.strip()
-                if 'adapter' in line.lower() and ':' in line:
-                    current_adapter = line.split(':')[0]
-                elif 'ipv4' in line.lower() and ':' in line:
-                    ip = line.split(':')[-1].strip().split('(')[0].strip()
-                    if not is_virtual_or_docker(current_adapter, ip) and ip not in seen_ips:
-                        seen_ips.add(ip)
-                        adapters.append({
-                            'name': current_adapter,
-                            'type': categorize_adapter(current_adapter),
-                            'ip': ip
-                        })
-        except Exception:
-            pass
-
-    # Method 3: Socket routing lookup fallback
-    if not adapters:
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.settimeout(0.2)
-            s.connect(('8.8.8.8', 80))
-            sock_ip = s.getsockname()[0]
-            s.close()
-            if not is_virtual_or_docker('local', sock_ip) and sock_ip not in seen_ips:
-                seen_ips.add(sock_ip)
-                adapters.append({
-                    'name': 'Primary LAN',
-                    'type': 'Jaringan Lokal',
-                    'ip': sock_ip
-                })
-        except Exception:
-            pass
-
-    return adapters
-
-
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 @role_required('Admin')
@@ -4990,66 +4903,14 @@ def system_settings():
         }
     }
 
-    # Detect current local network adapters
-    adapters = get_system_network_adapters()
-    detected_lan_ip = adapters[0]['ip'] if adapters else '127.0.0.1'
-
     return render_template(
         'settings.html',
         setting=setting,
         has_password=bool(setting.mail_password),
         runtime=runtime_info,
-        adapters=adapters,
-        detected_lan_ip=detected_lan_ip,
         app_version=APP_VERSION,
         github_repo=GITHUB_REPO
     )
-
-
-@app.route('/api/system/detect-network', methods=['GET'])
-@login_required
-@role_required('Admin')
-def api_detect_network():
-    """Detect current local network IP address and port for Wi-Fi / LAN mode."""
-    port = 5000
-    host_header = request.headers.get('Host', '')
-    if host_header and ':' in host_header:
-        p = host_header.split(':')[1]
-        if p.isdigit():
-            port = int(p)
-
-    adapters = get_system_network_adapters()
-
-    # Inspect host header if accessing via specific IP
-    host_ip = host_header.split(':')[0] if host_header else ''
-    if host_ip and host_ip not in ('localhost', '127.0.0.1', '0.0.0.0') and not host_ip.startswith(('172.', '192.168.122.')):
-        if not any(a['ip'] == host_ip for a in adapters):
-            adapters.insert(0, {
-                'name': 'Akses Browser',
-                'type': 'Aktif di Browser',
-                'ip': host_ip
-            })
-
-    client_ip = get_client_ip()
-    if client_ip and (client_ip.startswith('192.168.') or client_ip.startswith('10.')):
-        if not any(a['ip'] == client_ip for a in adapters):
-            adapters.append({
-                'name': 'Perangkat Klien',
-                'type': 'Klien Terhubung',
-                'ip': client_ip
-            })
-
-    primary_ip = adapters[0]['ip'] if adapters else '127.0.0.1'
-
-    return jsonify({
-        'status': 'success',
-        'adapters': adapters,
-        'detected_ip': primary_ip,
-        'primary_ip': primary_ip,
-        'port': port,
-        'suggested_url': f"http://{primary_ip}:{port}",
-        'timestamp': datetime.utcnow().strftime('%H:%M:%S')
-    })
 
 
 # ==========================================

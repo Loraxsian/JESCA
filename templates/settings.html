@@ -218,52 +218,54 @@
 
                                 <!-- Konten Mode 2: Jaringan Lokal (Kabel LAN / Wi-Fi) -->
                                 <div id="net-mode-content-wifi" class="net-mode-content mb-3 p-3 rounded-3 border bg-light">
-                                    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
-                                        <div>
-                                            <div class="small fw-bold text-dark">
-                                                <i class="bi bi-ethernet text-success me-1"></i>Alamat IP Jaringan Terdeteksi:
-                                            </div>
-                                            <div class="font-monospace fw-bold fs-6 text-primary" id="currentLanIpDisplay">
-                                                {{ detected_lan_ip }}:5000
-                                            </div>
+                                    <div class="small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
+                                        <i class="bi bi-router text-primary"></i>
+                                        Akses Antar-Perangkat di Kantor (Kabel LAN / Wi-Fi)
+                                    </div>
+                                    <p class="text-muted small mb-2" style="font-size: 0.74rem;">
+                                        Agar staf lain di kantor dapat membuka JESCA dari laptop atau smartphone mereka tanpa internet, masukkan alamat IP laptop server ini pada kolom <strong>Alamat URL Aktif (Base URL)</strong> di bawah (contoh: <code>http://192.168.1.15:5000</code> atau <code>http://10.10.9.55:5000</code>).
+                                    </p>
+
+                                    <!-- Panduan Singkat Cara Cek IP Laptop Server -->
+                                    <div class="card border rounded-3 bg-white p-2.5 mb-2">
+                                        <div class="fw-bold small text-dark mb-1.5 d-flex align-items-center gap-1">
+                                            <i class="bi bi-question-circle text-info"></i>
+                                            Cara Cek Alamat IP Komputer Server Ini:
                                         </div>
-                                        <div class="d-flex gap-2">
-                                            <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-2.5" id="btnRefreshLanIp" onclick="refreshLanIp()" title="Cek ulang IP jika kabel LAN atau Wi-Fi me-restart">
-                                                <i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP Jaringan
-                                            </button>
-                                            <button type="button" class="btn btn-primary btn-sm rounded-pill px-3" id="btnApplyLanIp" onclick="applyLanIp()">
-                                                <i class="bi bi-check2-circle me-1"></i>Terapkan Alamat Jaringan
-                                            </button>
+                                        <div class="row g-2">
+                                            <!-- Panduan Windows -->
+                                            <div class="col-md-6">
+                                                <div class="p-2 rounded-2 bg-light border h-100">
+                                                    <div class="fw-semibold small text-primary mb-1 d-flex align-items-center gap-1">
+                                                        <i class="bi bi-windows"></i>Jika Menggunakan Windows:
+                                                    </div>
+                                                    <ol class="mb-0 ps-3 small text-secondary" style="font-size: 0.72rem; line-height: 1.45;">
+                                                        <li>Tekan tombol <strong>Windows + R</strong> di keyboard, ketik <code>cmd</code>, tekan Enter.</li>
+                                                        <li>Ketik perintah <code>ipconfig</code> lalu tekan Enter.</li>
+                                                        <li>Cari baris <strong>IPv4 Address</strong> (contoh: <code>192.168.1.15</code> atau <code>10.10.x.x</code>).</li>
+                                                        <li>Tulis pada kolom Base URL di bawah: <code>http://[IPv4]:5000</code></li>
+                                                    </ol>
+                                                </div>
+                                            </div>
+                                            <!-- Panduan Linux / Mac -->
+                                            <div class="col-md-6">
+                                                <div class="p-2 rounded-2 bg-light border h-100">
+                                                    <div class="fw-semibold small text-dark mb-1 d-flex align-items-center gap-1">
+                                                        <i class="bi bi-terminal"></i>Jika Menggunakan Linux / Mac:
+                                                    </div>
+                                                    <ol class="mb-0 ps-3 small text-secondary" style="font-size: 0.72rem; line-height: 1.45;">
+                                                        <li>Buka aplikasi <strong>Terminal</strong>.</li>
+                                                        <li>Ketik perintah <code>hostname -I</code> atau <code>ip a</code>.</li>
+                                                        <li>Ambil alamat IP jaringan lokal (contoh: <code>10.10.9.55</code>).</li>
+                                                        <li>Tulis pada kolom Base URL di bawah: <code>http://[IP]:5000</code></li>
+                                                    </ol>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <!-- Daftar Pilihan Adaptor Jaringan Aktif -->
-                                    <div id="adapterSelectionList" class="mb-2">
-                                        <div class="small text-muted mb-1.5 fw-semibold" style="font-size:0.72rem;">
-                                            Pilihan adaptor terdeteksi (Klik untuk memilih):
-                                        </div>
-                                        <div class="d-flex flex-wrap gap-2" id="adapterBadgesContainer">
-                                            {% if adapters and adapters|length > 0 %}
-                                                {% for adp in adapters %}
-                                                <button type="button" class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-start d-flex align-items-center gap-2 shadow-xs" onclick="selectAdapterIp('{{ adp.ip }}', 5000)">
-                                                    <i class="bi {% if adp.type == 'Kabel LAN' %}bi-ethernet text-success{% elif adp.type == 'Wi-Fi' %}bi-wifi text-primary{% else %}bi-hdd-network text-info{% endif %}"></i>
-                                                    <span class="fw-bold small">{{ adp.type }}:</span>
-                                                    <span class="font-monospace text-dark small">{{ adp.ip }}:5000</span>
-                                                    <span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">{{ adp.name }}</span>
-                                                </button>
-                                                {% endfor %}
-                                            {% else %}
-                                                <button type="button" class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-start d-flex align-items-center gap-2 shadow-xs" onclick="selectAdapterIp('{{ detected_lan_ip }}', 5000)">
-                                                    <i class="bi bi-ethernet text-success"></i>
-                                                    <span class="fw-bold small">Jaringan Lokal:</span>
-                                                    <span class="font-monospace text-dark small">{{ detected_lan_ip }}:5000</span>
-                                                </button>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-
-                                    <small class="text-muted d-block" style="font-size: 0.73rem;">
-                                        Staf cukup menyambungkan laptop atau smartphone ke jaringan kantor yang sama (baik melalui colokan kabel LAN maupun sinyal Wi-Fi) untuk membuka sistem dan memindai QR Code tanpa perlu kuota internet. Jika router me-restart atau kabel dipindahkan dan IP berubah, klik <strong>Cek Ulang IP Jaringan</strong> lalu simpan.
+                                    <small class="text-muted d-block" style="font-size: 0.72rem;">
+                                        Pastikan laptop server dan perangkat staf tersambung ke jaringan kantor yang sama (baik via colokan kabel LAN maupun sinyal Wi-Fi).
                                     </small>
                                 </div>
 
@@ -897,77 +899,6 @@ function setNetworkMode(mode) {
     var urlInput = document.getElementById('appBaseUrlInput');
     if (mode === 'localhost' && urlInput) {
         urlInput.value = 'http://localhost:5000';
-    }
-}
-
-function selectAdapterIp(ip, port) {
-    port = port || 5000;
-    var display = document.getElementById('currentLanIpDisplay');
-    if (display) display.textContent = ip + ':' + port;
-    var urlInput = document.getElementById('appBaseUrlInput');
-    if (urlInput) {
-        urlInput.value = 'http://' + ip + ':' + port;
-    }
-    JescaToast.show('Adaptor dipilih: http://' + ip + ':' + port, 'info');
-}
-
-function renderAdapterList(adapters, port) {
-    var container = document.getElementById('adapterBadgesContainer');
-    if (!container) return;
-    if (!adapters || adapters.length === 0) {
-        container.innerHTML = '<span class="text-muted small">Tidak ada adaptor fisik terdeteksi.</span>';
-        return;
-    }
-    container.innerHTML = adapters.map(function(adp) {
-        var icon = 'bi-hdd-network text-info';
-        if (adp.type === 'Kabel LAN') icon = 'bi-ethernet text-success';
-        else if (adp.type === 'Wi-Fi') icon = 'bi-wifi text-primary';
-        return '<button type="button" class="btn btn-sm btn-white bg-white border rounded-pill px-3 py-1 text-start d-flex align-items-center gap-2 shadow-xs" onclick="selectAdapterIp(\'' + adp.ip + '\', ' + port + ')">' +
-            '<i class="bi ' + icon + '"></i>' +
-            '<span class="fw-bold small">' + adp.type + ':</span>' +
-            '<span class="font-monospace text-dark small">' + adp.ip + ':' + port + '</span>' +
-            '<span class="badge bg-light text-secondary border ms-1" style="font-size:0.65rem;">' + (adp.name || '') + '</span>' +
-            '</button>';
-    }).join('');
-}
-
-function refreshLanIp() {
-    var btn = document.getElementById('btnRefreshLanIp');
-    var display = document.getElementById('currentLanIpDisplay');
-    if (btn) {
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Mengecek...';
-    }
-
-    fetch('/api/system/detect-network')
-        .then(function(res) { return res.json(); })
-        .then(function(data) {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP Jaringan';
-            }
-            if (data.status === 'success') {
-                if (display) display.textContent = data.detected_ip + ':' + data.port;
-                if (data.adapters) renderAdapterList(data.adapters, data.port);
-                JescaToast.show('IP jaringan berhasil diperbarui: ' + data.detected_ip + ':' + data.port, 'info');
-            }
-        })
-        .catch(function(err) {
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Cek Ulang IP Jaringan';
-            }
-            JescaToast.show('Gagal mendeteksi ulang IP jaringan: ' + err.message, 'danger');
-        });
-}
-
-function applyLanIp() {
-    var urlInput = document.getElementById('appBaseUrlInput');
-    var display = document.getElementById('currentLanIpDisplay');
-    var ipText = display ? display.textContent.trim() : '127.0.0.1:5000';
-    if (urlInput) {
-        urlInput.value = 'http://' + ipText;
-        JescaToast.show('Alamat jaringan diterapkan: http://' + ipText, 'success');
     }
 }
 
