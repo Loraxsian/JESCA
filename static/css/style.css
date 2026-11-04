@@ -1105,15 +1105,15 @@ footer {
 }
 #jesca-spotlight-popover {
     position: fixed;
-    width: 340px;
+    width: 360px;
     max-width: 90vw;
     background: #ffffff;
     border-radius: 16px;
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.35);
     border: 1px solid #e2e8f0;
-    padding: 16px;
+    padding: 16px 18px;
     z-index: 10002;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: top 0.28s cubic-bezier(0.4, 0, 0.2, 1), left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
     animation: fadeIn 0.2s ease;
 }
 [data-theme="dark"] #jesca-spotlight-popover {

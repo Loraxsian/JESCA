@@ -63,20 +63,20 @@
                 <div class="menu-label">Inventaris Utama</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     <li class="nav-item">
-                        <a href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuDashboard" href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-grid-1x2"></i>
                             <span>Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url_for('assets') }}" class="nav-link {% if request.endpoint == 'assets' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuAssets" href="{{ url_for('assets') }}" class="nav-link {% if request.endpoint == 'assets' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-boxes"></i>
                             <span>Data Aset</span>
                         </a>
                     </li>
                     {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Auditor'] %}
                     <li class="nav-item">
-                        <a href="{{ url_for('purchase_orders') }}" class="nav-link {% if request.endpoint in ['purchase_orders', 'purchase_order_detail', 'create_purchase_order', 'edit_purchase_order'] %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuPO" href="{{ url_for('purchase_orders') }}" class="nav-link {% if request.endpoint in ['purchase_orders', 'purchase_order_detail', 'create_purchase_order', 'edit_purchase_order'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-cart-check"></i>
                             <span>Purchase Order</span>
                             {% if current_user.role in ['Admin', 'Administrator'] and pending_po_alerts and pending_po_alerts|length > 0 %}
@@ -86,7 +86,7 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuMaintenance" href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-wrench-adjustable"></i>
                             <span>Pemeliharaan Aset</span>
                             {% if maintenance_alerts and maintenance_alerts|length > 0 %}
@@ -96,7 +96,7 @@
                     </li>
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
-                        <a href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuSites" href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-geo-alt"></i>
                             <span>Lokasi & Site</span>
                         </a>
@@ -104,7 +104,7 @@
                     {% endif %}
                     {% if current_user.role != 'Teknisi' %}
                     <li class="nav-item">
-                        <a href="{{ url_for('vendors') }}" class="nav-link {% if request.endpoint == 'vendors' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuVendors" href="{{ url_for('vendors') }}" class="nav-link {% if request.endpoint == 'vendors' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-building"></i>
                             <span>Vendor & Supplier</span>
                         </a>
@@ -118,7 +118,7 @@
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
-                        <a href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuHistory" href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-clock-history"></i>
                             <span>Log Aktivitas</span>
                         </a>
@@ -126,7 +126,7 @@
                     {% endif %}
                     {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
                     <li class="nav-item">
-                        <a href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuAudit" href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-file-earmark-text"></i>
                             <span>Laporan Audit</span>
                         </a>
@@ -169,7 +169,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url_for('system_settings') }}" class="nav-link {% if request.endpoint == 'system_settings' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuSettings" href="{{ url_for('system_settings') }}" class="nav-link {% if request.endpoint == 'system_settings' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-gear-wide-connected"></i>
                             <span>Pengaturan Sistem</span>
                         </a>
@@ -185,7 +185,7 @@
 
                 <!-- Category Quick Links -->
                 <div class="menu-label">Kategori Aset</div>
-                <div class="d-flex flex-column gap-1 mb-3">
+                <div id="tourMenuCategories" class="d-flex flex-column gap-1 mb-3">
                     <a href="{{ url_for('assets', category='Tech') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-laptop text-primary"></i> Tech / IT</span>
                         <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.72rem;">Tech</span>

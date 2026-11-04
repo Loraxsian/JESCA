@@ -1085,34 +1085,88 @@ window.JescaOnboarding = {
 
     tourSteps: [
         {
-            elementId: 'sidebar-wrapper',
-            title: '1. Navigasi & Modul Inventaris',
-            desc: 'Bilah menu samping ini adalah pusat kontrol utama Anda. Dari sini Anda bisa mengelola Inventaris Aset, Peminjaman Barang, Meja Servis Teknisi, Pengadaan (Purchase Order), dan Ekspor Laporan.',
-            actionHint: 'Akses seluruh menu operasional melalui bilah navigasi ini.'
+            elementId: 'tourMenuDashboard',
+            title: '1. Dashboard (Ringkasan Sistem)',
+            desc: 'Pusat ringkasan dan statistik utama seluruh aset kantor. Menampilkan total unit, perkiraan nilai aset rupiah, grafik status barang, dan peringatan dini secara real-time.',
+            actionHint: 'Klik menu ini untuk melihat ringkasan performa inventaris Anda.'
+        },
+        {
+            elementId: 'tourMenuAssets',
+            title: '2. Data Aset (Master Inventaris)',
+            desc: 'Tempat utama untuk melihat, mencari, menambah barang baru, mencetak stiker barcode/QR Code, mengelola riwayat peminjaman, serta mengunggah foto dan invoice aset.',
+            actionHint: 'Gunakan menu ini untuk mendata dan memantau aset fisik kantor.'
+        },
+        {
+            elementId: 'tourMenuPO',
+            title: '3. Purchase Order (Pengadaan Aset)',
+            desc: 'Tempat Anda mengajukan permohonan pembelian barang inventaris baru ke vendor, menyusun estimasi biaya, meminta persetujuan anggaran, dan mencatat barang yang tiba.',
+            actionHint: 'Ajukan pengadaan unit barang baru melalui modul ini.'
+        },
+        {
+            elementId: 'tourMenuMaintenance',
+            title: '4. Pemeliharaan Aset (Meja Servis)',
+            desc: 'Tempat menjadwalkan servis rutin barang, mencatat riwayat perbaikan kerusakan oleh teknisi, pengajuan servis dari staf, serta memantau pengeluaran biaya perbaikan.',
+            actionHint: 'Jadwalkan servis rutin agar usia pakai aset kantor lebih awet.'
+        },
+        {
+            elementId: 'tourMenuSites',
+            title: '5. Lokasi & Site (Ruangan & Gedung)',
+            desc: 'Tempat mengelompokkan barang berdasarkan gedung kantor, lantai, gudang, maupun kantor cabang. Memudahkan staf mengetahui di mana posisi fisik setiap barang berada.',
+            actionHint: 'Atur ruangan dan cabang kantor untuk ketertiban posisi aset.'
+        },
+        {
+            elementId: 'tourMenuVendors',
+            title: '6. Vendor & Supplier (Mitra Rekanan)',
+            desc: 'Buku data rekanan toko atau supplier tempat kantor membeli barang inventaris, lengkap dengan kontak sales/PIC, alamat, dan daftar aset yang pernah dibeli.',
+            actionHint: 'Simpan data kontak toko rekanan untuk kemudahan klaim garansi.'
+        },
+        {
+            elementId: 'tourMenuHistory',
+            title: '7. Log Aktivitas (Audit Keamanan)',
+            desc: 'Rekam jejak otomatis mencatat setiap aktivitas di sistem: siapa staf yang menambah, mengedit, meminjam, atau menghapus aset beserta tanggal dan jam pastinya.',
+            actionHint: 'Pantau rekam jejak sistem untuk transparansi dan akuntabilitas tim.'
+        },
+        {
+            elementId: 'tourMenuAudit',
+            title: '8. Laporan Audit & Export Data',
+            desc: 'Cetak dokumen laporan inventaris resmi dalam format PDF standar eksekutif, serta ekspor seluruh data ke file Excel/CSV untuk rekonsiliasi pembukuan kantor.',
+            actionHint: 'Cetak dokumen laporan PDF atau unduh data Excel dari modul ini.'
+        },
+        {
+            elementId: 'tourMenuSettings',
+            title: '9. Pengaturan Sistem & Pengguna',
+            desc: 'Pusat kontrol administrator untuk mengelola akun staf, hak akses, backup & restore database (cadangan data), proteksi jaringan, serta notifikasi email SMTP.',
+            actionHint: 'Kelola keamanan akun dan konfigurasi sistem pada menu ini.'
+        },
+        {
+            elementId: 'tourMenuCategories',
+            title: '10. Kategori Aset (Filter Cepat)',
+            desc: 'Di kolom ini Anda bisa menyaring data aset berdasarkan jenisnya dengan satu klik: Tech/IT, Tools (Peralatan), Furnitur, Kendaraan, dan Kantor untuk pencarian instan.',
+            actionHint: 'Klik salah satu kategori untuk langsung melihat aset terkait.'
         },
         {
             elementId: 'navbarQrBtn',
-            title: '2. Pemindai Kamera QR Code',
-            desc: 'Pencet tombol kamera ini untuk membuka pemindai label fisik aset. Anda dapat memverifikasi kondisi fisik stok opname langsung di lapangan, bahkan saat perangkat offline di gudang.',
-            actionHint: 'Arahkan kamera ke label stiker aset untuk verifikasi instan.'
+            title: '11. Pemindai Kamera QR Code',
+            desc: 'Klik tombol kamera ini kapan saja untuk memindai stiker QR Code fisik pada label aset langsung lewat kamera smartphone atau webcam laptop untuk cek data instan.',
+            actionHint: 'Arahkan kamera ke stiker label aset untuk identifikasi cepat.'
         },
         {
             elementId: 'navbarAddAssetBtn',
-            title: '3. Tambah Aset Baru',
-            desc: 'Pencet tombol ini untuk mendaftarkan barang baru ke dalam sistem. Cukup isi nama, harga beli, kategori, dan sistem akan membuatkan label stiker QR Code secara otomatis.',
-            actionHint: 'Klik tombol ini setiap kali ada penerimaan unit barang baru.'
+            title: '12. Tambah Aset Baru (Pintasan Cepat)',
+            desc: 'Tombol pintas untuk mendaftarkan barang baru ke sistem dari halaman mana pun tanpa harus masuk ke menu Data Aset terlebih dahulu.',
+            actionHint: 'Pencet tombol ini untuk input cepat penerimaan barang baru.'
         },
         {
             elementId: 'navbarNotifBell',
-            title: '4. Pusat Notifikasi & Servis',
-            desc: 'Ikon lonceng ini akan memberi peringatan jika ada jadwal perawatan servis aset yang mendekati jatuh tempo atau permohonan pengadaan barang (PO) yang menunggu persetujuan.',
-            actionHint: 'Periksa lonceng ini untuk memantau tugas yang perlu ditindaklanjuti.'
+            title: '13. Pusat Notifikasi & Pengingat',
+            desc: 'Ikon lonceng ini akan menyala jika ada barang yang jatuh tempo jadwal servisnya, atau peminjaman aset kantor yang terlambat dikembalikan oleh staf.',
+            actionHint: 'Periksa pemberitahuan berkala agar tidak ada aset yang terlewat.'
         },
         {
             elementId: 'footerCommandBadge',
-            title: '5. Pintasan Cepat (Command Palette)',
-            desc: 'Tekan tombol Ctrl + K pada keyboard Anda kapan saja. Jendela pencarian pintar akan terbuka untuk mencari aset, membuka menu, atau berpindah halaman secara instan tanpa perlu klik mouse.',
-            actionHint: 'Gunakan Ctrl + K untuk navigasi super cepat.'
+            title: '14. Pintasan Keyboard (Ctrl + K)',
+            desc: 'Tekan tombol Ctrl + K pada keyboard Anda kapan saja. Jendela pencarian pintar akan terbuka untuk mencari nama barang, membuka menu, atau berpindah fitur secepat kilat.',
+            actionHint: 'Tekan Ctrl + K di keyboard Anda untuk navigasi kilat.'
         }
     ],
 
@@ -1206,6 +1260,12 @@ window.JescaOnboarding = {
             return;
         }
 
+        // Pastikan sidebar terbuka jika elemen target ada di dalam sidebar
+        var wrapper = document.getElementById('wrapper');
+        if (wrapper && wrapper.classList.contains('toggled') && step.elementId.startsWith('tourMenu')) {
+            wrapper.classList.remove('toggled');
+        }
+
         var target = document.getElementById(step.elementId);
         if (!target) {
             this.currentTourStep++;
@@ -1224,7 +1284,7 @@ window.JescaOnboarding = {
         setTimeout(function() {
             var rect = target.getBoundingClientRect();
             JescaOnboarding.renderSpotlightUI(rect, step);
-        }, 250);
+        }, 220);
     },
 
     renderSpotlightUI: function(rect, step) {
@@ -1266,7 +1326,7 @@ window.JescaOnboarding = {
             '<div class="fw-bold text-dark mb-1" style="font-size:0.92rem;">' + step.title + '</div>' +
             '<p class="text-secondary small mb-2" style="font-size:0.78rem;line-height:1.45;">' + step.desc + '</p>' +
             '<div class="p-2 rounded-2 bg-light border mb-3 small text-muted d-flex align-items-center gap-2" style="font-size:0.72rem;">' +
-            '<i class="bi bi-hand-index-thumb text-primary fs-6 flex-shrink-0"></i>' +
+            '<i class="bi bi-lightbulb-fill text-warning fs-6 flex-shrink-0"></i>' +
             '<span>' + step.actionHint + '</span>' +
             '</div>' +
             '<div class="d-flex justify-content-between align-items-center">' +
@@ -1279,21 +1339,46 @@ window.JescaOnboarding = {
             '</div>' +
             '</div>';
 
-        var popW = 340;
+        var popW = 360;
         var popH = 240;
         var winW = window.innerWidth;
         var winH = window.innerHeight;
 
-        var top = rect.bottom + 14;
-        var left = rect.left;
+        var sidebarEl = document.getElementById('sidebar-wrapper');
+        var sidebarRight = sidebarEl ? sidebarEl.getBoundingClientRect().right : 260;
 
-        if (top + popH > winH - 20) {
+        var top, left;
+
+        // Cek posisi target agar popover TIDAK PERNAH menutupi elemen target
+        var isSidebarItem = (step.elementId.startsWith('tourMenu') || (rect.left < 340 && rect.right <= sidebarRight + 40));
+        var isTopNavbarItem = (rect.top < 90 && rect.right > 300);
+        var isBottomFooterItem = (rect.bottom > winH - 90);
+
+        if (isSidebarItem && winW >= 768) {
+            // Tempatkan di SEBELAH KANAN sidebar di area konten utama agar menu sidebar tidak tertutup!
+            left = Math.max(rect.right, sidebarRight) + 24;
+            top = Math.max(20, Math.min(rect.top - 15, winH - popH - 20));
+        } else if (isTopNavbarItem) {
+            // Tempatkan di bawah tombol navbar
+            top = rect.bottom + 14;
+            left = Math.max(20, Math.min(rect.left - 120, winW - popW - 24));
+        } else if (isBottomFooterItem) {
+            // Tempatkan di atas footer
             top = Math.max(20, rect.top - popH - 14);
+            left = Math.max(20, Math.min(rect.left, winW - popW - 24));
+        } else {
+            // Fallback cerdas: pilih sisi yang paling leluasa
+            if (rect.right + popW + 24 < winW) {
+                left = rect.right + 24;
+                top = Math.max(20, Math.min(rect.top - 10, winH - popH - 20));
+            } else if (rect.left - popW - 24 > 0) {
+                left = rect.left - popW - 24;
+                top = Math.max(20, Math.min(rect.top - 10, winH - popH - 20));
+            } else {
+                top = rect.bottom + 14;
+                left = Math.max(20, Math.min(rect.left, winW - popW - 24));
+            }
         }
-        if (left + popW > winW - 20) {
-            left = Math.max(20, winW - popW - 20);
-        }
-        if (left < 20) left = 20;
 
         popover.style.top = top + 'px';
         popover.style.left = left + 'px';
