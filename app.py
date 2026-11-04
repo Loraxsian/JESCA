@@ -18,7 +18,7 @@ import traceback
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from functools import wraps
-from datetime import datetime, date, timedelta
+from datetime import datetime, date, timedelta, timezone
 from urllib.parse import quote
 
 from flask import (
@@ -60,7 +60,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.5.6'
+APP_VERSION = '2.5.7'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -1114,6 +1114,115 @@ def decrypt_smtp_password(stored_pwd: str) -> str:
     except Exception as e:
         app.logger.error(f"Decryption error: {e}")
         return ""
+
+
+WIB = timezone(timedelta(hours=7))
+
+
+def get_wib_now():
+    """Return current datetime in WIB (UTC+7)."""
+    return datetime.now(WIB)
+
+
+def format_wib_datetime(dt=None):
+    """Format datetime into Indonesian WIB format: '04 November 2026, 11:42:13 WIB'."""
+    if dt is None:
+        dt = get_wib_now()
+    elif dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc).astimezone(WIB)
+    else:
+        dt = dt.astimezone(WIB)
+    months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"]
+    return f"{dt.day:02d} {months[dt.month - 1]} {dt.year}, {dt.strftime('%H:%M:%S')} WIB"
+
+
+def build_system_email_html(header_title: str, badge_text: str, badge_type: str, intro_html: str, rows: list, note_text: str = None) -> str:
+    """
+    Standardized corporate transactional email template for JESCA.
+    badge_type: 'success' (green), 'danger' (red), 'primary' (blue), 'warning' (amber)
+    rows: list of (label, value_html)
+    """
+    badge_styles = {
+        'success': {'accent': '#16a34a', 'bg': '#dcfce7', 'fg': '#15803d', 'border': '#bbf7d0'},
+        'danger': {'accent': '#dc2626', 'bg': '#fee2e2', 'fg': '#b91c1c', 'border': '#fecaca'},
+        'primary': {'accent': '#2563eb', 'bg': '#dbeafe', 'fg': '#1d4ed8', 'border': '#bfdbfe'},
+        'warning': {'accent': '#d97706', 'bg': '#fef3c7', 'fg': '#b45309', 'border': '#fde68a'},
+    }
+    style = badge_styles.get(badge_type, badge_styles['primary'])
+
+    table_rows_html = []
+    for i, (label, val) in enumerate(rows):
+        bg = "#f8fafc" if i % 2 == 0 else "#ffffff"
+        table_rows_html.append(f"""
+            <tr style="background-color: {bg}; border-bottom: 1px solid #f1f5f9;">
+                <td style="padding: 11px 16px; color: #64748b; font-size: 13px; font-weight: 600; width: 34%; vertical-align: middle;">{label}</td>
+                <td style="padding: 11px 16px; color: #0f172a; font-size: 13px; vertical-align: middle;">{val}</td>
+            </tr>
+        """)
+    table_content = "".join(table_rows_html)
+
+    note_html = ""
+    if note_text:
+        note_html = f"""
+        <div style="margin-top: 18px; padding: 12px 16px; background-color: #f8fafc; border-left: 4px solid {style['accent']}; border-radius: 4px; font-size: 12.5px; color: #475569; line-height: 1.5;">
+            {note_text}
+        </div>
+        """
+
+    return f"""<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"></head>
+<body style="margin: 0; padding: 24px 0; background-color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);">
+        <!-- Top Accent Bar -->
+        <div style="height: 4px; background-color: {style['accent']};"></div>
+
+        <!-- Header -->
+        <div style="background-color: #0f172a; padding: 20px 24px;">
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                <tr>
+                    <td style="vertical-align: middle;">
+                        <div style="font-size: 18px; font-weight: 800; letter-spacing: 0.5px; color: #ffffff; margin-bottom: 2px;">JESCA</div>
+                        <div style="font-size: 11px; color: #94a3b8; font-weight: 500;">Jessica Assets Management System</div>
+                    </td>
+                    <td style="text-align: right; vertical-align: middle;">
+                        <span style="display: inline-block; padding: 4px 10px; background-color: {style['bg']}; color: {style['fg']}; border: 1px solid {style['border']}; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase;">
+                            {badge_text}
+                        </span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Body Content -->
+        <div style="padding: 24px;">
+            <h2 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 700; color: #0f172a;">{header_title}</h2>
+            <div style="font-size: 13.5px; color: #334155; line-height: 1.6; margin-bottom: 16px;">
+                {intro_html}
+            </div>
+
+            <!-- Parameter Table -->
+            <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse; border: 1px solid #e2e8f0; border-radius: 8px; overflow: hidden;">
+                <tbody>
+                    {table_content}
+                </tbody>
+            </table>
+
+            {note_html}
+        </div>
+
+        <!-- Corporate Footer -->
+        <div style="padding: 16px 24px; background-color: #f8fafc; border-top: 1px solid #e2e8f0; text-align: center;">
+            <p style="margin: 0 0 6px 0; font-size: 11px; color: #64748b; line-height: 1.5;">
+                Pesan ini dihasilkan secara otomatis oleh sistem notifikasi JESCA. Mohon untuk tidak membalas email ini secara langsung.
+            </p>
+            <div style="font-size: 11px; color: #94a3b8; font-weight: 500;">
+                &copy; 2026 JESCA &bull; Jessica Assets Management System
+            </div>
+        </div>
+    </div>
+</body>
+</html>"""
 
 
 def send_system_email(subject: str, html_body: str, recipient_list=None):
@@ -2334,24 +2443,27 @@ def edit_asset(asset_id):
 
     # Trigger Async Notification if status changed to 'Rusak' or 'Afkir'
     if old_status != status and status in ['Rusak', 'Afkir']:
-        html_alert = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #fee2e2; border-radius: 8px;">
-            <div style="background: #ef4444; color: white; padding: 12px 16px; border-radius: 6px 6px 0 0;">
-                <h3 style="margin: 0; font-size: 16px;">PERINGATAN KONDISI ASET BERMASALAH</h3>
-            </div>
-            <div style="padding: 16px; background: #fff;">
-                <p>Status aset telah diubah menjadi <strong>{status}</strong> oleh <strong>{current_user.full_name}</strong>.</p>
-                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                    <tr><td style="padding: 6px 0; color: #64748b;">Kode Aset:</td><td><strong>{asset.asset_code}</strong></td></tr>
-                    <tr><td style="padding: 6px 0; color: #64748b;">Nama Aset:</td><td>{asset.name}</td></tr>
-                    <tr><td style="padding: 6px 0; color: #64748b;">Kategori:</td><td>{asset.category}</td></tr>
-                    <tr><td style="padding: 6px 0; color: #64748b;">Lokasi:</td><td>{asset.location}</td></tr>
-                    <tr><td style="padding: 6px 0; color: #64748b;">Waktu:</td><td>{datetime.now().strftime('%d %B %Y %H:%M')}</td></tr>
-                </table>
-                <p style="margin-top: 15px; font-size: 12px; color: #64748b;">Silakan tindak lanjuti pemeriksaan atau pembuatan jadwal servis melalui menu Pemeliharaan Aset.</p>
-            </div>
-        </div>
-        """
+        wib_time_str = format_wib_datetime()
+        status_color = "#dc2626" if status == 'Afkir' else "#d97706"
+        status_badge_type = 'danger' if status == 'Afkir' else 'warning'
+        rows = [
+            ("Kode Aset", f"<span style='font-family: monospace; font-weight: 700; color: #0284c7;'>{asset.asset_code}</span>"),
+            ("Nama Aset", f"<strong>{asset.name}</strong>"),
+            ("Kategori", asset.category),
+            ("Lokasi Terkini", asset.location),
+            ("Status Baru", f"<span style='font-size: 11px; padding: 2px 8px; background: #fee2e2; color: {status_color}; border-radius: 4px; font-weight: 700;'>{status}</span>"),
+            ("Waktu Pembaruan", f"<strong>{wib_time_str}</strong>"),
+        ]
+        intro_html = f"Status kondisi aset telah diubah menjadi <strong style='color: {status_color};'>{status}</strong> oleh <strong>{current_user.full_name}</strong>."
+        note_text = "Harap segera menindaklanjuti pemeriksaan fisik atau menjadwalkan servis melalui menu Pemeliharaan Aset di sistem JESCA."
+        html_alert = build_system_email_html(
+            header_title="Peringatan Kondisi Aset Bermasalah",
+            badge_text=f"Status: {status}",
+            badge_type=status_badge_type,
+            intro_html=intro_html,
+            rows=rows,
+            note_text=note_text
+        )
         send_system_email(f"[PERINGATAN ASET] {asset.asset_code} - Status Diubah Menjadi {status}", html_alert)
 
     flash(f'Perubahan aset [{asset.asset_code}] berhasil disimpan!', 'success')
@@ -5112,30 +5224,25 @@ def test_smtp_connection():
         msg['From'] = f"{sender_name} <{sender_addr}>"
         msg['To'] = test_target
 
-        html = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0; border-radius: 10px;">
-            <div style="background: #1e293b; color: white; padding: 15px 20px; border-radius: 8px 8px 0 0;">
-                <h2 style="margin: 0; font-size: 18px;">JESCA &bull; Tes Notifikasi Sistem</h2>
-                <small style="color: #94a3b8;">Jessica Assets Management System</small>
-            </div>
-            <div style="padding: 20px; background: #ffffff;">
-                <p>Halo <strong>{current_user.full_name}</strong>,</p>
-                <p>Jika Anda menerima email ini, berarti <strong>konfigurasi Dynamic SMTP JESCA Anda telah berhasil terhubung</strong> dengan baik ke server email!</p>
-                <div style="background: #f8fafc; border-left: 4px solid #16a34a; padding: 12px; margin: 15px 0;">
-                    <ul style="margin: 0; padding-left: 20px; font-size: 13px; color: #334155;">
-                        <li><strong>Host:</strong> {setting.mail_server}:{setting.mail_port}</li>
-                        <li><strong>Enkripsi:</strong> {'SSL' if setting.mail_use_ssl else 'TLS'}</li>
-                        <li><strong>Pengirim:</strong> {setting.mail_username}</li>
-                        <li><strong>Waktu Tes:</strong> {datetime.now().strftime('%d %B %Y %H:%M:%S')}</li>
-                    </ul>
-                </div>
-                <p style="font-size: 12px; color: #64748b;">Notifikasi otomatis untuk perubahan status aset dan pengajuan Purchase Order siap digunakan.</p>
-            </div>
-            <div style="text-align: center; font-size: 11px; color: #94a3b8; padding: 10px; border-top: 1px solid #e2e8f0;">
-                &copy; 2026 JESCA &bull; Jessica Assets Management System
-            </div>
-        </div>
-        """
+        wib_time_str = format_wib_datetime()
+        enc_label = "SSL / SMTPS" if setting.mail_use_ssl else ("STARTTLS" if setting.mail_use_tls else "None")
+        rows = [
+            ("Server Host", f"<span style='font-family: monospace; font-weight: 600;'>{setting.mail_server}</span> <span style='font-size: 11px; padding: 2px 6px; background: #e0f2fe; color: #0369a1; border-radius: 4px; font-family: monospace;'>Port {setting.mail_port}</span>"),
+            ("Protokol Keamanan", f"<span style='font-size: 11px; padding: 2px 8px; background: #dcfce7; color: #15803d; border-radius: 4px; font-weight: 600;'>{enc_label}</span>"),
+            ("Akun Pengirim", f"<span style='font-family: monospace;'>{setting.mail_username}</span>"),
+            ("Waktu Pengujian", f"<strong>{wib_time_str}</strong>"),
+            ("Status Koneksi", "<span style='display: inline-block; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; margin-right: 6px;'></span><strong style='color: #15803d;'>Berhasil (250 OK / Authenticated)</strong>")
+        ]
+        intro_html = f"Halo <strong>{current_user.full_name}</strong>,<br>Konfigurasi Dynamic SMTP JESCA Anda telah berhasil terhubung dengan server email dan siap digunakan untuk pengiriman notifikasi otomatis."
+        note_text = "Sistem kini siap mengirimkan notifikasi instan untuk perubahan kondisi aset bermasalah dan pengajuan Purchase Order."
+        html = build_system_email_html(
+            header_title="Hasil Uji Coba Koneksi Server Email (SMTP)",
+            badge_text="Koneksi Berhasil",
+            badge_type="success",
+            intro_html=intro_html,
+            rows=rows,
+            note_text=note_text
+        )
         msg.attach(MIMEText(html, 'html', 'utf-8'))
 
         if setting.mail_use_ssl:
@@ -6041,24 +6148,25 @@ def submit_purchase_order(po_id):
     log_activity('SUBMIT_PO', details=f"PO [{po.po_number}] diajukan oleh {current_user.username}.")
 
     # Async email notification for PO submission
-    html_po = f"""
-    <div style="font-family: Arial, sans-serif; max-width: 600px; padding: 20px; border: 1px solid #bae6fd; border-radius: 8px;">
-        <div style="background: #0284c7; color: white; padding: 12px 16px; border-radius: 6px 6px 0 0;">
-            <h3 style="margin: 0; font-size: 16px;">PENGAJUAN PURCHASE ORDER BARU</h3>
-        </div>
-        <div style="padding: 16px; background: #fff;">
-            <p>Purchase Order baru memerlukan persetujuan Administrator:</p>
-            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
-                <tr><td style="padding: 6px 0; color: #64748b;">Nomor PO:</td><td><strong>{po.po_number}</strong></td></tr>
-                <tr><td style="padding: 6px 0; color: #64748b;">Judul:</td><td>{po.title}</td></tr>
-                <tr><td style="padding: 6px 0; color: #64748b;">Pemohon:</td><td>{po.requested_by}</td></tr>
-                <tr><td style="padding: 6px 0; color: #64748b;">Estimasi Nilai:</td><td><strong>Rp {po.estimated_total:,.0f}</strong></td></tr>
-                <tr><td style="padding: 6px 0; color: #64748b;">Jumlah Item:</td><td>{po.total_items_quantity} unit</td></tr>
-            </table>
-            <p style="margin-top: 15px; font-size: 12px; color: #64748b;">Silakan masuk ke sistem JESCA untuk menyetujui atau menolak pengajuan ini.</p>
-        </div>
-    </div>
-    """
+    wib_time_str = format_wib_datetime()
+    rows = [
+        ("Nomor PO", f"<span style='font-family: monospace; font-weight: 700; color: #2563eb;'>{po.po_number}</span>"),
+        ("Judul Pengadaan", f"<strong>{po.title}</strong>"),
+        ("Pemohon", po.requested_by),
+        ("Estimasi Biaya", f"<strong style='color: #0f172a;'>Rp {po.estimated_total:,.0f}</strong>".replace(',', '.')),
+        ("Jumlah Item", f"{po.total_items_quantity} unit"),
+        ("Waktu Pengajuan", f"<strong>{wib_time_str}</strong>"),
+    ]
+    intro_html = "Pengajuan Purchase Order baru telah diserahkan dan saat ini membutuhkan peninjauan serta persetujuan Administrator."
+    note_text = "Silakan masuk ke sistem JESCA melalui menu Purchase Order untuk memeriksa rincian pengadaan dan menentukan persetujuan."
+    html_po = build_system_email_html(
+        header_title="Pengajuan Purchase Order Baru",
+        badge_text="Menunggu Persetujuan",
+        badge_type="primary",
+        intro_html=intro_html,
+        rows=rows,
+        note_text=note_text
+    )
     send_system_email(f"[PERLU PERSETUJUAN] PO {po.po_number} - {po.title}", html_po)
 
     flash(f'Purchase Order [{po.po_number}] berhasil diajukan untuk persetujuan Admin!', 'success')
