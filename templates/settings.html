@@ -290,6 +290,10 @@
                                         </span>
                                         <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="https://aset.domain.com atau http://192.168.1.15:5000" required>
                                     </div>
+                                    <div id="httpsLocalWarning" class="alert alert-warning py-2 px-3 small rounded-3 mt-2 mb-0 d-none" style="font-size: 0.73rem;">
+                                        <div class="fw-bold mb-0.5"><i class="bi bi-shield-exclamation text-warning me-1"></i>Peringatan Penggunaan HTTPS:</div>
+                                        Alamat IP lokal atau localhost tidak memiliki sertifikat SSL terpasang. Protokol otomatis dikembalikan ke <strong>http://</strong> agar sistem tidak terkunci.
+                                    </div>
                                     <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
                                         Alamat ini akan tertanam di dalam setiap stiker QR Code fisik yang dicetak dan tautan email pemberitahuan tim.
                                     </small>
@@ -1056,6 +1060,64 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             setNetworkMode('domain');
         }
+    }
+});
+
+// ==========================================
+// Proteksi Cerdas Base URL & Enforce HTTPS (Safe-Guard)
+// ==========================================
+document.addEventListener('DOMContentLoaded', function() {
+    var urlInput = document.getElementById('appBaseUrlInput');
+    var httpsSwitch = document.getElementById('enforceHttpsSwitch');
+    var warnBox = document.getElementById('httpsLocalWarning');
+
+    function isLocalAddress(val) {
+        if (!val) return false;
+        var clean = val.replace(/^https?:\/\//i, '').split('/')[0].split(':')[0].toLowerCase();
+        if (clean === 'localhost' || clean === '127.0.0.1' || clean === '::1') return true;
+        if (/^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[0-1])\.)/.test(clean)) return true;
+        return false;
+    }
+
+    function checkHttpsSafety() {
+        var val = urlInput ? urlInput.value.trim() : '';
+        var isLocal = isLocalAddress(val);
+        var isHttps = /^https:\/\//i.test(val);
+
+        if (warnBox) {
+            if (isLocal && (isHttps || (httpsSwitch && httpsSwitch.checked))) {
+                warnBox.classList.remove('d-none');
+            } else {
+                warnBox.classList.add('d-none');
+            }
+        }
+
+        if (isLocal && isHttps) {
+            if (urlInput) {
+                urlInput.value = val.replace(/^https:\/\//i, 'http://');
+                JescaToast.show('Protokol otomatis dikembalikan ke http:// karena IP lokal tidak memiliki sertifikat SSL.', 'warning');
+            }
+        }
+
+        if (isLocal && httpsSwitch && httpsSwitch.checked) {
+            httpsSwitch.checked = false;
+            JescaToast.show('Enforce HTTPS dinonaktifkan otomatis untuk alamat IP lokal demi mencegah sistem terkunci.', 'warning');
+        }
+    }
+
+    if (urlInput) {
+        urlInput.addEventListener('change', checkHttpsSafety);
+        urlInput.addEventListener('blur', checkHttpsSafety);
+    }
+    if (httpsSwitch) {
+        httpsSwitch.addEventListener('change', function() {
+            var val = urlInput ? urlInput.value.trim() : '';
+            if (this.checked && isLocalAddress(val)) {
+                this.checked = false;
+                if (warnBox) warnBox.classList.remove('d-none');
+                JescaToast.show('Enforce HTTPS hanya dapat diaktifkan pada domain publik resmi (bukan IP lokal/localhost) agar sistem tidak terkunci.', 'danger');
+            }
+        });
     }
 });
 

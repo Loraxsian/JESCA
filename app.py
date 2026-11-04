@@ -1555,9 +1555,16 @@ def enforce_network_and_security():
         setting = None
 
     if setting and setting.enforce_https:
-        if request.headers.get('X-Forwarded-Proto', request.scheme) == 'http':
-            https_url = request.url.replace('http://', 'https://', 1)
-            return redirect(https_url, code=301)
+        host_name = request.host.split(':')[0].lower()
+        client_ip = get_client_ip()
+        # Fail-safe 1: Akses via localhost / loopback tidak dialihkan agar admin di server tidak pernah terkunci
+        is_loopback = (host_name in ('localhost', '127.0.0.1', '::1') or client_ip in ('127.0.0.1', '::1'))
+        # Fail-safe 2: Akses rute pengaturan dan sudo selalu diizinkan via HTTP untuk pemulihan darurat
+        is_recovery_endpoint = (request.endpoint in ('system_settings', 'confirm_sudo', 'lock_sudo'))
+        if not is_loopback and not is_recovery_endpoint:
+            if request.headers.get('X-Forwarded-Proto', request.scheme) == 'http':
+                https_url = request.url.replace('http://', 'https://', 1)
+                return redirect(https_url, code=301)
 
     # 2. IP Whitelisting / VPN Restriction Check
     if setting and setting.ip_whitelist_enabled and setting.allowed_ip_ranges:
@@ -4858,9 +4865,32 @@ def system_settings():
 
         # Network & Domain settings
         app_base_url = request.form.get('app_base_url', '').strip()
+        enforce_https_requested = (request.form.get('enforce_https') == '1')
+
+        # Validasi Cerdas Base URL & Enforce HTTPS
+        is_local_target = False
+        if app_base_url:
+            clean_url = app_base_url if '://' in app_base_url else f"http://{app_base_url}"
+            try:
+                from urllib.parse import urlparse
+                host_only = (urlparse(clean_url).hostname or '').lower()
+            except Exception:
+                host_only = ''
+            if host_only in ('localhost', '127.0.0.1', '::1') or \
+               host_only.startswith(('192.168.', '10.', '172.16.', '172.17.', '172.18.', '172.19.', '172.20.', '172.21.', '172.22.', '172.23.', '172.24.', '172.25.', '172.26.', '172.27.', '172.28.', '172.29.', '172.30.', '172.31.')):
+                is_local_target = True
+
+        if is_local_target:
+            if app_base_url.lower().startswith('https://'):
+                app_base_url = 'http://' + app_base_url[8:]
+                flash('Peringatan: Alamat IP lokal atau localhost tidak memiliki sertifikat SSL. Protokol otomatis disesuaikan ke http:// agar sistem tidak terkunci.', 'warning')
+            if enforce_https_requested:
+                enforce_https_requested = False
+                flash('Peringatan: Fitur "Paksa Jalur Aman (Enforce HTTPS)" dinonaktifkan otomatis untuk alamat IP lokal demi mencegah browser gagal memuat sistem.', 'warning')
+
         if app_base_url:
             setting.app_base_url = app_base_url.rstrip('/')
-        setting.enforce_https = (request.form.get('enforce_https') == '1')
+        setting.enforce_https = enforce_https_requested
         setting.ip_whitelist_enabled = (request.form.get('ip_whitelist_enabled') == '1')
         setting.allowed_ip_ranges = request.form.get('allowed_ip_ranges', '').strip()
 
