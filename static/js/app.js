@@ -115,7 +115,8 @@ window.JescaI18n = {
             dash_col_book_val: 'Nilai Buku',
             dash_recent_activity: 'Aktivitas Terkini',
             dash_view_logs: 'Lihat Log',
-            dash_no_assets: 'Belum ada aset terdaftar.'
+            dash_no_assets: 'Belum ada aset terdaftar.',
+            login_title: 'Silahkan Masuk'
         },
         en: {
             nav_choose_lang: 'CHOOSE LANGUAGE',
@@ -179,7 +180,8 @@ window.JescaI18n = {
             dash_col_book_val: 'Book Value',
             dash_recent_activity: 'Recent Activity',
             dash_view_logs: 'View Logs',
-            dash_no_assets: 'No assets registered yet.'
+            dash_no_assets: 'No assets registered yet.',
+            login_title: 'Please Sign In'
         }
     },
 
@@ -197,6 +199,10 @@ window.JescaI18n = {
         var flagContainer = document.getElementById('currentLangFlag');
         if (flagContainer && this.flagSvgs[lang]) {
             flagContainer.innerHTML = this.flagSvgs[lang];
+        }
+        var loginFlagContainer = document.getElementById('loginActiveFlag');
+        if (loginFlagContainer && this.flagSvgs[lang]) {
+            loginFlagContainer.innerHTML = this.flagSvgs[lang];
         }
 
         // Update Checkmarks in dropdown

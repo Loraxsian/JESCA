@@ -860,8 +860,49 @@ body, html {
     <div class="form-panel">
         <div class="form-wrapper">
 
-            <!-- Judul Form Sesuai Gambar: Silahkan Masuk -->
-            <h2 class="form-title">Silahkan Masuk</h2>
+            <!-- Judul Form Sesuai Gambar: Silahkan Masuk & Language Switcher -->
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <h2 class="form-title mb-0" data-i18n="login_title">Silahkan Masuk</h2>
+                <div class="dropdown">
+                    <button class="btn btn-light border d-flex align-items-center gap-2 py-1 px-2.5 rounded-pill shadow-xs" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pilih Bahasa / Choose Language" style="font-size: 0.78rem;">
+                        <span id="loginActiveFlag">
+                            <svg width="18" height="12" viewBox="0 0 20 14" fill="none" class="rounded-1 border shadow-xs" style="vertical-align: middle;">
+                                <rect width="20" height="7" fill="#E11D48"/>
+                                <rect y="7" width="20" height="7" fill="#FFFFFF"/>
+                            </svg>
+                        </span>
+                        <i class="bi bi-chevron-down text-muted" style="font-size: 0.65rem;"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border py-1.5" style="min-width: 175px;">
+                        <li>
+                            <button class="dropdown-item py-1.5 d-flex align-items-center gap-2 lang-option" data-lang="id">
+                                <svg width="18" height="12" viewBox="0 0 20 14" fill="none" class="rounded-1 border shadow-xs">
+                                    <rect width="20" height="7" fill="#E11D48"/>
+                                    <rect y="7" width="20" height="7" fill="#FFFFFF"/>
+                                </svg>
+                                <span class="small fw-semibold">Indonesia</span>
+                                <i class="bi bi-check-lg ms-auto text-primary d-none lang-check-id"></i>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="dropdown-item py-1.5 d-flex align-items-center gap-2 lang-option" data-lang="en">
+                                <svg width="18" height="12" viewBox="0 0 60 30" fill="none" class="rounded-1 border shadow-xs">
+                                    <clipPath id="uk-flag-clip-login"><path d="M0 0h60v30H0z"/></clipPath>
+                                    <g clip-path="url(#uk-flag-clip-login)">
+                                        <path d="M0 0h60v30H0z" fill="#012169"/>
+                                        <path d="M0 0l60 30m0-30L0 30" stroke="#FFFFFF" stroke-width="6"/>
+                                        <path d="M0 0l60 30m0-30L0 30" stroke="#C8102E" stroke-width="4"/>
+                                        <path d="M30 0v30M0 15h60" stroke="#FFFFFF" stroke-width="10"/>
+                                        <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/>
+                                    </g>
+                                </svg>
+                                <span class="small fw-semibold">English</span>
+                                <i class="bi bi-check-lg ms-auto text-primary d-none lang-check-en"></i>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
 
             <!-- Flash Error/Success Messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
