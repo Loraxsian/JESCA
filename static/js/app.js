@@ -44,6 +44,205 @@
 })();
 
 // ==========================================
+// 1B. DUAL LANGUAGE SYSTEM (ID / EN)
+// ==========================================
+window.JescaI18n = {
+    flagSvgs: {
+        id: '<svg width="20" height="14" viewBox="0 0 20 14" fill="none" class="rounded-1 border shadow-xs" style="vertical-align: middle;"><rect width="20" height="7" fill="#E11D48"/><rect y="7" width="20" height="7" fill="#FFFFFF"/></svg>',
+        en: '<svg width="20" height="14" viewBox="0 0 60 30" fill="none" class="rounded-1 border shadow-xs" style="vertical-align: middle;"><clipPath id="uk-flag-clip-nav"><path d="M0 0h60v30H0z"/></clipPath><g clip-path="url(#uk-flag-clip-nav)"><path d="M0 0h60v30H0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#FFFFFF" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#FFFFFF" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg>'
+    },
+
+    dictionary: {
+        id: {
+            nav_choose_lang: 'PILIH BAHASA',
+            nav_scan_qr: 'Scan QR Code Aset',
+            nav_add_asset: 'Tambah Aset',
+            nav_system_guide: 'Panduan Sistem',
+            nav_profile: 'Profil & Foto',
+            nav_manage_accounts: 'Kelola Pengguna',
+            nav_system_settings: 'Pengaturan Sistem',
+            nav_change_pwd: 'Ganti Password',
+            nav_logout: 'Keluar (Logout)',
+
+            sidebar_main_inventory: 'Inventaris Utama',
+            sidebar_history_reports: 'Riwayat & Laporan',
+            sidebar_settings: 'Pengaturan',
+            sidebar_categories: 'Kategori Aset',
+
+            sidebar_dashboard: 'Dashboard',
+            sidebar_assets: 'Data Aset',
+            sidebar_po: 'Purchase Order',
+            sidebar_maintenance: 'Pemeliharaan Aset',
+            sidebar_sites: 'Lokasi & Site',
+            sidebar_vendors: 'Vendor & Supplier',
+            sidebar_history: 'Log Aktivitas',
+            sidebar_audit: 'Laporan Audit',
+            sidebar_feedbacks: 'Laporan & Masukan',
+            sidebar_export: 'Export Data',
+            sidebar_users: 'Kelola Pengguna',
+            sidebar_backups: 'Backup & Restore',
+            sidebar_settings_link: 'Pengaturan Sistem',
+            sidebar_change_pwd: 'Ganti Password',
+
+            cat_tech: 'Teknologi & IT',
+            cat_tools: 'Peralatan & Mesin',
+            cat_furniture: 'Perabot & Furnitur',
+            cat_vehicle: 'Kendaraan Operasional',
+            cat_office: 'Perlengkapan Kantor',
+
+            dash_admin_pwd_warn_title: 'Peringatan Keamanan: Kata Sandi Administrator Bawaan Masih Aktif',
+            dash_admin_pwd_warn_sub: 'Akun Administrator masih menggunakan kata sandi bawaan sistem. Demi keamanan data inventaris, segera perbarui kata sandi Anda.',
+            dash_admin_pwd_btn: 'Ganti Sekarang',
+            dash_po_approval_title: 'Pengajuan Purchase Order Menunggu Persetujuan',
+            dash_total_assets: 'Total Aset',
+            dash_total_assets_sub: 'Kategori',
+            dash_total_val: 'Nilai Perolehan',
+            dash_total_val_sub: 'Akumulasi biaya beli',
+            dash_book_val: 'Nilai Buku Terkini',
+            dash_deprec_method: 'Metode Garis Lurus',
+            dash_status_ops: 'Status Operasional',
+            dash_status_active: 'Aktif',
+            dash_status_borrowed: 'Dipinjam',
+            dash_status_attention: 'Perlu Cek',
+            dash_cat_dist: 'Distribusi Kategori',
+            dash_status_dist: 'Sebaran Status Inventaris',
+            dash_realtime: 'Waktu Nyata',
+            dash_recent_assets: 'Aset Terakhir Ditambahkan',
+            dash_all_assets: 'Semua Aset',
+            dash_col_code_name: 'Kode & Nama',
+            dash_col_cat: 'Kategori',
+            dash_col_status: 'Status',
+            dash_col_book_val: 'Nilai Buku',
+            dash_recent_activity: 'Aktivitas Terkini',
+            dash_view_logs: 'Lihat Log',
+            dash_no_assets: 'Belum ada aset terdaftar.'
+        },
+        en: {
+            nav_choose_lang: 'CHOOSE LANGUAGE',
+            nav_scan_qr: 'Scan Asset QR Code',
+            nav_add_asset: 'Add Asset',
+            nav_system_guide: 'System Guide',
+            nav_profile: 'Profile & Photo',
+            nav_manage_accounts: 'User Management',
+            nav_system_settings: 'System Settings',
+            nav_change_pwd: 'Change Password',
+            nav_logout: 'Logout',
+
+            sidebar_main_inventory: 'Main Inventory',
+            sidebar_history_reports: 'History & Reports',
+            sidebar_settings: 'Settings',
+            sidebar_categories: 'Asset Categories',
+
+            sidebar_dashboard: 'Dashboard',
+            sidebar_assets: 'Asset Data',
+            sidebar_po: 'Purchase Orders',
+            sidebar_maintenance: 'Asset Maintenance',
+            sidebar_sites: 'Locations & Sites',
+            sidebar_vendors: 'Vendors & Suppliers',
+            sidebar_history: 'Activity Logs',
+            sidebar_audit: 'Audit Reports',
+            sidebar_feedbacks: 'Feedback & Tickets',
+            sidebar_export: 'Export Data',
+            sidebar_users: 'User Management',
+            sidebar_backups: 'Backup & Restore',
+            sidebar_settings_link: 'System Settings',
+            sidebar_change_pwd: 'Change Password',
+
+            cat_tech: 'Technology & IT',
+            cat_tools: 'Tools & Equipment',
+            cat_furniture: 'Furniture & Fixtures',
+            cat_vehicle: 'Company Vehicles',
+            cat_office: 'Office Supplies',
+
+            dash_admin_pwd_warn_title: 'Security Alert: Default Administrator Password Active',
+            dash_admin_pwd_warn_sub: 'The Administrator account is still using the system default password. For inventory data protection, please update your password immediately.',
+            dash_admin_pwd_btn: 'Change Now',
+            dash_po_approval_title: 'Purchase Orders Awaiting Approval',
+            dash_total_assets: 'Total Assets',
+            dash_total_assets_sub: 'Categories',
+            dash_total_val: 'Acquisition Value',
+            dash_total_val_sub: 'Accumulated purchase cost',
+            dash_book_val: 'Current Book Value',
+            dash_deprec_method: 'Straight-line Method',
+            dash_status_ops: 'Operational Status',
+            dash_status_active: 'Active',
+            dash_status_borrowed: 'Borrowed',
+            dash_status_attention: 'Needs Attention',
+            dash_cat_dist: 'Category Distribution',
+            dash_status_dist: 'Asset Status Distribution',
+            dash_realtime: 'Real-Time',
+            dash_recent_assets: 'Recently Added Assets',
+            dash_all_assets: 'All Assets',
+            dash_col_code_name: 'Code & Name',
+            dash_col_cat: 'Category',
+            dash_col_status: 'Status',
+            dash_col_book_val: 'Book Value',
+            dash_recent_activity: 'Recent Activity',
+            dash_view_logs: 'View Logs',
+            dash_no_assets: 'No assets registered yet.'
+        }
+    },
+
+    getCurrent: function() {
+        return localStorage.getItem('jesca_lang') || 'id';
+    },
+
+    apply: function(lang) {
+        lang = (lang === 'en') ? 'en' : 'id';
+        localStorage.setItem('jesca_lang', lang);
+        document.documentElement.setAttribute('lang', lang);
+        document.documentElement.setAttribute('data-lang', lang);
+
+        // Update Flag Icon in navbar button
+        var flagContainer = document.getElementById('currentLangFlag');
+        if (flagContainer && this.flagSvgs[lang]) {
+            flagContainer.innerHTML = this.flagSvgs[lang];
+        }
+
+        // Update Checkmarks in dropdown
+        document.querySelectorAll('.lang-check-id, .lang-check-en').forEach(function(el) {
+            el.classList.add('d-none');
+        });
+        var checkEl = document.querySelector('.lang-check-' + lang);
+        if (checkEl) checkEl.classList.remove('d-none');
+
+        // Apply translations to all data-i18n elements
+        var dict = this.dictionary[lang] || this.dictionary['id'];
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n');
+            if (dict[key]) {
+                el.textContent = dict[key];
+            }
+        });
+
+        // Apply translations to data-i18n-title
+        document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n-title');
+            if (dict[key]) {
+                el.setAttribute('title', dict[key]);
+            }
+        });
+
+        // Apply translations to data-i18n-placeholder
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n-placeholder');
+            if (dict[key]) {
+                el.setAttribute('placeholder', dict[key]);
+            }
+        });
+
+        window.dispatchEvent(new CustomEvent('jesca:languageChanged', { detail: { lang: lang } }));
+    }
+};
+
+// Auto-run early lang preference
+try {
+    var savedLang = localStorage.getItem('jesca_lang') || 'id';
+    document.documentElement.setAttribute('lang', savedLang);
+    document.documentElement.setAttribute('data-lang', savedLang);
+} catch (e) {}
+
+// ==========================================
 // 2. TOAST NOTIFICATION SYSTEM
 // ==========================================
 window.JescaToast = {
@@ -1480,6 +1679,22 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('jesca_theme_manual', '1');
         });
     });
+
+    // Language options click binding & initial apply
+    if (window.JescaI18n) {
+        JescaI18n.apply(JescaI18n.getCurrent());
+        document.querySelectorAll('.lang-option').forEach(function(btn) {
+            btn.addEventListener('click', function(e) {
+                e.preventDefault();
+                var selectedLang = this.getAttribute('data-lang');
+                JescaI18n.apply(selectedLang);
+                if (window.JescaToast) {
+                    var msg = (selectedLang === 'en') ? 'Language switched to English.' : 'Bahasa dialihkan ke Bahasa Indonesia.';
+                    JescaToast.show(msg, 'info');
+                }
+            });
+        });
+    }
 
     // Init Bulk Select on assets page
     if (document.getElementById('assetsTable')) {

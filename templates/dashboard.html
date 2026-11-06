@@ -22,12 +22,12 @@
                         <i class="bi bi-shield-exclamation fs-5"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark small">Peringatan Keamanan: Password Administrator Bawaan Masih Aktif</div>
-                        <small class="text-secondary">Akun Administrator masih menggunakan password default (<code>Admin123</code>). Segera ubah password untuk melindungi sistem inventaris Anda.</small>
+                        <div class="fw-bold text-dark small" data-i18n="dash_admin_pwd_warn_title">Peringatan Keamanan: Kata Sandi Administrator Bawaan Masih Aktif</div>
+                        <small class="text-secondary" data-i18n="dash_admin_pwd_warn_sub">Akun Administrator masih menggunakan kata sandi bawaan sistem. Demi keamanan data inventaris, segera perbarui kata sandi Anda.</small>
                     </div>
                 </div>
                 <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold flex-shrink-0 shadow-sm" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                    <i class="bi bi-key-fill me-1"></i>Ganti Sekarang
+                    <i class="bi bi-key-fill me-1"></i><span data-i18n="dash_admin_pwd_btn">Ganti Sekarang</span>
                 </button>
             </div>
         </div>
@@ -47,7 +47,7 @@
                         <i class="bi bi-cart-check-fill"></i>
                     </div>
                     <div>
-                        <div class="fw-bold text-dark small">Pengajuan Purchase Order Menunggu Approval</div>
+                        <div class="fw-bold text-dark small" data-i18n="dash_po_approval_title">Pengajuan Purchase Order Menunggu Persetujuan</div>
                         <small class="text-primary fw-semibold">{{ pending_pos|length }} pengadaan belanja baru perlu ditinjau dan disetujui Administrator.</small>
                     </div>
                 </div>
@@ -127,13 +127,13 @@
         <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Total Aset</span>
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="dash_total_assets">Total Aset</span>
                     <div class="stat-icon bg-primary-subtle text-primary rounded-3">
                         <i class="bi bi-boxes fs-5"></i>
                     </div>
                 </div>
                 <h4 class="fw-bold mb-1 text-dark">{{ total_assets }} <span class="fs-6 fw-normal text-muted">Item</span></h4>
-                <div class="text-muted small"><i class="bi bi-tag text-primary me-1"></i>{{ category_labels|length }} Kategori</div>
+                <div class="text-muted small"><i class="bi bi-tag text-primary me-1"></i>{{ category_labels|length }} <span data-i18n="dash_total_assets_sub">Kategori</span></div>
             </div>
         </div>
     </div>
@@ -141,13 +141,13 @@
         <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Nilai Perolehan</span>
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="dash_total_val">Nilai Perolehan</span>
                     <div class="stat-icon bg-success-subtle text-success rounded-3">
                         <i class="bi bi-cash-stack fs-5"></i>
                     </div>
                 </div>
                 <h4 class="fw-bold mb-1 text-success">{{ total_value|rupiah }}</h4>
-                <div class="text-muted small"><i class="bi bi-graph-up text-success me-1"></i>Akumulasi biaya beli</div>
+                <div class="text-muted small"><i class="bi bi-graph-up text-success me-1"></i><span data-i18n="dash_total_val_sub">Akumulasi biaya beli</span></div>
             </div>
         </div>
     </div>
@@ -155,13 +155,13 @@
         <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Nilai Buku Terkini</span>
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="dash_book_val">Nilai Buku Terkini</span>
                     <div class="stat-icon bg-info-subtle text-info rounded-3">
                         <i class="bi bi-calculator fs-5"></i>
                     </div>
                 </div>
                 <h4 class="fw-bold mb-1 text-info">{{ total_book_value|rupiah }}</h4>
-                <div class="text-muted small"><i class="bi bi-arrow-down-right text-info me-1"></i>Straight-line method</div>
+                <div class="text-muted small"><i class="bi bi-arrow-down-right text-info me-1"></i><span data-i18n="dash_deprec_method">Metode Garis Lurus</span></div>
             </div>
         </div>
     </div>
@@ -169,15 +169,15 @@
         <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-3">
                 <div class="d-flex align-items-center justify-content-between mb-1">
-                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;">Status Operasional</span>
+                    <span class="text-muted fw-semibold" style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="dash_status_ops">Status Operasional</span>
                     <div class="stat-icon bg-warning-subtle text-warning rounded-3">
                         <i class="bi bi-speedometer2 fs-5"></i>
                     </div>
                 </div>
-                <h4 class="fw-bold mb-1 text-dark">{{ active_count }} <span class="fs-6 text-muted fw-normal">Aktif</span></h4>
+                <h4 class="fw-bold mb-1 text-dark">{{ active_count }} <span class="fs-6 text-muted fw-normal" data-i18n="dash_status_active">Aktif</span></h4>
                 <div class="text-muted small">
-                    <span class="badge bg-info-subtle text-info me-1">{{ borrowed_count }} Dipinjam</span>
-                    {% if attention_count %}<span class="badge bg-danger-subtle text-danger">{{ attention_count }} Perlu Cek</span>{% endif %}
+                    <span class="badge bg-info-subtle text-info me-1">{{ borrowed_count }} <span data-i18n="dash_status_borrowed">Dipinjam</span></span>
+                    {% if attention_count %}<span class="badge bg-danger-subtle text-danger">{{ attention_count }} <span data-i18n="dash_status_attention">Perlu Cek</span></span>{% endif %}
                 </div>
             </div>
         </div>
@@ -191,7 +191,7 @@
             <div class="card-header bg-white border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-pie-chart text-primary fs-6"></i>
-                    <h6 class="fw-bold mb-0 text-dark">Distribusi Kategori</h6>
+                    <h6 class="fw-bold mb-0 text-dark" data-i18n="dash_cat_dist">Distribusi Kategori</h6>
                 </div>
                 <span class="badge bg-light text-secondary border font-monospace">{{ total_assets }} Aset</span>
             </div>
@@ -207,9 +207,9 @@
             <div class="card-header bg-white border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-bar-chart-line text-success fs-6"></i>
-                    <h6 class="fw-bold mb-0 text-dark">Sebaran Status Inventaris</h6>
+                    <h6 class="fw-bold mb-0 text-dark" data-i18n="dash_status_dist">Sebaran Status Inventaris</h6>
                 </div>
-                <span class="badge bg-light text-secondary border font-monospace">Real-time</span>
+                <span class="badge bg-light text-secondary border font-monospace" data-i18n="dash_realtime">Waktu Nyata</span>
             </div>
             <div class="card-body p-3 d-flex align-items-center">
                 <div style="position: relative; width: 100%; height: 200px;" data-chart="status" id="statusChartContainer">
@@ -228,18 +228,18 @@
             <div class="card-header bg-white border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-boxes text-primary fs-6"></i>
-                    <h6 class="fw-bold mb-0 text-dark">Aset Terakhir Ditambahkan</h6>
+                    <h6 class="fw-bold mb-0 text-dark" data-i18n="dash_recent_assets">Aset Terakhir Ditambahkan</h6>
                 </div>
-                <a href="{{ url_for('assets') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">Semua Aset</a>
+                <a href="{{ url_for('assets') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-i18n="dash_all_assets">Semua Aset</a>
             </div>
             <div class="table-responsive dashboard-scrollable-container flex-grow-1">
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light text-secondary small">
                         <tr style="position: sticky; top: 0; z-index: 1;">
-                            <th class="ps-3 bg-light" style="position: sticky; top: 0;">Kode &amp; Nama</th>
-                            <th class="bg-light" style="position: sticky; top: 0;">Kategori</th>
-                            <th class="bg-light" style="position: sticky; top: 0;">Status</th>
-                            <th class="text-end pe-3 bg-light" style="position: sticky; top: 0;">Nilai Buku</th>
+                            <th class="ps-3 bg-light" style="position: sticky; top: 0;" data-i18n="dash_col_code_name">Kode &amp; Nama</th>
+                            <th class="bg-light" style="position: sticky; top: 0;" data-i18n="dash_col_cat">Kategori</th>
+                            <th class="bg-light" style="position: sticky; top: 0;" data-i18n="dash_col_status">Status</th>
+                            <th class="text-end pe-3 bg-light" style="position: sticky; top: 0;" data-i18n="dash_col_book_val">Nilai Buku</th>
                         </tr>
                     </thead>
                     <tbody class="small">
@@ -283,9 +283,9 @@
             <div class="card-header bg-white border-bottom py-2 px-3 d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-clock-history text-secondary fs-6"></i>
-                    <h6 class="fw-bold mb-0 text-dark">Aktivitas Terkini</h6>
+                    <h6 class="fw-bold mb-0 text-dark" data-i18n="dash_recent_activity">Aktivitas Terkini</h6>
                 </div>
-                <a href="{{ url_for('history') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">Lihat Log</a>
+                <a href="{{ url_for('history') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-i18n="dash_view_logs">Lihat Log</a>
             </div>
             <div class="card-body p-2 dashboard-scrollable-container flex-grow-1">
                 <div class="d-flex flex-column gap-2">

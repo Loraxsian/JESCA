@@ -60,25 +60,25 @@
             <div class="sidebar-menu p-3">
                 
                 <!-- Section: INVENTARIS UTAMA -->
-                <div class="menu-label">Inventaris Utama</div>
+                <div class="menu-label" data-i18n="sidebar_main_inventory">Inventaris Utama</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     <li class="nav-item">
                         <a id="tourMenuDashboard" href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-grid-1x2"></i>
-                            <span>Dashboard</span>
+                            <span data-i18n="sidebar_dashboard">Dashboard</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a id="tourMenuAssets" href="{{ url_for('assets') }}" class="nav-link {% if request.endpoint == 'assets' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-boxes"></i>
-                            <span>Data Aset</span>
+                            <span data-i18n="sidebar_assets">Data Aset</span>
                         </a>
                     </li>
                     {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Auditor'] %}
                     <li class="nav-item">
                         <a id="tourMenuPO" href="{{ url_for('purchase_orders') }}" class="nav-link {% if request.endpoint in ['purchase_orders', 'purchase_order_detail', 'create_purchase_order', 'edit_purchase_order'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-cart-check"></i>
-                            <span>Purchase Order</span>
+                            <span data-i18n="sidebar_po">Purchase Order</span>
                             {% if current_user.role in ['Admin', 'Administrator'] and pending_po_alerts and pending_po_alerts|length > 0 %}
                             <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ pending_po_alerts|length }}</span>
                             {% endif %}
@@ -88,7 +88,7 @@
                     <li class="nav-item">
                         <a id="tourMenuMaintenance" href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-wrench-adjustable"></i>
-                            <span>Pemeliharaan Aset</span>
+                            <span data-i18n="sidebar_maintenance">Pemeliharaan Aset</span>
                             {% if maintenance_alerts and maintenance_alerts|length > 0 %}
                             <span class="badge bg-warning text-dark rounded-pill ms-auto" style="font-size: 0.65rem;">{{ maintenance_alerts|length }}</span>
                             {% endif %}
@@ -98,7 +98,7 @@
                     <li class="nav-item">
                         <a id="tourMenuSites" href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-geo-alt"></i>
-                            <span>Lokasi & Site</span>
+                            <span data-i18n="sidebar_sites">Lokasi & Site</span>
                         </a>
                     </li>
                     {% endif %}
@@ -106,7 +106,7 @@
                     <li class="nav-item">
                         <a id="tourMenuVendors" href="{{ url_for('vendors') }}" class="nav-link {% if request.endpoint == 'vendors' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-building"></i>
-                            <span>Vendor & Supplier</span>
+                            <span data-i18n="sidebar_vendors">Vendor & Supplier</span>
                         </a>
                     </li>
                     {% endif %}
@@ -114,13 +114,13 @@
 
                 <!-- Section: RIWAYAT & LAPORAN -->
                 {% if current_user.role in ['Admin', 'Administrator', 'Auditor', 'Teknisi'] %}
-                <div class="menu-label">Riwayat & Laporan</div>
+                <div class="menu-label" data-i18n="sidebar_history_reports">Riwayat & Laporan</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
                         <a id="tourMenuHistory" href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-clock-history"></i>
-                            <span>Log Aktivitas</span>
+                            <span data-i18n="sidebar_history">Log Aktivitas</span>
                         </a>
                     </li>
                     {% endif %}
@@ -128,7 +128,7 @@
                     <li class="nav-item">
                         <a id="tourMenuAudit" href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-file-earmark-text"></i>
-                            <span>Laporan Audit</span>
+                            <span data-i18n="sidebar_audit">Laporan Audit</span>
                         </a>
                     </li>
                     {% endif %}
@@ -136,7 +136,7 @@
                     <li class="nav-item">
                         <a href="{{ url_for('feedbacks_list') }}" class="nav-link {% if request.endpoint in ['feedbacks_list', 'feedback_detail'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-chat-square-text"></i>
-                            <span>Laporan &amp; Masukan</span>
+                            <span data-i18n="sidebar_feedbacks">Laporan & Masukan</span>
                             {% if feedback_alerts and feedback_alerts|length > 0 %}
                             <span class="badge bg-danger rounded-pill ms-auto" style="font-size: 0.65rem;">{{ feedback_alerts|length }}</span>
                             {% endif %}
@@ -146,64 +146,64 @@
                     <li class="nav-item">
                         <a href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="bi bi-box-arrow-up-right"></i>
-                            <span>Export Data</span>
+                            <span data-i18n="sidebar_export">Export Data</span>
                         </a>
                     </li>
                 </ul>
                 {% endif %}
 
                 <!-- Section: PENGATURAN -->
-                <div class="menu-label">Pengaturan</div>
+                <div class="menu-label" data-i18n="sidebar_settings">Pengaturan</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role == 'Admin' %}
                     <li class="nav-item">
                         <a href="{{ url_for('accounts') }}" class="nav-link {% if request.endpoint in ['accounts', 'users_redirect'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-people"></i>
-                            <span>Kelola Pengguna</span>
+                            <span data-i18n="sidebar_users">Kelola Pengguna</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a href="{{ url_for('admin_backups') }}" class="nav-link {% if request.endpoint == 'admin_backups' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-database"></i>
-                            <span>Backup & Restore</span>
+                            <span data-i18n="sidebar_backups">Backup & Restore</span>
                         </a>
                     </li>
                     <li class="nav-item">
                         <a id="tourMenuSettings" href="{{ url_for('system_settings') }}" class="nav-link {% if request.endpoint == 'system_settings' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-gear-wide-connected"></i>
-                            <span>Pengaturan Sistem</span>
+                            <span data-i18n="sidebar_settings_link">Pengaturan Sistem</span>
                         </a>
                     </li>
                     {% endif %}
                     <li class="nav-item">
                         <a href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                             <i class="bi bi-key"></i>
-                            <span>Ganti Password</span>
+                            <span data-i18n="sidebar_change_pwd">Ganti Password</span>
                         </a>
                     </li>
                 </ul>
 
                 <!-- Category Quick Links -->
-                <div class="menu-label">Kategori Aset</div>
+                <div class="menu-label" data-i18n="sidebar_categories">Kategori Aset</div>
                 <div id="tourMenuCategories" class="d-flex flex-column gap-1 mb-3">
                     <a href="{{ url_for('assets', category='Tech') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
-                        <span class="d-flex align-items-center gap-2"><i class="bi bi-laptop text-primary"></i> Tech / IT</span>
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-laptop text-primary"></i> <span data-i18n="cat_tech">Teknologi & IT</span></span>
                         <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.72rem;">Tech</span>
                     </a>
                     <a href="{{ url_for('assets', category='Tools') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
-                        <span class="d-flex align-items-center gap-2"><i class="bi bi-tools text-warning"></i> Tools</span>
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-tools text-warning"></i> <span data-i18n="cat_tools">Peralatan & Mesin</span></span>
                         <span class="badge bg-light text-warning border font-monospace" style="font-size: 0.72rem;">Tools</span>
                     </a>
                     <a href="{{ url_for('assets', category='Furniture') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
-                        <span class="d-flex align-items-center gap-2"><i class="bi bi-lamp text-info"></i> Furnitur</span>
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-lamp text-info"></i> <span data-i18n="cat_furniture">Perabot & Furnitur</span></span>
                         <span class="badge bg-light text-info border font-monospace" style="font-size: 0.72rem;">Furn</span>
                     </a>
                     <a href="{{ url_for('assets', category='Vehicle') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
-                        <span class="d-flex align-items-center gap-2"><i class="bi bi-car-front text-danger"></i> Kendaraan</span>
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-car-front text-danger"></i> <span data-i18n="cat_vehicle">Kendaraan Operasional</span></span>
                         <span class="badge bg-light text-danger border font-monospace" style="font-size: 0.72rem;">Vehicle</span>
                     </a>
                     <a href="{{ url_for('assets', category='Office') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
-                        <span class="d-flex align-items-center gap-2"><i class="bi bi-printer text-success"></i> Kantor</span>
+                        <span class="d-flex align-items-center gap-2"><i class="bi bi-printer text-success"></i> <span data-i18n="cat_office">Perlengkapan Kantor</span></span>
                         <span class="badge bg-light text-success border font-monospace" style="font-size: 0.72rem;">Office</span>
                     </a>
                 </div>
@@ -402,6 +402,49 @@
                             </ul>
                         </div>
 
+                        <!-- Language Switcher (Dual Flag ID / EN) -->
+                        <div class="dropdown me-1">
+                            <button class="btn btn-light border-0 rounded-circle p-2 shadow-none d-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Pilih Bahasa / Select Language" id="langDropdownBtn" style="width: 38px; height: 38px;">
+                                <span id="currentLangFlag">
+                                    <svg width="20" height="14" viewBox="0 0 20 14" fill="none" class="rounded-1 border shadow-xs" style="vertical-align: middle;">
+                                        <rect width="20" height="7" fill="#E11D48"/>
+                                        <rect y="7" width="20" height="7" fill="#FFFFFF"/>
+                                    </svg>
+                                </span>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 195px;">
+                                <li class="px-3 py-1 border-bottom mb-1">
+                                    <span class="small fw-bold text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.5px;" data-i18n="nav_choose_lang">PILIH BAHASA</span>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 lang-option" data-lang="id">
+                                        <svg width="20" height="14" viewBox="0 0 20 14" fill="none" class="rounded-1 border shadow-xs">
+                                            <rect width="20" height="7" fill="#E11D48"/>
+                                            <rect y="7" width="20" height="7" fill="#FFFFFF"/>
+                                        </svg>
+                                        <span class="small fw-semibold">Bahasa Indonesia</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none lang-check-id"></i>
+                                    </button>
+                                </li>
+                                <li>
+                                    <button class="dropdown-item py-2 d-flex align-items-center gap-2 lang-option" data-lang="en">
+                                        <svg width="20" height="14" viewBox="0 0 60 30" fill="none" class="rounded-1 border shadow-xs">
+                                            <clipPath id="uk-flag-clip"><path d="M0 0h60v30H0z"/></clipPath>
+                                            <g clip-path="url(#uk-flag-clip)">
+                                                <path d="M0 0h60v30H0z" fill="#012169"/>
+                                                <path d="M0 0l60 30m0-30L0 30" stroke="#FFFFFF" stroke-width="6"/>
+                                                <path d="M0 0l60 30m0-30L0 30" stroke="#C8102E" stroke-width="4"/>
+                                                <path d="M30 0v30M0 15h60" stroke="#FFFFFF" stroke-width="10"/>
+                                                <path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/>
+                                            </g>
+                                        </svg>
+                                        <span class="small fw-semibold">English</span>
+                                        <i class="bi bi-check-lg ms-auto text-primary d-none lang-check-en"></i>
+                                    </button>
+                                </li>
+                            </ul>
+                        </div>
+
                         <!-- Camera QR Scanner Button -->
                         <button class="btn btn-light border-0 rounded-circle p-2 shadow-none me-1" type="button" id="navbarQrBtn" title="Scan QR Code Aset" onclick="JescaQRScanner.open()">
                             <i class="bi bi-camera fs-5 text-secondary"></i>
@@ -410,7 +453,7 @@
                         <!-- Quick Add Asset Button -->
                         <a href="{{ url_for('assets') }}" id="navbarAddAssetBtn" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-plus-lg"></i>
-                            <span class="d-none d-sm-inline">Tambah Aset</span>
+                            <span class="d-none d-sm-inline" data-i18n="nav_add_asset">Tambah Aset</span>
                         </a>
 
                         <div class="vr mx-1"></div>
@@ -438,40 +481,40 @@
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" onclick="JescaOnboarding.showMenu(); return false;">
                                         <i class="bi bi-compass text-muted"></i>
-                                        <span>Panduan Sistem</span>
+                                        <span data-i18n="nav_system_guide">Panduan Sistem</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#editProfileModal">
                                         <i class="bi bi-person-circle text-muted"></i>
-                                        <span>Profil &amp; Foto</span>
+                                        <span data-i18n="nav_profile">Profil &amp; Foto</span>
                                     </a>
                                 </li>
                                 {% if current_user.role == 'Admin' %}
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('accounts') }}">
                                         <i class="bi bi-people text-muted"></i>
-                                        <span>Kelola Akun</span>
+                                        <span data-i18n="nav_manage_accounts">Kelola Akun</span>
                                     </a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('system_settings') }}">
                                         <i class="bi bi-gear-wide-connected text-muted"></i>
-                                        <span>Pengaturan Sistem</span>
+                                        <span data-i18n="nav_system_settings">Pengaturan Sistem</span>
                                     </a>
                                 </li>
                                 {% endif %}
                                 <li>
                                     <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="#" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                                         <i class="bi bi-key text-muted"></i>
-                                        <span>Ganti Password</span>
+                                        <span data-i18n="nav_change_pwd">Ganti Password</span>
                                     </a>
                                 </li>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li>
                                     <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2" href="{{ url_for('logout') }}">
                                         <i class="bi bi-box-arrow-right"></i>
-                                        <span>Keluar (Logout)</span>
+                                        <span data-i18n="nav_logout">Keluar (Logout)</span>
                                     </a>
                                 </li>
                             </ul>
