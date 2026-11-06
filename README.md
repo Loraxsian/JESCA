@@ -13,7 +13,7 @@ Aplikasi ini awalnya dirancang untuk mempermudah pencatatan aset kantor, pelacak
 - Pembuatan kode aset otomatis (auto-coding) sesuai kategori (contoh: Tech/001, Tools/001, Furn/001, Vehicle/001, Office/001) atau bisa diisi manual jika kantor sudah punya format kode sendiri.
 - Pembuatan QR Code otomatis untuk setiap aset yang bisa dicetak langsung ke stiker label.
 - Fitur scan QR Code langsung lewat kamera laptop atau HP (menggunakan library html5-qrcode).
-- Halaman ringkasan publik (/scan/<kode_aset>) untuk mempermudah pengecekan fisik barang di lapangan tanpa perlu login jika hanya ingin melihat status barang.
+- Halaman ringkasan publik (/scan/<kode_aset>): Dioptimalkan khusus untuk pemindaian QR Code lewat kamera smartphone dengan tata letak responsif, tanpa elemen tumpang tindih, serta pembatasan informasi sensitif (field publik aman) untuk mempermudah pengecekan fisik barang di lapangan tanpa perlu login.
 - Perhitungan depresiasi otomatis menggunakan metode garis lurus (Straight-Line Depreciation) untuk mengetahui perkiraan nilai buku aset saat ini.
 - Riwayat sirkulasi peminjaman dan pengembalian barang, lengkap dengan notifikasi jika ada barang yang telat dikembalikan lebih dari 7 hari.
 - Riwayat perpindahan lokasi atau cabang (Asset Transfer Log).
@@ -51,16 +51,16 @@ Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-mas
 
 ### 7. Keamanan, Pengaturan Sistem & Ketahanan Aplikasi
 - Sudo Mode: Konfirmasi password ulang saat membuka menu Pengaturan Sistem (/settings) demi keamanan jika laptop ditinggal sebentar di meja kantor.
-- Penyederhanaan Akses Jaringan & Deteksi Jaringan Kantor: Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri, Jaringan Lokal Kabel LAN / Wi-Fi, atau Domain Sendiri/VPS). Tersedia tombol "Cek Ulang IP Jaringan" untuk mendeteksi ulang alamat IP komputer secara otomatis jika router me-restart atau kabel LAN dipindahkan.
+- Penyederhanaan Akses Jaringan (Base URL): Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri / Localhost, Jaringan Lokal Kabel LAN / Wi-Fi dilengkapi panduan perintah cek IP komputer server, atau Domain Sendiri / VPS Cloud). Alamat Base URL yang dipilih otomatis tertanam pada cetakan stiker label QR Code fisik dan tautan email notifikasi tim.
 - Uji Coba Akses Luar Otomatis (Tunnel Instan 1-Klik): Sistem dapat membuatkan tautan internet sementara yang aman (HTTPS) secara otomatis langsung dari dalam aplikasi tanpa perlu membeli domain atau membuka terminal. Dilengkapi keterangan lengkap fungsi tautan, batas waktu aktif (expired), dan tombol salin/terapkan ke Base URL.
-- Dynamic SMTP: Pengaturan server email (Gmail, cPanel, Outlook, dsb.) bisa diubah langsung dari halaman web tanpa perlu restart aplikasi.
+- Dynamic SMTP: Pengaturan server email (Gmail, cPanel, Outlook, dsb.) bisa diubah langsung dari halaman web tanpa perlu restart aplikasi. Dilengkapi standarisasi format email resmi perusahaan dengan zona waktu WIB (Waktu Indonesia Barat).
 - IP Whitelist & VPN Access: Pembatasan akses web hanya untuk jaringan kantor atau VPN internal tertentu.
 - Mode SQLite WAL & Busy Timeout: Menggunakan Write-Ahead Logging (WAL) dan timeout antrean 30 detik untuk mencegah error database terkunci saat banyak aksi dijalankan bersamaan.
 - Halaman Error Ramah & Auto-Rollback: Jika terjadi gangguan tak terduga, sistem tidak menampilkan layar putih error server, melainkan halaman kustom JESCA dengan tombol kembali yang aman dan otomatis membatalkan transaksi database (rollback) agar data tidak rusak.
 - Proteksi brute-force login dan penggantian password default otomatis pada login pertama.
 
 ### 8. Tur Interaktif Tanda Tunjuk & Panduan Sistem
-- Tur Interaktif (Spotlight Tour): Panduan visual langsung dengan sorotan tanda tunjuk ke tombol dan menu utama (bilah navigasi modul, kamera QR Code, tombol tambah aset baru, lonceng notifikasi, dan shortcut Ctrl+K) agar pengguna awam langsung paham apa yang harus ditekan.
+- Tur Interaktif (Spotlight Tour): Panduan visual langsung dengan sorotan tanda tunjuk ke tombol dan menu utama (bilah navigasi modul, kamera QR Code, tombol tambah aset baru, lonceng notifikasi, dan shortcut Ctrl+K) agar pengguna awam langsung paham apa yang harus ditekan. Sesuai aturan sistem, jika panduan dilewati (skip) sebelum selesai, panduan akan otomatis muncul kembali pada setiap sesi login berikutnya hingga seluruh langkah selesai dipelajari.
 - Buku Panduan Modul: Ringkasan lengkap peran pengguna (RBAC), alur pengadaan barang (PO), meja kerja servis teknisi, dan ekspor laporan yang dapat dibuka kembali kapan saja via menu "Panduan Sistem".
 
 ### 9. Sinkronisasi Stok Opname Lapangan Offline (IndexedDB Background Sync)

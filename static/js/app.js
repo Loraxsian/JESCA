@@ -120,6 +120,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var wrapper = document.getElementById('wrapper');
     var sidebarToggle = document.getElementById('sidebar-toggle');
     var sidebarClose = document.getElementById('sidebar-close');
+    var pageContent = document.getElementById('page-content-wrapper');
 
     if (sidebarToggle && wrapper) {
         sidebarToggle.addEventListener('click', function(e) {
@@ -1174,12 +1175,19 @@ window.JescaOnboarding = {
         if (!document.getElementById('sidebar-wrapper')) {
             return;
         }
-        var seen = localStorage.getItem('jesca_onboarding_seen');
-        if (!seen) {
-            setTimeout(function() {
-                JescaOnboarding.startSpotlightTour();
-            }, 800);
+        var completed = localStorage.getItem('jesca_tour_completed');
+        if (completed === 'true') {
+            return;
         }
+
+        var dismissedThisSession = sessionStorage.getItem('jesca_tour_session_dismissed');
+        if (dismissedThisSession === 'true') {
+            return;
+        }
+
+        setTimeout(function() {
+            JescaOnboarding.startSpotlightTour();
+        }, 800);
 
         var carouselEl = document.getElementById('onboardingCarousel');
         if (carouselEl) {
@@ -1189,7 +1197,7 @@ window.JescaOnboarding = {
                 if (e.to === 3) {
                     nextBtn.innerHTML = 'Mulai Gunakan JESCA <i class="bi bi-check2 ms-1"></i>';
                     nextBtn.onclick = function() {
-                        JescaOnboarding.complete();
+                        JescaOnboarding.complete(true);
                     };
                 } else {
                     nextBtn.innerHTML = 'Selanjutnya <i class="bi bi-chevron-right ms-1"></i>';
@@ -1231,8 +1239,15 @@ window.JescaOnboarding = {
         bsModal.show();
     },
 
-    complete: function() {
-        localStorage.setItem('jesca_onboarding_seen', 'true');
+    complete: function(isFinished) {
+        if (isFinished === true) {
+            localStorage.setItem('jesca_tour_completed', 'true');
+            try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
+        } else {
+            try { sessionStorage.setItem('jesca_tour_session_dismissed', 'true'); } catch (e) {}
+            localStorage.removeItem('jesca_tour_completed');
+            JescaToast.show('Panduan dilewati. Sesuai aturan, panduan akan otomatis muncul kembali pada sesi login berikutnya hingga selesai.', 'warning');
+        }
         var modalEl = document.getElementById(this.modalId);
         if (modalEl) {
             var bsModal = bootstrap.Modal.getInstance(modalEl);
@@ -1246,7 +1261,16 @@ window.JescaOnboarding = {
     },
 
     startSpotlightTour: function() {
-        this.complete();
+        var modalEl = document.getElementById(this.modalId);
+        if (modalEl) {
+            var bsModal = bootstrap.Modal.getInstance(modalEl);
+            if (bsModal) bsModal.hide();
+        }
+        var menuEl = document.getElementById(this.menuModalId);
+        if (menuEl) {
+            var bsMenu = bootstrap.Modal.getInstance(menuEl);
+            if (bsMenu) bsMenu.hide();
+        }
         this.tourActive = true;
         this.currentTourStep = 0;
         this.renderTourStep();
@@ -1260,10 +1284,14 @@ window.JescaOnboarding = {
             return;
         }
 
-        // Pastikan sidebar terbuka jika elemen target ada di dalam sidebar
+        // Buka sidebar jika elemen ada di dalam sidebar
         var wrapper = document.getElementById('wrapper');
-        if (wrapper && wrapper.classList.contains('toggled') && step.elementId.startsWith('tourMenu')) {
-            wrapper.classList.remove('toggled');
+        if (wrapper && step.elementId.startsWith('tourMenu')) {
+            if (window.innerWidth < 768) {
+                wrapper.classList.add('toggled');
+            } else {
+                wrapper.classList.remove('toggled');
+            }
         }
 
         var target = document.getElementById(step.elementId);
@@ -1292,6 +1320,11 @@ window.JescaOnboarding = {
         if (!overlay) {
             overlay = document.createElement('div');
             overlay.id = 'jesca-spotlight-overlay';
+            overlay.onclick = function(e) {
+                if (e.target === overlay) {
+                    JescaOnboarding.endTour(false);
+                }
+            };
             document.body.appendChild(overlay);
         }
 
@@ -1321,7 +1354,7 @@ window.JescaOnboarding = {
 
         popover.innerHTML = '<div class="d-flex justify-content-between align-items-center mb-2">' +
             '<span class="badge bg-primary-subtle text-primary font-monospace rounded-pill px-2.5 py-1" style="font-size:0.7rem;">Langkah ' + cur + ' dari ' + total + '</span>' +
-            '<button type="button" class="btn-close" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour()"></button>' +
+            '<button type="button" class="btn-close" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour(false)"></button>' +
             '</div>' +
             '<div class="fw-bold text-dark mb-1" style="font-size:0.92rem;">' + step.title + '</div>' +
             '<p class="text-secondary small mb-2" style="font-size:0.78rem;line-height:1.45;">' + step.desc + '</p>' +
@@ -1330,7 +1363,7 @@ window.JescaOnboarding = {
             '<span>' + step.actionHint + '</span>' +
             '</div>' +
             '<div class="d-flex justify-content-between align-items-center">' +
-            '<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour()">Lewati</button>' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3 py-1" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour(false)">Lewati</button>' +
             '<div class="d-flex gap-1.5">' +
             (this.currentTourStep > 0 ? '<button type="button" class="btn btn-light border btn-sm rounded-pill px-2.5 py-1 me-1" style="font-size:0.75rem;" onclick="JescaOnboarding.prevTourStep()"><i class="bi bi-chevron-left"></i></button>' : '') +
             '<button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold" style="font-size:0.75rem;" onclick="JescaOnboarding.nextTourStep()">' +
@@ -1349,37 +1382,45 @@ window.JescaOnboarding = {
 
         var top, left;
 
-        // Cek posisi target agar popover TIDAK PERNAH menutupi elemen target
-        var isSidebarItem = (step.elementId.startsWith('tourMenu') || (rect.left < 340 && rect.right <= sidebarRight + 40));
-        var isTopNavbarItem = (rect.top < 90 && rect.right > 300);
-        var isBottomFooterItem = (rect.bottom > winH - 90);
-
-        if (isSidebarItem && winW >= 768) {
-            // Tempatkan di SEBELAH KANAN sidebar di area konten utama agar menu sidebar tidak tertutup!
-            left = Math.max(rect.right, sidebarRight) + 24;
-            top = Math.max(20, Math.min(rect.top - 15, winH - popH - 20));
-        } else if (isTopNavbarItem) {
-            // Tempatkan di bawah tombol navbar
-            top = rect.bottom + 14;
-            left = Math.max(20, Math.min(rect.left - 120, winW - popW - 24));
-        } else if (isBottomFooterItem) {
-            // Tempatkan di atas footer
-            top = Math.max(20, rect.top - popH - 14);
-            left = Math.max(20, Math.min(rect.left, winW - popW - 24));
-        } else {
-            // Fallback cerdas: pilih sisi yang paling leluasa
-            if (rect.right + popW + 24 < winW) {
-                left = rect.right + 24;
-                top = Math.max(20, Math.min(rect.top - 10, winH - popH - 20));
-            } else if (rect.left - popW - 24 > 0) {
-                left = rect.left - popW - 24;
-                top = Math.max(20, Math.min(rect.top - 10, winH - popH - 20));
+        if (winW < 768) {
+            // Posisi Mobile: Selalu terpusat dan pas di dalam layar HP
+            popW = Math.min(360, winW - 32);
+            left = Math.max(16, Math.floor((winW - popW) / 2));
+            if (rect.top > popH + 30) {
+                top = Math.max(16, rect.top - popH - 12);
             } else {
+                top = Math.min(rect.bottom + 12, winH - popH - 16);
+            }
+        } else {
+            // Posisi Layar PC & Laptop (Tetap Sempurna)
+            var isSidebarItem = (step.elementId.startsWith('tourMenu') || (rect.left < 340 && rect.right <= sidebarRight + 40));
+            var isTopNavbarItem = (rect.top < 90 && rect.right > 300);
+            var isBottomFooterItem = (rect.bottom > winH - 90);
+
+            if (isSidebarItem) {
+                left = Math.max(rect.right, sidebarRight) + 24;
+                top = Math.max(20, Math.min(rect.top - 15, winH - popH - 20));
+            } else if (isTopNavbarItem) {
                 top = rect.bottom + 14;
+                left = Math.max(20, Math.min(rect.left - 120, winW - popW - 24));
+            } else if (isBottomFooterItem) {
+                top = Math.max(20, rect.top - popH - 14);
                 left = Math.max(20, Math.min(rect.left, winW - popW - 24));
+            } else {
+                if (rect.right + popW + 24 < winW) {
+                    left = rect.right + 24;
+                    top = Math.max(20, Math.min(rect.top - 10, winH - popH - 20));
+                } else if (rect.left - popW - 24 > 0) {
+                    left = rect.left - popW - 24;
+                    top = Math.max(20, Math.min(rect.top - 10, winH - popH - 20));
+                } else {
+                    top = rect.bottom + 14;
+                    left = Math.max(20, Math.min(rect.left, winW - popW - 24));
+                }
             }
         }
 
+        popover.style.width = popW + 'px';
         popover.style.top = top + 'px';
         popover.style.left = left + 'px';
     },
@@ -1389,8 +1430,7 @@ window.JescaOnboarding = {
         if (this.currentTourStep < this.tourSteps.length) {
             this.renderTourStep();
         } else {
-            this.endTour();
-            JescaToast.show('Tur panduan selesai. Anda siap menggunakan JESCA!', 'success');
+            this.endTour(true);
         }
     },
 
@@ -1401,7 +1441,7 @@ window.JescaOnboarding = {
         }
     },
 
-    endTour: function() {
+    endTour: function(completed) {
         this.tourActive = false;
         var overlay = document.getElementById('jesca-spotlight-overlay');
         var box = document.getElementById('jesca-spotlight-box');
@@ -1409,7 +1449,21 @@ window.JescaOnboarding = {
         if (overlay) overlay.remove();
         if (box) box.remove();
         if (popover) popover.remove();
-        localStorage.setItem('jesca_onboarding_seen', 'true');
+
+        var wrapper = document.getElementById('wrapper');
+        if (wrapper && window.innerWidth < 768) {
+            wrapper.classList.remove('toggled');
+        }
+
+        if (completed === true) {
+            localStorage.setItem('jesca_tour_completed', 'true');
+            try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
+            JescaToast.show('Selamat! Anda telah menyelesaikan seluruh panduan interaktif JESCA.', 'success');
+        } else {
+            try { sessionStorage.setItem('jesca_tour_session_dismissed', 'true'); } catch (e) {}
+            localStorage.removeItem('jesca_tour_completed');
+            JescaToast.show('Panduan dilewati. Sesuai aturan, panduan akan otomatis muncul kembali di setiap sesi login hingga Anda menyelesaikannya.', 'warning');
+        }
     }
 };
 
@@ -1441,4 +1495,11 @@ document.addEventListener('DOMContentLoaded', function() {
         JescaOfflineDB.syncQueue();
         JescaOnboarding.init();
     }
+
+    // Reset session tour dismissed flag on logout click
+    document.querySelectorAll('a[href*="logout"]').forEach(function(el) {
+        el.addEventListener('click', function() {
+            try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
+        });
+    });
 });

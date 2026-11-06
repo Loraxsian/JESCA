@@ -513,7 +513,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.7 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.8 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
@@ -791,7 +791,7 @@
                             <small class="text-muted">Jessica Assets Management System</small>
                         </div>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="JescaOnboarding.complete()"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="JescaOnboarding.complete(false)"></button>
                 </div>
                 
                 <div class="modal-body p-0">
@@ -928,7 +928,7 @@
                 </div>
 
                 <div class="modal-footer border-top px-4 py-3 bg-light d-flex justify-content-between align-items-center">
-                    <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-bs-dismiss="modal" onclick="JescaOnboarding.complete()">Lewati Panduan</button>
+                    <button type="button" class="btn-outline-secondary btn-sm rounded-pill px-3 btn" data-bs-dismiss="modal" onclick="JescaOnboarding.complete(false)">Lewati Panduan</button>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-target="#onboardingCarousel" data-bs-slide="prev">
                             <i class="bi bi-chevron-left me-1"></i>Sebelumnya

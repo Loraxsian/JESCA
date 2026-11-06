@@ -1185,5 +1185,10 @@ function submitFeedback() {
         }
     });
 }
+
+// Reset session tour dismissal state on login page
+try {
+    sessionStorage.removeItem('jesca_tour_session_dismissed');
+} catch (e) {}
 </script>
 {% endblock %}

@@ -2,165 +2,412 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if asset %}{{ asset.asset_code }} - {{ asset.name }}{% else %}Aset Tidak Ditemukan{% endif %} | JESCA Asset Tag</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>{% if asset %}{{ asset.asset_code }} - {{ asset.name }}{% else %}Aset Tidak Ditemukan{% endif %} | Verifikasi Aset Resmi JESCA</title>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Bootstrap 5.3.3 CSS -->
+    <!-- Bootstrap 5.3.3 CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <style>
-        body {
-            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+        :root {
+            --primary-color: #3b5bfd;
+            --primary-gradient: linear-gradient(135deg, #3b5bfd 0%, #2546e8 100%);
+            --card-border: #e2e8f0;
+            --card-bg: #ffffff;
+            --page-bg: #f8fafc;
         }
-        .scan-card {
-            max-width: 460px;
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+            background-color: var(--page-bg);
+            color: #0f172a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0;
+            margin: 0;
+        }
+        .scan-wrapper {
+            width: 100%;
+            max-width: 480px;
             margin: 0 auto;
+            padding: 1rem 0.85rem 2rem 0.85rem;
         }
         .font-monospace {
             font-family: 'JetBrains Mono', monospace !important;
         }
-        .brand-header-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        .brand-badge-pill {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+        .brand-icon-box {
+            width: 24px;
+            height: 24px;
+            background: var(--primary-gradient);
+            border-radius: 6px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: #ffffff;
+            font-size: 0.75rem;
+        }
+        .main-card {
+            border-radius: 20px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.07), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+            overflow: hidden;
+        }
+        .asset-media-frame {
+            position: relative;
+            background: #0f172a;
+            height: 210px;
+            overflow: hidden;
+        }
+        .asset-media-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        .asset-media-placeholder {
+            background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+            height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .spec-table-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 0.85rem;
+            gap: 0.75rem;
+        }
+        .spec-table-row:last-child {
+            border-bottom: none;
+        }
+        .spec-label {
+            color: #64748b;
+            font-size: 0.8rem;
+            font-weight: 500;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .spec-value {
+            color: #0f172a;
+            font-weight: 600;
+            text-align: right;
+            word-break: break-word;
+        }
+        .warranty-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            padding: 0.85rem 1rem;
+        }
+        .btn-touch {
+            min-height: 46px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.92rem;
+            font-weight: 600;
+            border-radius: 12px;
+            text-decoration: none;
+            transition: transform 0.1s ease, box-shadow 0.15s ease;
+        }
+        .btn-touch:active {
+            transform: scale(0.98);
+        }
+        .copy-toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #0f172a;
+            color: #ffffff;
+            padding: 0.5rem 1rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            z-index: 9999;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+            display: none;
+            animation: fadeIn 0.2s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translate(-50%, 10px); }
+            to { opacity: 1; transform: translate(-50%, 0); }
         }
     </style>
 </head>
-<body class="py-3 py-md-4">
+<body>
 
-<div class="container scan-card px-3">
-    <!-- Brand Top Bar -->
+<div class="scan-wrapper">
+    <!-- Brand Header -->
     <div class="text-center mb-3">
-        <div class="d-inline-flex align-items-center gap-2">
-            <div class="brand-header-icon rounded-3 d-flex align-items-center justify-content-center text-white shadow-sm">
-                <i class="bi bi-box-seam-fill fs-5"></i>
+        <div class="brand-badge-pill">
+            <div class="brand-icon-box">
+                <i class="bi bi-shield-check"></i>
             </div>
-            <div class="text-start">
-                <span class="fs-5 fw-extrabold tracking-tight text-primary d-block lh-1">JESCA</span>
-                <small class="text-muted fw-semibold" style="font-size: 0.68rem; letter-spacing: 0.5px;">ASSET VERIFICATION & SCANNER v2</small>
-            </div>
+            <span class="small fw-bold text-dark tracking-tight">JESCA</span>
+            <span class="text-muted small">&bull;</span>
+            <span class="text-muted small font-monospace" style="font-size: 0.72rem;">VERIFIKASI RESMI</span>
         </div>
     </div>
 
     {% if asset %}
-    <!-- Asset Summary Card -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
-        <!-- Asset Photo or Icon -->
+    <!-- Asset Card -->
+    <div class="main-card mb-3">
+        <!-- Media / Header Photo Area -->
         {% if asset.image %}
-        <div class="position-relative bg-dark" style="max-height: 220px; overflow: hidden;">
-            <img src="{{ url_for('static', filename='uploads/' ~ asset.image) }}" alt="{{ asset.name }}" class="w-100 object-fit-cover" style="height: 200px;">
-            <span class="badge bg-primary font-monospace position-absolute top-0 start-0 m-3 fs-6 px-3 py-1 shadow">
-                {{ asset.asset_code }}
-            </span>
+        <div class="asset-media-frame">
+            <img src="{{ url_for('static', filename='uploads/' ~ asset.image) }}" alt="{{ asset.name }}" class="asset-media-img">
+            <div class="position-absolute top-0 start-0 p-3 d-flex align-items-center gap-2">
+                <span class="badge bg-primary text-white font-monospace px-3 py-1.5 rounded-pill shadow-sm" style="font-size: 0.8rem;">
+                    {{ asset.asset_code }}
+                </span>
+            </div>
+            <div class="position-absolute bottom-0 start-0 end-0 p-2 text-end" style="background: linear-gradient(to top, rgba(0,0,0,0.65), transparent);">
+                <span class="badge bg-dark bg-opacity-75 text-white border border-light border-opacity-25 rounded-pill px-2.5 py-1 small">
+                    <i class="bi bi-camera me-1"></i>Foto Aset Fisik
+                </span>
+            </div>
         </div>
         {% else %}
-        <div class="bg-light text-center py-4 border-bottom position-relative">
-            <span class="badge bg-primary font-monospace position-absolute top-0 start-0 m-3 fs-6 px-3 py-1 shadow-sm">
-                {{ asset.asset_code }}
-            </span>
-            <div class="rounded-circle bg-white border mx-auto d-flex align-items-center justify-content-center shadow-sm" style="width: 72px; height: 72px;">
+        <div class="asset-media-placeholder">
+            <div class="position-absolute top-0 start-0 p-3">
+                <span class="badge bg-primary font-monospace px-3 py-1.5 rounded-pill shadow-sm" style="font-size: 0.8rem;">
+                    {{ asset.asset_code }}
+                </span>
+            </div>
+            <div class="rounded-circle bg-white shadow-sm border d-flex align-items-center justify-content-center" style="width: 68px; height: 68px;">
                 <i class="bi bi-box-seam fs-2 text-primary"></i>
+            </div>
+            <div class="position-absolute top-0 end-0 p-3">
+                <span class="badge bg-white text-secondary border rounded-pill px-2.5 py-1 small">
+                    <i class="bi bi-patch-check-fill text-primary me-1"></i>Tervalidasi
+                </span>
             </div>
         </div>
         {% endif %}
 
-        <div class="card-body p-4">
-            <!-- Title & Status -->
+        <!-- Body Content -->
+        <div class="p-3 p-md-4">
+            <!-- Badges & Title -->
             <div class="mb-3">
-                <div class="d-flex align-items-center gap-2 mb-1">
-                    <span class="badge bg-light text-secondary border">{{ asset.category }}</span>
+                <div class="d-flex flex-wrap align-items-center gap-1.5 mb-2">
+                    <span class="badge bg-light text-secondary border rounded-pill px-2.5 py-1">{{ asset.category }}</span>
                     {% if asset.status == 'Aktif' %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle-fill me-1"></i> Aktif</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1"><i class="bi bi-check-circle-fill me-1"></i>Aktif</span>
                     {% elif asset.status == 'Dipinjam' %}
-                        <span class="badge bg-info-subtle text-info border border-info-subtle"><i class="bi bi-arrow-left-right me-1"></i> Dipinjam</span>
+                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1"><i class="bi bi-arrow-left-right me-1"></i>Sedang Dipinjam</span>
                     {% elif asset.status == 'Dalam Perbaikan' %}
-                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle"><i class="bi bi-tools me-1"></i> Perlu Perbaikan</span>
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1"><i class="bi bi-tools me-1"></i>Dalam Perbaikan</span>
                     {% elif asset.status == 'Rusak' %}
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-x-circle-fill me-1"></i> Rusak</span>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1"><i class="bi bi-x-circle-fill me-1"></i>Rusak</span>
                     {% else %}
-                        <span class="badge bg-secondary-subtle text-secondary border">{{ asset.status }}</span>
+                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1">{{ asset.status }}</span>
+                    {% endif %}
+
+                    {% if asset.site %}
+                    <span class="badge bg-light text-dark border rounded-pill px-2.5 py-1">
+                        <i class="bi bi-building me-1 text-primary"></i>{{ asset.site.name }}
+                    </span>
                     {% endif %}
                 </div>
-                <h5 class="fw-bold text-dark mb-0">{{ asset.name }}</h5>
+                <h5 class="fw-bold text-dark mb-0 text-break" style="font-size: 1.22rem; line-height: 1.35;">{{ asset.name }}</h5>
             </div>
 
-            <!-- Public Safe Metadata List -->
-            <ul class="list-group list-group-flush rounded-3 border mb-3">
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                    <span class="text-muted small">Kode Inventaris</span>
-                    <span class="font-monospace fw-bold small text-dark">{{ asset.asset_code }}</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                    <span class="text-muted small">Kategori</span>
-                    <span class="small fw-semibold text-secondary">{{ asset.category }}</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                    <span class="text-muted small">Lokasi Penempatan</span>
-                    <span class="fw-semibold small text-dark d-flex align-items-center gap-1">
-                        <i class="bi bi-geo-alt text-danger"></i> {{ asset.location }}
-                    </span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                    <span class="text-muted small">Site Fisik</span>
-                    <span class="small text-dark">{{ asset.site.name if asset.site else 'Kantor Pusat' }}</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                    <span class="text-muted small">Status Operasional</span>
-                    <span class="small fw-semibold text-dark">{{ asset.status }}</span>
-                </li>
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2 px-3">
-                    <span class="text-muted small">Pemeliharaan Berkala</span>
-                    <span class="small text-secondary">{{ 'Diperlukan' if asset.needs_maintenance else 'Tidak Diperlukan' }}</span>
-                </li>
-            </ul>
+            <!-- WARRANTY SECTION (MASA GARANSI) -->
+            <div class="warranty-card mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <div class="small fw-bold text-dark d-flex align-items-center gap-1.5">
+                        <i class="bi bi-shield-check text-primary"></i>
+                        <span>Masa Garansi</span>
+                    </div>
+                    {% if asset.warranty_status %}
+                        {% if asset.warranty_status.status == 'active' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size:0.72rem;">
+                                <i class="bi bi-check-circle-fill me-1"></i>Garansi Aktif
+                            </span>
+                        {% elif asset.warranty_status.status == 'expiring' %}
+                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1" style="font-size:0.72rem;">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Segera Berakhir
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size:0.72rem;">
+                                <i class="bi bi-x-circle-fill me-1"></i>Garansi Kedaluwarsa
+                            </span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size:0.72rem;">
+                            Tidak Terdaftar
+                        </span>
+                    {% endif %}
+                </div>
 
-            <!-- Security Notice: Hidden Internal Fields -->
-            <div class="p-3 rounded-3 bg-light border text-center mb-3">
-                <small class="text-muted d-block">
-                    <i class="bi bi-shield-lock text-primary me-1"></i>
-                    Nilai aset, dokumen garansi, dan catatan vendor disembunyikan untuk publik.
-                </small>
+                {% if asset.warranty_end %}
+                <div class="d-flex justify-content-between align-items-center pt-1" style="font-size:0.8rem;">
+                    <span class="text-muted">Periode Berakhir:</span>
+                    <span class="fw-bold font-monospace text-dark">
+                        {{ asset.warranty_end | format_date }}
+                    </span>
+                </div>
+                <div class="text-muted mt-1" style="font-size:0.73rem;">
+                    {% if asset.warranty_status and asset.warranty_status.status == 'active' %}
+                        <span class="text-success"><i class="bi bi-clock-history me-1"></i>Tersisa {{ asset.warranty_status.days }} hari masa perlindungan garansi.</span>
+                    {% elif asset.warranty_status and asset.warranty_status.status == 'expiring' %}
+                        <span class="text-warning fw-semibold"><i class="bi bi-hourglass-split me-1"></i>Tersisa {{ asset.warranty_status.days }} hari lagi sebelum garansi berakhir.</span>
+                    {% elif asset.warranty_status and asset.warranty_status.status == 'expired' %}
+                        <span class="text-secondary"><i class="bi bi-info-circle me-1"></i>Masa garansi telah selesai sejak {{ -asset.warranty_status.days }} hari lalu.</span>
+                    {% endif %}
+                </div>
+                {% else %}
+                <div class="text-muted mt-1 small" style="font-size:0.74rem;">
+                    Unit ini beroperasi di bawah garansi standar produsen atau belum didaftarkan tanggal purnajualnya.
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Public Safe Specifications Table -->
+            <div class="rounded-3 border overflow-hidden mb-3 bg-white">
+                <div class="spec-table-row">
+                    <span class="spec-label">Kode Inventaris</span>
+                    <span class="spec-value font-monospace text-primary d-flex align-items-center gap-1.5 justify-content-end">
+                        <span>{{ asset.asset_code }}</span>
+                        <button type="button" class="btn btn-sm btn-light border p-1 rounded-2 lh-1" onclick="copyAssetCode('{{ asset.asset_code }}')" title="Salin Kode Aset">
+                            <i class="bi bi-copy" style="font-size:0.75rem;"></i>
+                        </button>
+                    </span>
+                </div>
+                <div class="spec-table-row">
+                    <span class="spec-label">Kategori Aset</span>
+                    <span class="spec-value text-secondary">{{ asset.category }}</span>
+                </div>
+                <div class="spec-table-row">
+                    <span class="spec-label">Lokasi Penempatan</span>
+                    <span class="spec-value">
+                        <i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ asset.location }}
+                    </span>
+                </div>
+                <div class="spec-table-row">
+                    <span class="spec-label">Gedung / Site</span>
+                    <span class="spec-value">{{ asset.site.name if asset.site else 'Kantor Pusat' }}</span>
+                </div>
+                <div class="spec-table-row">
+                    <span class="spec-label">Status Operasional</span>
+                    <span class="spec-value">{{ asset.status }}</span>
+                </div>
+                <div class="spec-table-row">
+                    <span class="spec-label">Servis Rutin</span>
+                    <span class="spec-value">
+                        {% if asset.needs_maintenance %}
+                            {% if asset.next_maintenance_date %}
+                                <span class="badge bg-light text-dark border font-monospace">Jadwal: {{ asset.next_maintenance_date | format_date }}</span>
+                            {% else %}
+                                <span class="badge bg-warning-subtle text-warning border">Perlu Servis</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-secondary small">Bebas Pemeliharaan</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Confidentiality Notice (Masked Internal Data) -->
+            <div class="p-2.5 rounded-3 bg-light border text-center mb-3">
+                <div class="d-flex align-items-center justify-content-center gap-1.5 text-muted small" style="font-size: 0.74rem;">
+                    <i class="bi bi-shield-lock text-primary"></i>
+                    <span>Nilai perolehan finansial, faktur PO, dan catatan internal disembunyikan untuk publik.</span>
+                </div>
             </div>
 
             <!-- Action Buttons -->
-            <div class="text-center">
-                <a href="{{ url_for('login') }}" class="btn btn-primary w-100 py-2 rounded-3 fw-semibold shadow-sm">
-                    <i class="bi bi-box-arrow-in-right me-1"></i> Masuk untuk Akses Lengkap
+            <div class="d-flex flex-column gap-2">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-touch shadow-sm">
+                    <i class="bi bi-box-arrow-in-right me-1.5"></i> Masuk untuk Akses Lengkap
                 </a>
+                <button type="button" class="btn btn-light border btn-touch text-secondary" onclick="copyAssetCode('{{ asset.asset_code }}')">
+                    <i class="bi bi-clipboard-check me-1.5"></i> Salin Kode Aset
+                </button>
             </div>
         </div>
     </div>
     {% else %}
-    <!-- Asset Not Found Card -->
-    <div class="card border-0 shadow-sm rounded-4 text-center p-4">
-        <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 56px; height: 56px;">
+    <!-- Asset Not Found State -->
+    <div class="main-card text-center p-4">
+        <div class="bg-danger-subtle text-danger rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center" style="width: 58px; height: 58px;">
             <i class="bi bi-exclamation-triangle fs-3"></i>
         </div>
-        <h5 class="fw-bold text-dark">Data Aset Tidak Ditemukan</h5>
+        <h5 class="fw-bold text-dark mb-1">Aset Tidak Ditemukan</h5>
         <p class="text-muted small mb-3">
-            Kode aset <strong>{{ asset_code }}</strong> tidak terdaftar dalam basis data JESCA.
+            Kode aset <strong class="font-monospace text-dark">{{ asset_code }}</strong> tidak terdaftar dalam basis data resmi JESCA.
         </p>
-        <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm rounded-pill px-4">
-            Ke Halaman Utama
-        </a>
+        <div>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-touch px-4 d-inline-flex" style="min-height: 42px;">
+                Kembali ke Portal Login
+            </a>
+        </div>
     </div>
     {% endif %}
 
     <!-- Footer -->
     <div class="text-center mt-3">
-        <small class="text-muted" style="font-size: 0.72rem;">
+        <div class="text-muted small" style="font-size: 0.72rem;">
             JESCA &copy; 2026 &bull; Verified Asset Tag System v2.0
-        </small>
+        </div>
+        <div class="text-muted" style="font-size: 0.68rem; opacity: 0.75;">
+            Dilindungi oleh Standar Keamanan Inventaris Perusahaan
+        </div>
     </div>
 </div>
+
+<!-- Copy Asset Code Notification Toast -->
+<div id="copyToast" class="copy-toast">
+    <i class="bi bi-check2-circle text-success me-1"></i>Kode aset berhasil disalin ke clipboard!
+</div>
+
+<script>
+function copyAssetCode(code) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(code).then(showToast);
+    } else {
+        var tempInput = document.createElement('input');
+        tempInput.value = code;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast();
+    }
+}
+
+function showToast() {
+    var toast = document.getElementById('copyToast');
+    if (!toast) return;
+    toast.style.display = 'block';
+    setTimeout(function() {
+        toast.style.display = 'none';
+    }, 2200);
+}
+</script>
 
 </body>
 </html>
