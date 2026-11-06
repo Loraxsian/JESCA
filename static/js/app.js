@@ -52,136 +52,509 @@ window.JescaI18n = {
         en: '<svg width="20" height="14" viewBox="0 0 60 30" fill="none" class="rounded-1 border shadow-xs" style="vertical-align: middle;"><clipPath id="uk-flag-clip-nav"><path d="M0 0h60v30H0z"/></clipPath><g clip-path="url(#uk-flag-clip-nav)"><path d="M0 0h60v30H0z" fill="#012169"/><path d="M0 0l60 30m0-30L0 30" stroke="#FFFFFF" stroke-width="6"/><path d="M0 0l60 30m0-30L0 30" stroke="#C8102E" stroke-width="4"/><path d="M30 0v30M0 15h60" stroke="#FFFFFF" stroke-width="10"/><path d="M30 0v30M0 15h60" stroke="#C8102E" stroke-width="6"/></g></svg>'
     },
 
-    dictionary: {
-        id: {
-            nav_choose_lang: 'PILIH BAHASA',
-            nav_scan_qr: 'Scan QR Code Aset',
-            nav_add_asset: 'Tambah Aset',
-            nav_system_guide: 'Panduan Sistem',
-            nav_profile: 'Profil & Foto',
-            nav_manage_accounts: 'Kelola Pengguna',
-            nav_system_settings: 'Pengaturan Sistem',
-            nav_change_pwd: 'Ganti Password',
-            nav_logout: 'Keluar (Logout)',
+    phraseMap: {
+        "Tidak ada aset yang sesuai kriteria pencarian.": "No assets match your search criteria.",
+        "Tidak ada jadwal maintenance dalam 7 hari ke depan. Semua perangkat beroperasi normal!": "No scheduled maintenance in the next 7 days. All assets operating normally!",
+        "Tidak ada aset yang jatuh tempo servis atau sedang dalam perbaikan saat ini.": "No assets due for service or currently in repair.",
+        "Belum ada aset terdaftar.": "No assets registered yet.",
+        "Belum ada riwayat aktivitas yang tercatat.": "No activity logs recorded yet.",
+        "Belum ada log aktivitas yang cocok dengan filter pencarian.": "No activity logs match the search filter.",
+        "Belum Ada Vendor Terdaftar": "No Vendors Registered Yet",
+        "Belum Ada Lokasi atau Site Terdaftar": "No Locations or Sites Registered Yet",
+        "Tidak ada Purchase Order yang ditemukan.": "No Purchase Orders found.",
+        "Tidak ada tiket laporan atau masukan saat ini.": "No tickets or feedback at this time.",
+        "Tambahkan vendor atau supplier untuk melacak pengadaan aset.": "Add vendors or suppliers to track asset procurement.",
+        "Tambahkan site (gedung, cabang, gudang) untuk mengelompokkan lokasi aset.": "Add sites (buildings, branches, warehouses) to group asset locations.",
+        "Tambahkan vendor pertama Anda untuk memudahkan pencatatan pengadaan aset.": "Add your first vendor to facilitate tracking asset procurement.",
+        "Tambahkan site pertama Anda untuk memudahkan pelacakan multi-lokasi.": "Add your first site to facilitate multi-location asset tracking.",
+        "Mulai ajukan purchase order baru untuk pengadaan aset kantor.": "Start submitting new purchase orders for office asset procurement.",
+        "Tidak ada aset yang memenuhi kriteria filter": "No assets meet the filter criteria",
+        "Peringatan Keamanan: Kata Sandi Administrator Bawaan Masih Aktif": "Security Alert: Default Administrator Password Active",
+        "Peringatan Keamanan: Password Administrator Bawaan Masih Aktif": "Security Alert: Default Administrator Password Active",
+        "Akun Administrator masih menggunakan kata sandi bawaan sistem. Demi keamanan data inventaris, segera perbarui kata sandi Anda.": "The Administrator account is still using the system default password. For data protection, please update your password immediately.",
+        "Akun Administrator masih menggunakan password default. Segera ubah password untuk melindungi sistem inventaris Anda.": "The Administrator account is still using the default password. Update your password immediately to protect your inventory system.",
+        "Pengajuan Purchase Order Menunggu Persetujuan": "Purchase Orders Awaiting Approval",
+        "Pengajuan Purchase Order Menunggu Approval": "Purchase Orders Awaiting Approval",
+        "Keterlambatan Pengembalian (Overdue)": "Overdue Asset Returns",
+        "Total Aset Terdaftar": "Total Registered Assets",
+        "Total Aset": "Total Assets",
+        "Nilai Perolehan": "Acquisition Value",
+        "Nilai Buku Terkini": "Current Book Value",
+        "Status Operasional": "Operational Status",
+        "Akumulasi biaya beli": "Accumulated purchase cost",
+        "Metode Garis Lurus": "Straight-line Method",
+        "Sebaran Status Inventaris": "Asset Status Distribution",
+        "Distribusi Kategori": "Category Distribution",
+        "Aset Terakhir Ditambahkan": "Recently Added Assets",
+        "Aktivitas Terkini": "Recent Activity",
+        "Waktu Nyata": "Real-Time",
+        "Ganti Sekarang": "Change Now",
+        "Tinjau PO": "Review PO",
+        "Semua Aset": "All Assets",
+        "Lihat Log": "View Logs",
+        "Item": "Items",
+        "Aset": "Assets",
+        "Kategori": "Categories",
+        "Perlu Cek": "Needs Check",
+        "Daftar Inventaris Aset Perusahaan": "Company Asset Inventory List",
+        "Kelola data aset, garansi, depresiasi nilai buku, transfer site, lampiran dokumen, dan QR tag.": "Manage asset data, warranties, book value depreciation, site transfers, documents, and QR tags.",
+        "Kelola Data Aset": "Manage Asset Data",
+        "Inventaris & Aset": "Inventory & Assets",
+        "Pencarian Aset": "Search Assets",
+        "Semua Kategori": "All Categories",
+        "Semua Status": "All Statuses",
+        "Semua Lokasi": "All Locations",
+        "Semua Site": "All Sites",
+        "Semua Vendor": "All Vendors",
+        "Filter Aset": "Filter Assets",
+        "Reset Filter": "Reset Filters",
+        "Pencarian kata kunci...": "Keyword search...",
+        "Kode, nama, lokasi, peminjam...": "Code, name, location, borrower...",
+        "aset dipilih": "assets selected",
+        "Batal Pilih": "Deselect",
+        "Ubah Status": "Change Status",
+        "Pindah Kategori": "Move Category",
+        "Perbandingan Aset": "Asset Comparison",
+        "Bandingkan": "Compare",
+        "Maksimal 2 aset untuk perbandingan.": "Maximum 2 assets for comparison.",
+        "Tambah Aset": "Add Asset",
+        "Tambah Aset Baru": "Add New Asset",
+        "Tambah Vendor": "Add Vendor",
+        "Tambah Site": "Add Site",
+        "Tambah Pengguna": "Add User",
+        "Buat Purchase Order": "Create Purchase Order",
+        "Ajukan PO Baru": "Submit New PO",
+        "Import CSV": "Import CSV",
+        "Export PDF": "Export PDF",
+        "Export Excel": "Export Excel",
+        "Export CSV": "Export CSV",
+        "Export Data": "Export Data",
+        "Simpan": "Save",
+        "Simpan Perubahan": "Save Changes",
+        "Simpan Data": "Save Data",
+        "Simpan Aset": "Save Asset",
+        "Simpan Vendor": "Save Vendor",
+        "Simpan Site": "Save Site",
+        "Simpan Pengguna": "Save User",
+        "Simpan & Lanjutkan": "Save & Continue",
+        "Batal": "Cancel",
+        "Tutup": "Close",
+        "Hapus": "Delete",
+        "Ya, Hapus": "Yes, Delete",
+        "Edit": "Edit",
+        "Lihat Detail": "View Details",
+        "Detail Aset": "Asset Details",
+        "Riwayat Servis": "Service History",
+        "Riwayat Transfer": "Transfer History",
+        "Pinjam Aset": "Check Out Asset",
+        "Kembalikan Aset": "Return Asset",
+        "Transfer Aset": "Transfer Asset",
+        "Servis / Servis Aset": "Service Asset",
+        "Cetak QR Tag": "Print QR Tag",
+        "Unduh QR": "Download QR",
+        "Upload Bukti": "Upload Proof",
+        "Tutup Scanner": "Close Scanner",
+        "Scan QR Code Aset": "Scan Asset QR Code",
+        "Arahkan kamera ke QR Code pada label aset": "Point camera at the asset QR Code label",
+        "Kode & Nama": "Code & Name",
+        "Kode Aset": "Asset Code",
+        "Nama Aset": "Asset Name",
+        "Nilai Buku": "Book Value",
+        "Aksi": "Actions",
+        "Peminjam": "Borrower",
+        "Peminjam / Penanggung Jawab": "Borrower / Person in Charge",
+        "Tanggal Pinjam": "Borrow Date",
+        "Tanggal Kembali": "Return Date",
+        "Jadwal Servis": "Service Schedule",
+        "Interval Servis": "Service Interval",
+        "Terakhir Diservis": "Last Serviced",
+        "Biaya": "Cost",
+        "Biaya Servis": "Service Cost",
+        "Pelaksana": "Technician / Performer",
+        "Bengkel / Vendor Servis": "Service Workshop / Vendor",
+        "Catatan Servis": "Service Notes",
+        "Nomor PO": "PO Number",
+        "Judul Pengadaan": "Procurement Title",
+        "Total Estimasi": "Estimated Total",
+        "Pemohon": "Requested By",
+        "Disetujui Oleh": "Approved By",
+        "Tanggal Pengajuan": "Submission Date",
+        "Waktu": "Time",
+        "Aktivitas": "Activity",
+        "Pengguna": "User",
+        "Nama Lengkap": "Full Name",
+        "Peran Akses (Role)": "Access Role",
+        "Terakhir Login": "Last Login",
+        "Aktif": "Active",
+        "Dipinjam": "Borrowed",
+        "Dalam Perbaikan": "In Repair",
+        "Perbaikan": "Repair",
+        "Rusak": "Damaged",
+        "Afkir": "Disposed",
+        "Nonaktif": "Inactive",
+        "Jatuh Tempo": "Due for Service",
+        "Kondisi Baik": "Good Condition",
+        "Sesuai & Baik": "Accurate & Good",
+        "Rusak Ringan": "Minor Damage",
+        "Rusak Berat": "Major Damage",
+        "Hilang/Tidak Ditemukan": "Lost / Not Found",
+        "Lokasi Berpindah": "Relocated",
+        "Disetujui": "Approved",
+        "Ditolak": "Rejected",
+        "Menunggu Persetujuan": "Awaiting Approval",
+        "Menunggu Approval": "Awaiting Approval",
+        "Selesai Diterima": "Received & Verified",
+        "Teknologi & IT": "Technology & IT",
+        "Peralatan & Mesin": "Tools & Machinery",
+        "Perabot & Furnitur": "Furniture & Fixtures",
+        "Kendaraan Operasional": "Company Vehicles",
+        "Kendaraan": "Vehicles",
+        "Perlengkapan Kantor": "Office Supplies",
+        "Kantor": "Office",
+        "Inventaris Utama": "Main Inventory",
+        "Riwayat & Laporan": "History & Reports",
+        "Pengaturan": "Settings",
+        "Kategori Aset": "Asset Categories",
+        "Vendor & Lokasi": "Vendors & Locations",
+        "Dashboard": "Dashboard",
+        "Data Aset": "Asset Data",
+        "Purchase Order": "Purchase Orders",
+        "Pemeliharaan Aset": "Asset Maintenance",
+        "Lokasi & Site": "Locations & Sites",
+        "Vendor & Supplier": "Vendors & Suppliers",
+        "Log Aktivitas": "Activity Logs",
+        "Laporan Audit": "Audit Report",
+        "Laporan & Masukan": "Feedback & Reports",
+        "Kelola Pengguna": "User Management",
+        "Kelola Akun": "User Management",
+        "Backup & Restore": "Backup & Restore",
+        "Pengaturan Sistem": "System Settings",
+        "Ganti Password": "Change Password",
+        "Ganti Kata Sandi": "Change Password",
+        "Panduan Sistem": "System Guide",
+        "Profil & Foto": "Profile & Photo",
+        "Keluar (Logout)": "Sign Out",
+        "Pilih Tema": "Select Theme",
+        "Terang (Light)": "Light",
+        "Gelap (Dark)": "Dark",
+        "Command Palette": "Command Palette",
+        "Pemberitahuan & Notifikasi": "Notifications",
+        "Lokasi Penempatan": "Placement Location",
+        "Nilai Perolehan (IDR)": "Acquisition Value (IDR)",
+        "Deskripsi / Catatan": "Description / Notes",
+        "Masa Manfaat (Tahun)": "Useful Life (Years)",
+        "Nilai Residu / Sisa (IDR)": "Salvage Value (IDR)",
+        "Garansi Mulai": "Warranty Start",
+        "Garansi Berakhir": "Warranty End",
+        "Perlu Pemeliharaan Berkala?": "Needs Scheduled Maintenance?",
+        "Tidak Perlu (-)": "Not Needed (-)",
+        "Ya, Perlu Servis Rutin": "Yes, Routine Service",
+        "Interval Pemeliharaan (Hari)": "Maintenance Interval (Days)",
+        "Pilih Vendor (Opsional)": "Select Vendor (Optional)",
+        "Pilih Site (Opsional)": "Select Site (Optional)",
+        "-- Tanpa Vendor --": "-- No Vendor --",
+        "-- Tanpa Site --": "-- No Site --",
+        "Foto Aset": "Asset Photo",
+        "Informasi Umum": "General Information",
+        "Garansi & Depresiasi": "Warranty & Depreciation",
+        "Servis & Pemeliharaan": "Service & Maintenance",
+        "Spesifikasi Kategori": "Category Specifications",
+        "Dokumen & Lampiran": "Documents & Attachments",
+        "Unggah Lampiran": "Upload Attachment",
+        "Password Baru": "New Password",
+        "Konfirmasi Password Baru": "Confirm New Password",
+        "Alamat Kantor / Toko": "Office / Store Address",
+        "Kontak / Telepon": "Contact / Phone",
+        "Nama Site": "Site Name",
+        "Deskripsi Lokasi": "Location Description",
+        "Alasan Perpindahan": "Transfer Reason",
+        "Lokasi Tujuan": "Destination Location",
+        "Site Tujuan": "Destination Site",
+        "Kondisi Fisik": "Physical Condition",
+        "Catatan Kondisi": "Condition Notes",
+        "Silahkan Masuk": "Please Sign In",
+        "Ingat Saya": "Remember Me",
+        "Masuk Sekarang": "Sign In Now",
+        "Masa Garansi": "Warranty Period",
+        "Status Garansi": "Warranty Status",
+        "Garansi Aktif": "Active Warranty",
+        "Garansi Kedaluwarsa": "Warranty Expired",
+        "Garansi Segera Habis": "Warranty Expiring Soon",
+        "Servis Rutin": "Routine Maintenance",
+        "Jadwal Berikutnya": "Next Schedule",
+        "Riwayat Pemeliharaan": "Maintenance History",
+        "Servis Selesai": "Service Completed",
+        "Servis Berkala": "Periodic Service",
+        "Dalam Peminjaman": "Currently Borrowed",
+        "Aset Tersedia": "Available Assets",
+        "Siap Pakai": "Ready for Use",
+        "Telah Dikembalikan": "Returned",
+        "Terlambat": "Overdue",
+        "Terlambat dikembalikan": "Overdue for return",
+        "Pesanan Pembelian": "Purchase Orders",
+        "Daftar Purchase Order": "Purchase Order List",
+        "Detail Purchase Order": "Purchase Order Details",
+        "Item Pengadaan": "Procurement Items",
+        "Estimasi Biaya": "Estimated Cost",
+        "Harga Satuan": "Unit Price",
+        "Total Biaya": "Total Cost",
+        "Keterangan Pengadaan": "Procurement Notes",
+        "Lampiran Berkas": "File Attachments",
+        "Unggah Bukti": "Upload Receipt / Document",
+        "Menunggu": "Pending",
+        "Dibatalkan": "Cancelled",
+        "Diterima": "Received",
+        "Barang Telah Tiba": "Items Received",
+        "Tandai Selesai": "Mark Completed",
+        "Batalkan PO": "Cancel PO",
+        "Ajukan Persetujuan": "Submit for Approval",
+        "Daftar Pengguna": "User List",
+        "Kelola Akun Pengguna": "Manage User Accounts",
+        "Peran": "Role",
+        "Status Akun": "Account Status",
+        "Kata Sandi": "Password",
+        "Konfirmasi Kata Sandi": "Confirm Password",
+        "Ubah Kata Sandi": "Change Password",
+        "Profil Pengguna": "User Profile",
+        "Foto Profil": "Profile Photo",
+        "Unggah Foto": "Upload Photo",
+        "Pengaturan Jaringan": "Network Settings",
+        "Mode Koneksi": "Connection Mode",
+        "Komputer Ini": "This Computer",
+        "Jaringan Lokal": "Local Network (LAN)",
+        "Domain Sendiri": "Custom Domain",
+        "Tunneling Instan": "Instant Tunneling",
+        "Riwayat Backup": "Backup History",
+        "Buat Backup Baru": "Create New Backup",
+        "Ukuran File": "File Size",
+        "Tanggal Dibuat": "Created Date",
+        "Pulihkan": "Restore",
+        "Unduh File": "Download File",
+        "Pilih Semua": "Select All",
+        "Cari...": "Search...",
+        "Semua Data": "All Data",
+        "Tidak Ada": "None",
+        "Ya": "Yes",
+        "Tidak": "No",
+        "Simpan Berhasil": "Saved Successfully",
+        "Terjadi Kesalahan": "An Error Occurred",
+        "Apakah Anda yakin?": "Are you sure?",
+        "Tindakan ini tidak dapat dibatalkan.": "This action cannot be undone.",
+        "Memuat data...": "Loading data...",
+        "Harap tunggu...": "Please wait...",
+        "Data berhasil disimpan.": "Data saved successfully.",
+        "Data berhasil diperbarui.": "Data updated successfully.",
+        "Data berhasil dihapus.": "Data deleted successfully.",
+        "Tambah Site Cepat": "Quick Add Site",
+        "Tambah Vendor Cepat": "Quick Add Vendor",
+        "Nama Vendor / Toko": "Vendor / Store Name",
+        "Gudang Barat, Cabang, dll": "West Warehouse, Branch, etc.",
+        "Keterangan (Opsional)": "Notes (Optional)",
+        "Keterangan singkat": "Brief notes",
+        "PT. Jaya Abadi, Toko Komputer, dll": "PT. Vendor Name, Computer Store, etc.",
+        "Kontak Person": "Contact Person",
+        "No. Telepon": "Phone Number",
+        "Hapus Aset?": "Delete Asset?",
+        "akan dihapus permanen.": "will be permanently deleted.",
+        "Proses Transfer": "Process Transfer",
+        "Aset yang Ditransfer": "Asset to Transfer",
+        "Lokasi Saat Ini": "Current Location",
+        "Lokasi Baru": "New Location",
+        "Rotasi karyawan, renovasi ruangan, dll.": "Employee rotation, room renovation, etc.",
+        "Unggah Dokumen Baru": "Upload New Document",
+        "Berkas Tersimpan:": "Saved Documents:",
+        "Memuat dokumen...": "Loading documents...",
+        "Memuat berkas...": "Loading files...",
+        "Belum ada dokumen dilampirkan.": "No documents attached yet.",
+        "Gunakan fitur ini untuk memasukkan data aset secara massal dari spreadsheet. Pastikan struktur kolom sesuai dengan template standar.": "Use this feature to import assets in bulk from spreadsheets. Ensure column headers match the template.",
+        "Unduh Template CSV": "Download CSV Template",
+        "Pilih File CSV": "Select CSV File",
+        "Proses Impor Data": "Process Data Import",
+        "Peminjaman Aset (Check Out)": "Asset Check Out",
+        "Nama Peminjam / Karyawan": "Borrower / Employee Name",
+        "Catatan Peminjaman": "Borrowing Notes",
+        "Keperluan acara, proyek X, dll.": "Event requirements, Project X, etc.",
+        "Konfirmasi Pinjam": "Confirm Check Out",
+        "Pengembalian Aset (Check In)": "Asset Return (Check In)",
+        "Status Aset Setelah Dikembalikan": "Asset Status After Return",
+        "Aktif (Kondisi Baik & Siap Pakai)": "Active (Good Condition & Ready to Use)",
+        "Perlu Perbaikan / Servis": "Needs Repair / Service",
+        "Kondisi fisik saat diterima kembali...": "Physical condition upon return...",
+        "Simpan Pengembalian": "Save Return",
+        "Label QR Tag Aset": "Asset QR Tag Label",
+        "Scan untuk verifikasi via JESCA": "Scan to verify via JESCA",
+        "Atribut Spesifik Kategori": "Category Specific Attributes",
+        "Ganti Foto Fisik": "Replace Photo",
+        "Ruang IT / Lantai 2": "IT Room / 2nd Floor",
+        "Kosongkan untuk auto-code": "Leave empty for auto-code",
+        "Contoh: MacBook Pro M3 16 Inch": "e.g.: MacBook Pro M3 16 Inch",
+        "Contoh: Gedung B Ruang 204": "e.g.: Building B Room 204",
+        "Contoh: Budi Santoso (Divisi Marketing)": "e.g.: John Doe (Marketing Dept)",
+        "Pinjamkan (Check Out)": "Check Out Asset",
+        "Edit Data": "Edit Data",
+        "Hapus Aset": "Delete Asset",
+        "Print halaman ini": "Print this page",
+        "Keterlambatan Pengembalian": "Overdue Returns",
+        "Peminjam:": "Borrower:",
+        "Lihat Semua Aset Jatuh Tempo": "View All Assets Due for Service",
+        "Tambah Aset Baru ke Inventaris": "Add New Asset to Inventory",
+        "ke Inventaris": "to Inventory",
+        "dari Inventaris": "from Inventory",
+        "Inventaris": "Inventory",
+        "kriteria pencarian": "search criteria",
+        "kriteria": "criteria",
+        "pencarian": "search",
+        "Daftar Inventaris": "Inventory List",
+        "Daftar Aset": "Asset List",
+        "Peminjaman": "Borrowing",
+        "Pengembalian": "Return",
+        "Pemeliharaan": "Maintenance",
+        "Penyusutan": "Depreciation",
+        "Nilai Residu": "Salvage Value",
+        "Masa Manfaat": "Useful Life",
+        "Nomor Seri": "Serial Number",
+        "Pilih Status": "Select Status",
+        "Pilih Kategori": "Select Category",
+        "Pilih Lokasi": "Select Location",
+        "Pilih Site": "Select Site",
+        "Pilih Vendor": "Select Vendor",
+        "Semua": "All",
+        "Kondisi": "Condition",
+        "Catatan": "Notes",
+        "Spesifikasi": "Specifications",
+        "Lampiran": "Attachments",
+        "Dokumen": "Documents",
+        "Informasi": "Information",
+        "Konfirmasi": "Confirmation",
+        "Peringatan": "Warning",
+        "Pemberitahuan": "Notification",
+        "Riwayat": "History",
+        "Administrator": "Administrator",
+        "Teknisi": "Technician",
+        "Auditor": "Auditor",
+        "Staff": "Staff",
+        "Hari": "Days",
+        "Bulan": "Months",
+        "Tahun": "Years"
+},
 
-            sidebar_main_inventory: 'Inventaris Utama',
-            sidebar_history_reports: 'Riwayat & Laporan',
-            sidebar_settings: 'Pengaturan',
-            sidebar_categories: 'Kategori Aset',
+    sortedKeys: null,
 
-            sidebar_dashboard: 'Dashboard',
-            sidebar_assets: 'Data Aset',
-            sidebar_po: 'Purchase Order',
-            sidebar_maintenance: 'Pemeliharaan Aset',
-            sidebar_sites: 'Lokasi & Site',
-            sidebar_vendors: 'Vendor & Supplier',
-            sidebar_history: 'Log Aktivitas',
-            sidebar_audit: 'Laporan Audit',
-            sidebar_feedbacks: 'Laporan & Masukan',
-            sidebar_export: 'Export Data',
-            sidebar_users: 'Kelola Pengguna',
-            sidebar_backups: 'Backup & Restore',
-            sidebar_settings_link: 'Pengaturan Sistem',
-            sidebar_change_pwd: 'Ganti Password',
+    getSortedKeys: function() {
+        if (!this.sortedKeys) {
+            this.sortedKeys = Object.keys(this.phraseMap).sort(function(a, b) {
+                return b.length - a.length;
+            });
+        }
+        return this.sortedKeys;
+    },
 
-            cat_tech: 'Teknologi & IT',
-            cat_tools: 'Peralatan & Mesin',
-            cat_furniture: 'Perabot & Furnitur',
-            cat_vehicle: 'Kendaraan Operasional',
-            cat_office: 'Perlengkapan Kantor',
+    translateString: function(str) {
+        if (!str || typeof str !== 'string') return str;
+        var trimmed = str.trim();
+        if (!trimmed) return str;
+        if (this.phraseMap[trimmed]) {
+            return str.replace(trimmed, this.phraseMap[trimmed]);
+        }
+        var keys = this.getSortedKeys();
+        var res = str;
+        for (var i = 0; i < keys.length; i++) {
+            var k = keys[i];
+            if (res.indexOf(k) !== -1) {
+                if (k.length <= 4) {
+                    var regex = new RegExp('\b' + k + '\b', 'g');
+                    res = res.replace(regex, this.phraseMap[k]);
+                } else {
+                    res = res.split(k).join(this.phraseMap[k]);
+                }
+            }
+        }
+        return res;
+    },
 
-            dash_admin_pwd_warn_title: 'Peringatan Keamanan: Kata Sandi Administrator Bawaan Masih Aktif',
-            dash_admin_pwd_warn_sub: 'Akun Administrator masih menggunakan kata sandi bawaan sistem. Demi keamanan data inventaris, segera perbarui kata sandi Anda.',
-            dash_admin_pwd_btn: 'Ganti Sekarang',
-            dash_po_approval_title: 'Pengajuan Purchase Order Menunggu Persetujuan',
-            dash_total_assets: 'Total Aset',
-            dash_total_assets_sub: 'Kategori',
-            dash_total_val: 'Nilai Perolehan',
-            dash_total_val_sub: 'Akumulasi biaya beli',
-            dash_book_val: 'Nilai Buku Terkini',
-            dash_deprec_method: 'Metode Garis Lurus',
-            dash_status_ops: 'Status Operasional',
-            dash_status_active: 'Aktif',
-            dash_status_borrowed: 'Dipinjam',
-            dash_status_attention: 'Perlu Cek',
-            dash_cat_dist: 'Distribusi Kategori',
-            dash_status_dist: 'Sebaran Status Inventaris',
-            dash_realtime: 'Waktu Nyata',
-            dash_recent_assets: 'Aset Terakhir Ditambahkan',
-            dash_all_assets: 'Semua Aset',
-            dash_col_code_name: 'Kode & Nama',
-            dash_col_cat: 'Kategori',
-            dash_col_status: 'Status',
-            dash_col_book_val: 'Nilai Buku',
-            dash_recent_activity: 'Aktivitas Terkini',
-            dash_view_logs: 'Lihat Log',
-            dash_no_assets: 'Belum ada aset terdaftar.',
-            login_title: 'Silahkan Masuk'
-        },
-        en: {
-            nav_choose_lang: 'CHOOSE LANGUAGE',
-            nav_scan_qr: 'Scan Asset QR Code',
-            nav_add_asset: 'Add Asset',
-            nav_system_guide: 'System Guide',
-            nav_profile: 'Profile & Photo',
-            nav_manage_accounts: 'User Management',
-            nav_system_settings: 'System Settings',
-            nav_change_pwd: 'Change Password',
-            nav_logout: 'Logout',
+    translateNode: function(node) {
+        if (!node) return;
+        var self = this;
 
-            sidebar_main_inventory: 'Main Inventory',
-            sidebar_history_reports: 'History & Reports',
-            sidebar_settings: 'Settings',
-            sidebar_categories: 'Asset Categories',
+        if (node.nodeType === 3) { // TEXT_NODE
+            var parent = node.parentElement;
+            if (parent) {
+                var tag = parent.tagName.toUpperCase();
+                if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'CODE' || tag === 'PRE') return;
+            }
+            if (node._jescaOrig === undefined) {
+                node._jescaOrig = node.nodeValue;
+            }
+            node.nodeValue = self.translateString(node._jescaOrig);
+            return;
+        }
 
-            sidebar_dashboard: 'Dashboard',
-            sidebar_assets: 'Asset Data',
-            sidebar_po: 'Purchase Orders',
-            sidebar_maintenance: 'Asset Maintenance',
-            sidebar_sites: 'Locations & Sites',
-            sidebar_vendors: 'Vendors & Suppliers',
-            sidebar_history: 'Activity Logs',
-            sidebar_audit: 'Audit Reports',
-            sidebar_feedbacks: 'Feedback & Tickets',
-            sidebar_export: 'Export Data',
-            sidebar_users: 'User Management',
-            sidebar_backups: 'Backup & Restore',
-            sidebar_settings_link: 'System Settings',
-            sidebar_change_pwd: 'Change Password',
+        if (node.nodeType === 1) { // ELEMENT_NODE
+            var tag = node.tagName.toUpperCase();
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'CODE' || tag === 'PRE') return;
 
-            cat_tech: 'Technology & IT',
-            cat_tools: 'Tools & Equipment',
-            cat_furniture: 'Furniture & Fixtures',
-            cat_vehicle: 'Company Vehicles',
-            cat_office: 'Office Supplies',
+            // Translate attributes
+            var attrs = ['placeholder', 'title', 'aria-label'];
+            for (var a = 0; a < attrs.length; a++) {
+                var attr = attrs[a];
+                var val = node.getAttribute(attr);
+                if (val) {
+                    if (!node._jescaOrigAttrs) node._jescaOrigAttrs = {};
+                    if (node._jescaOrigAttrs[attr] === undefined) {
+                        node._jescaOrigAttrs[attr] = val;
+                    }
+                    node.setAttribute(attr, self.translateString(node._jescaOrigAttrs[attr]));
+                }
+            }
 
-            dash_admin_pwd_warn_title: 'Security Alert: Default Administrator Password Active',
-            dash_admin_pwd_warn_sub: 'The Administrator account is still using the system default password. For inventory data protection, please update your password immediately.',
-            dash_admin_pwd_btn: 'Change Now',
-            dash_po_approval_title: 'Purchase Orders Awaiting Approval',
-            dash_total_assets: 'Total Assets',
-            dash_total_assets_sub: 'Categories',
-            dash_total_val: 'Acquisition Value',
-            dash_total_val_sub: 'Accumulated purchase cost',
-            dash_book_val: 'Current Book Value',
-            dash_deprec_method: 'Straight-line Method',
-            dash_status_ops: 'Operational Status',
-            dash_status_active: 'Active',
-            dash_status_borrowed: 'Borrowed',
-            dash_status_attention: 'Needs Attention',
-            dash_cat_dist: 'Category Distribution',
-            dash_status_dist: 'Asset Status Distribution',
-            dash_realtime: 'Real-Time',
-            dash_recent_assets: 'Recently Added Assets',
-            dash_all_assets: 'All Assets',
-            dash_col_code_name: 'Code & Name',
-            dash_col_cat: 'Category',
-            dash_col_status: 'Status',
-            dash_col_book_val: 'Book Value',
-            dash_recent_activity: 'Recent Activity',
-            dash_view_logs: 'View Logs',
-            dash_no_assets: 'No assets registered yet.',
-            login_title: 'Please Sign In'
+            // Walk children
+            var children = node.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                self.translateNode(children[c]);
+            }
+        }
+    },
+
+    restoreNode: function(node) {
+        if (!node) return;
+        var self = this;
+
+        if (node.nodeType === 3) {
+            if (node._jescaOrig !== undefined) {
+                node.nodeValue = node._jescaOrig;
+            }
+            return;
+        }
+
+        if (node.nodeType === 1) {
+            if (node._jescaOrigAttrs) {
+                for (var attr in node._jescaOrigAttrs) {
+                    node.setAttribute(attr, node._jescaOrigAttrs[attr]);
+                }
+            }
+            var children = node.childNodes;
+            for (var c = 0; c < children.length; c++) {
+                self.restoreNode(children[c]);
+            }
+        }
+    },
+
+    observer: null,
+
+    initObserver: function() {
+        if (this.observer || typeof MutationObserver === 'undefined') return;
+        var self = this;
+        this.observer = new MutationObserver(function(mutations) {
+            if (self.getCurrent() !== 'en') return;
+            for (var i = 0; i < mutations.length; i++) {
+                var added = mutations[i].addedNodes;
+                for (var j = 0; j < added.length; j++) {
+                    self.translateNode(added[j]);
+                }
+            }
+        });
+        if (document.body) {
+            this.observer.observe(document.body, { childList: true, subtree: true });
         }
     },
 
@@ -192,6 +565,9 @@ window.JescaI18n = {
     apply: function(lang) {
         lang = (lang === 'en') ? 'en' : 'id';
         localStorage.setItem('jesca_lang', lang);
+        try {
+            document.cookie = 'jesca_lang=' + lang + ';path=/;max-age=31536000';
+        } catch(e) {}
         document.documentElement.setAttribute('lang', lang);
         document.documentElement.setAttribute('data-lang', lang);
 
@@ -212,30 +588,15 @@ window.JescaI18n = {
         var checkEl = document.querySelector('.lang-check-' + lang);
         if (checkEl) checkEl.classList.remove('d-none');
 
-        // Apply translations to all data-i18n elements
-        var dict = this.dictionary[lang] || this.dictionary['id'];
-        document.querySelectorAll('[data-i18n]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n');
-            if (dict[key]) {
-                el.textContent = dict[key];
+        // Apply recursive translation or restoration
+        if (document.body) {
+            if (lang === 'en') {
+                this.translateNode(document.body);
+                this.initObserver();
+            } else {
+                this.restoreNode(document.body);
             }
-        });
-
-        // Apply translations to data-i18n-title
-        document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n-title');
-            if (dict[key]) {
-                el.setAttribute('title', dict[key]);
-            }
-        });
-
-        // Apply translations to data-i18n-placeholder
-        document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
-            var key = el.getAttribute('data-i18n-placeholder');
-            if (dict[key]) {
-                el.setAttribute('placeholder', dict[key]);
-            }
-        });
+        }
 
         window.dispatchEvent(new CustomEvent('jesca:languageChanged', { detail: { lang: lang } }));
     }
