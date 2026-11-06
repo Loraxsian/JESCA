@@ -195,38 +195,28 @@
                                 <!-- Pilihan 3 Mode Akses -->
                                 <label class="form-label small fw-bold text-secondary mb-2">Pilih Mode Koneksi:</label>
                                 <div class="d-flex gap-2 mb-3 flex-wrap">
-                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 net-mode-btn" id="mode-btn-localhost" onclick="setNetworkMode('localhost')">
-                                        <i class="bi bi-laptop me-1"></i>Komputer Ini
+                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 net-mode-btn active" id="mode-btn-local" onclick="setNetworkMode('local')">
+                                        <i class="bi bi-laptop me-1"></i>1. Komputer &amp; Jaringan Lokal
                                     </button>
-                                    <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 net-mode-btn active" id="mode-btn-wifi" onclick="setNetworkMode('wifi')">
-                                        <i class="bi bi-diagram-3 me-1"></i>Jaringan Lokal (LAN / Wi-Fi)
+                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 net-mode-btn" id="mode-btn-tunnel" onclick="setNetworkMode('tunnel')">
+                                        <i class="bi bi-broadcast me-1"></i>2. Tunneling Instan (60 Menit)
                                     </button>
                                     <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 net-mode-btn" id="mode-btn-domain" onclick="setNetworkMode('domain')">
-                                        <i class="bi bi-cloud-check me-1"></i>Domain Sendiri
+                                        <i class="bi bi-cloud-check me-1"></i>3. Domain Sendiri (VPS)
                                     </button>
                                 </div>
 
-                                <!-- Konten Mode 1: Komputer Sendiri -->
-                                <div id="net-mode-content-localhost" class="net-mode-content d-none mb-3 p-3 rounded-3 border bg-light">
-                                    <div class="small fw-semibold text-dark mb-1">
-                                        <i class="bi bi-pc-display me-1 text-primary"></i>Mode Komputer Ini (Localhost)
-                                    </div>
-                                    <p class="text-muted small mb-0" style="font-size: 0.75rem;">
-                                        Sistem hanya dapat diakses melalui browser di komputer ini via alamat <code>http://localhost:5000</code>. Cocok untuk penggunaan pribadi di satu perangkat.
-                                    </p>
-                                </div>
-
-                                <!-- Konten Mode 2: Jaringan Lokal (Kabel LAN / Wi-Fi) -->
-                                <div id="net-mode-content-wifi" class="net-mode-content mb-3 p-3 rounded-3 border bg-light">
-                                    <div class="small fw-bold text-dark mb-1 d-flex align-items-center gap-1.5">
-                                        <i class="bi bi-router text-primary"></i>
-                                        Akses Antar-Perangkat di Kantor (Kabel LAN / Wi-Fi)
+                                <!-- Konten Mode 1: Komputer & Jaringan Lokal -->
+                                <div id="net-mode-content-local" class="net-mode-content mb-3 p-3 rounded-3 border bg-light">
+                                    <div class="small fw-bold text-dark mb-1 d-flex align-items-center justify-content-between">
+                                        <span><i class="bi bi-router text-primary me-1"></i>Akses Internal Kantor (Localhost / LAN / Wi-Fi)</span>
+                                        <span class="badge bg-light text-secondary border rounded-pill" style="font-size:0.68rem;">Tanpa Internet</span>
                                     </div>
                                     <p class="text-muted small mb-2" style="font-size: 0.74rem;">
-                                        Agar staf lain di kantor dapat membuka JESCA dari laptop atau smartphone mereka tanpa internet, masukkan alamat IP laptop server ini pada kolom <strong>Alamat URL Aktif (Base URL)</strong> di bawah (contoh: <code>http://192.168.1.15:5000</code> atau <code>http://10.10.9.55:5000</code>).
+                                        Digunakan untuk pengoperasian internal di satu laptop server atau antar-perangkat staf di kantor tanpa memerlukan koneksi internet maupun domain publik.
                                     </p>
 
-                                    <!-- Panduan Singkat Cara Cek IP Laptop Server -->
+                                    <!-- Panduan Singkat Cara Cek IP Komputer Server -->
                                     <div class="card border rounded-3 bg-white p-2.5 mb-2">
                                         <div class="fw-bold small text-dark mb-1.5 d-flex align-items-center gap-1">
                                             <i class="bi bi-question-circle text-info"></i>
@@ -237,13 +227,12 @@
                                             <div class="col-md-6">
                                                 <div class="p-2 rounded-2 bg-light border h-100">
                                                     <div class="fw-semibold small text-primary mb-1 d-flex align-items-center gap-1">
-                                                        <i class="bi bi-windows"></i>Jika Menggunakan Windows:
+                                                        <i class="bi bi-windows"></i>Windows:
                                                     </div>
                                                     <ol class="mb-0 ps-3 small text-secondary" style="font-size: 0.72rem; line-height: 1.45;">
-                                                        <li>Tekan tombol <strong>Windows + R</strong> di keyboard, ketik <code>cmd</code>, tekan Enter.</li>
-                                                        <li>Ketik perintah <code>ipconfig</code> lalu tekan Enter.</li>
-                                                        <li>Cari baris <strong>IPv4 Address</strong> (contoh: <code>192.168.1.15</code> atau <code>10.10.x.x</code>).</li>
-                                                        <li>Tulis pada kolom Base URL di bawah: <code>http://[IPv4]:5000</code></li>
+                                                        <li>Buka <strong>CMD</strong> (Windows + R, ketik <code>cmd</code>).</li>
+                                                        <li>Ketik <code>ipconfig</code> lalu tekan Enter.</li>
+                                                        <li>Ambil <strong>IPv4 Address</strong> (contoh: <code>192.168.1.15</code>).</li>
                                                     </ol>
                                                 </div>
                                             </div>
@@ -251,56 +240,28 @@
                                             <div class="col-md-6">
                                                 <div class="p-2 rounded-2 bg-light border h-100">
                                                     <div class="fw-semibold small text-dark mb-1 d-flex align-items-center gap-1">
-                                                        <i class="bi bi-terminal"></i>Jika Menggunakan Linux / Mac:
+                                                        <i class="bi bi-terminal"></i>Linux / Mac:
                                                     </div>
                                                     <ol class="mb-0 ps-3 small text-secondary" style="font-size: 0.72rem; line-height: 1.45;">
                                                         <li>Buka aplikasi <strong>Terminal</strong>.</li>
-                                                        <li>Ketik perintah <code>hostname -I</code> atau <code>ip a</code>.</li>
-                                                        <li>Ambil alamat IP jaringan lokal (contoh: <code>10.10.9.55</code>).</li>
-                                                        <li>Tulis pada kolom Base URL di bawah: <code>http://[IP]:5000</code></li>
+                                                        <li>Ketik <code>hostname -I</code> atau <code>ip a</code>.</li>
+                                                        <li>Ambil IP jaringan lokal (contoh: <code>10.10.9.55</code>).</li>
                                                     </ol>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <small class="text-muted d-block" style="font-size: 0.72rem;">
-                                        Pastikan laptop server dan perangkat staf tersambung ke jaringan kantor yang sama (baik via colokan kabel LAN maupun sinyal Wi-Fi).
-                                    </small>
+                                    <div class="d-flex align-items-center gap-2 pt-1 flex-wrap">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" style="font-size:0.72rem;" onclick="setLocalhostUrl()">
+                                            <i class="bi bi-laptop me-1"></i>Isi Localhost (http://localhost:5000)
+                                        </button>
+                                        <small class="text-muted" style="font-size:0.7rem;">Pilih jika JESCA hanya diakses pada satu komputer ini saja.</small>
+                                    </div>
                                 </div>
 
-                                <!-- Konten Mode 3: Domain Sendiri / Cloud -->
-                                <div id="net-mode-content-domain" class="net-mode-content d-none mb-3 p-3 rounded-3 border bg-light">
-                                    <div class="small fw-semibold text-dark mb-1">
-                                        <i class="bi bi-hdd-network me-1 text-primary"></i>Mode Domain / VPS Resmi
-                                    </div>
-                                    <p class="text-muted small mb-0" style="font-size: 0.75rem;">
-                                        Gunakan opsi ini jika JESCA dipasang pada server cloud (VPS) atau dihubungkan dengan domain resmi perusahaan (contoh: <code>https://aset.perusahaan.com</code>).
-                                    </p>
-                                </div>
-
-                                <!-- Base URL Input Field -->
-                                <div class="mb-3">
-                                    <label class="form-label small fw-bold text-secondary">
-                                        Alamat URL Aktif (Base URL) <span class="text-danger">*</span>
-                                    </label>
-                                    <div class="input-group">
-                                        <span class="input-group-text bg-light border-end-0 text-muted">
-                                            <i class="bi bi-link-45deg"></i>
-                                        </span>
-                                        <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="https://aset.domain.com atau http://192.168.1.15:5000" required>
-                                    </div>
-                                    <div id="httpsLocalWarning" class="alert alert-warning py-2 px-3 small rounded-3 mt-2 mb-0 d-none" style="font-size: 0.73rem;">
-                                        <div class="fw-bold mb-0.5"><i class="bi bi-shield-exclamation text-warning me-1"></i>Peringatan Penggunaan HTTPS:</div>
-                                        Alamat IP lokal atau localhost tidak memiliki sertifikat SSL terpasang. Protokol otomatis dikembalikan ke <strong>http://</strong> agar sistem tidak terkunci.
-                                    </div>
-                                    <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                        Alamat ini akan tertanam di dalam setiap stiker QR Code fisik yang dicetak dan tautan email pemberitahuan tim.
-                                    </small>
-                                </div>
-
-                                <!-- Uji Coba Akses Luar Otomatis (Tunnel Instan) -->
-                                <div class="card border rounded-3 p-3 bg-light mb-3">
+                                <!-- Konten Mode 2: Tunneling Instan (60 Menit) -->
+                                <div id="net-mode-content-tunnel" class="net-mode-content d-none mb-3 p-3 rounded-3 border bg-light">
                                     <div class="d-flex align-items-center justify-content-between mb-2">
                                         <div class="small fw-bold text-dark d-flex align-items-center gap-2">
                                             <i class="bi bi-broadcast text-primary fs-6"></i>
@@ -309,7 +270,7 @@
                                         <span id="tunnelStatusBadge" class="badge bg-secondary-subtle text-secondary border rounded-pill font-monospace" style="font-size:0.68rem;">Nonaktif</span>
                                     </div>
                                     <p class="text-muted small mb-2" style="font-size:0.74rem;">
-                                        Ingin mencoba membuka JESCA dari smartphone di luar kantor tanpa perlu menyewa domain atau VPS? Sistem dapat membuatkan tautan internet sementara yang aman secara otomatis.
+                                        Ingin mencoba membuka JESCA dari smartphone di luar kantor tanpa perlu menyewa domain atau VPS? Sistem dapat membuatkan tautan internet sementara yang aman (HTTPS) berdurasi <strong>60 menit</strong>.
                                     </p>
 
                                     <!-- Panel Kontrol Tunnel Inactive -->
@@ -340,21 +301,12 @@
                                             </div>
                                         </div>
 
-                                        <!-- Penjelasan Lengkap Komponen Tautan -->
                                         <div class="p-2.5 rounded-2 bg-light border small text-secondary mt-2" style="font-size:0.74rem; line-height:1.45;">
                                             <div class="mb-1">
-                                                <strong>Ini tautan apa?</strong> Tautan internet sementara yang aman (HTTPS) yang langsung menghubungkan smartphone/laptop di luar kantor ke aplikasi JESCA di komputer Anda.
-                                            </div>
-                                            <div class="mb-1">
-                                                <strong>Masa aktif (Expired):</strong> Tautan aktif selama <span id="tunnelExpiresDisplay" class="fw-bold text-dark">60 Menit</span> (atau selama komputer Anda menyala dan tidak dimatikan).
+                                                <strong>Masa aktif (Expired):</strong> Tautan aktif selama <span id="tunnelExpiresDisplay" class="fw-bold text-dark">60 Menit</span> (atau selama komputer server menyala).
                                             </div>
                                             <div>
-                                                <strong>Langkah selanjutnya:</strong>
-                                                <ol class="mb-0 ps-3 mt-0.5">
-                                                    <li>Klik tautan di atas untuk membuka langsung atau salin untuk dikirim ke WhatsApp/email staf atau pimpinan di luar kantor.</li>
-                                                    <li>Klik tombol <strong>"Terapkan ke Base URL"</strong> agar stiker QR Code yang dicetak otomatis menggunakan tautan ini.</li>
-                                                    <li>Setelah selesai pengujian, klik tombol <strong>"Hentikan Akses Luar"</strong> di bawah untuk menutup koneksi.</li>
-                                                </ol>
+                                                <strong>Cara pakai:</strong> Klik tombol <strong>"Terapkan ke Base URL"</strong> agar stiker QR Code fisik otomatis menggunakan tautan ini. Setelah selesai pengujian, klik tombol <strong>"Hentikan Akses Luar"</strong> di bawah.
                                             </div>
                                         </div>
 
@@ -366,6 +318,40 @@
                                     </div>
                                 </div>
 
+                                <!-- Konten Mode 3: Domain Sendiri / Cloud VPS -->
+                                <div id="net-mode-content-domain" class="net-mode-content d-none mb-3 p-3 rounded-3 border bg-light">
+                                    <div class="small fw-semibold text-dark mb-1 d-flex align-items-center justify-content-between">
+                                        <span><i class="bi bi-cloud-check text-primary me-1"></i>Mode Domain / VPS Resmi</span>
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill" style="font-size:0.68rem;">Produksi Resmi</span>
+                                    </div>
+                                    <p class="text-muted small mb-2" style="font-size: 0.74rem;">
+                                        Gunakan opsi ini jika JESCA dipasang pada server cloud (VPS) ber-IP publik atau dihubungkan ke domain resmi perusahaan (contoh: <code>https://aset.perusahaan.com</code>).
+                                    </p>
+                                    <div class="p-2.5 rounded-2 bg-white border small text-secondary" style="font-size:0.73rem;">
+                                        <i class="bi bi-diagram-2 text-info me-1"></i><strong>Pengaturan DNS:</strong> Cukup buat <em>A Record</em> pada panel penyedia domain Anda yang mengarah ke alamat IP Publik server VPS Anda.
+                                    </div>
+                                </div>
+
+                                <!-- Base URL Input Field -->
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold text-secondary">
+                                        Alamat URL Aktif (Base URL) <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0 text-muted">
+                                            <i class="bi bi-link-45deg"></i>
+                                        </span>
+                                        <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="https://aset.domain.com atau http://192.168.1.15:5000" required>
+                                    </div>
+                                    <div id="httpsLocalWarning" class="alert alert-warning py-2 px-3 small rounded-3 mt-2 mb-0 d-none" style="font-size: 0.73rem;">
+                                        <div class="fw-bold mb-0.5"><i class="bi bi-shield-exclamation text-warning me-1"></i>Peringatan Penggunaan HTTPS:</div>
+                                        Alamat IP lokal atau localhost tidak memiliki sertifikat SSL terpasang. Protokol otomatis dikembalikan ke <strong>http://</strong> agar sistem tidak terkunci.
+                                    </div>
+                                    <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
+                                        Alamat ini akan tertanam di dalam setiap stiker QR Code fisik yang dicetak dan tautan email pemberitahuan tim.
+                                    </small>
+                                </div>
+
                                 <!-- Enforce HTTPS Toggle Box -->
                                 <div class="p-3 rounded-3 border bg-light d-flex align-items-center justify-content-between">
                                     <div>
@@ -374,7 +360,7 @@
                                             Paksa Jalur Aman (Enforce HTTPS)
                                         </div>
                                         <small class="text-muted d-block mt-0.5" style="font-size: 0.72rem;">
-                                            Otomatis mengalihkan koneksi ke HTTPS demi keamanan data dan kelancaran izin kamera QR Code smartphone.
+                                            Khusus untuk domain publik resmi. Otomatis mengalihkan ke HTTPS demi keamanan dan kelancaran izin kamera QR Code smartphone.
                                         </small>
                                     </div>
                                     <div class="form-check form-switch ms-3">
@@ -899,10 +885,13 @@ function setNetworkMode(mode) {
     });
     var targetEl = document.getElementById('net-mode-content-' + mode);
     if (targetEl) targetEl.classList.remove('d-none');
+}
 
+function setLocalhostUrl() {
     var urlInput = document.getElementById('appBaseUrlInput');
-    if (mode === 'localhost' && urlInput) {
+    if (urlInput) {
         urlInput.value = 'http://localhost:5000';
+        JescaToast.show('Base URL diatur ke http://localhost:5000', 'info');
     }
 }
 
@@ -1053,10 +1042,10 @@ document.addEventListener('DOMContentLoaded', function() {
     var urlInput = document.getElementById('appBaseUrlInput');
     if (urlInput && urlInput.value) {
         var v = urlInput.value.toLowerCase();
-        if (v.indexOf('localhost') !== -1 || v.indexOf('127.0.0.1') !== -1) {
-            setNetworkMode('localhost');
-        } else if (v.indexOf('192.168.') !== -1 || v.indexOf('10.') !== -1 || v.indexOf('172.') !== -1) {
-            setNetworkMode('wifi');
+        if (v.indexOf('trycloudflare.com') !== -1 || v.indexOf('loca.lt') !== -1) {
+            setNetworkMode('tunnel');
+        } else if (v.indexOf('localhost') !== -1 || v.indexOf('127.0.0.1') !== -1 || v.indexOf('192.168.') !== -1 || v.indexOf('10.') !== -1 || v.indexOf('172.') !== -1) {
+            setNetworkMode('local');
         } else {
             setNetworkMode('domain');
         }
