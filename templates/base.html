@@ -17,10 +17,14 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.5.8.2">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.5.8.3">
 
-    <!-- Favicon JA -->
-    <link rel="icon" href="{{ url_for('static', filename='img/favicon.svg') }}" type="image/svg+xml">
+    <!-- Favicon JA Multi-Size -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}?v=2.5.8.3">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ url_for('static', filename='img/favicon-32.png') }}?v=2.5.8.3">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ url_for('static', filename='img/favicon-16.png') }}?v=2.5.8.3">
+    <link rel="apple-touch-icon" sizes="192x192" href="{{ url_for('static', filename='img/favicon-192.png') }}?v=2.5.8.3">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}?v=2.5.8.3">
 
     <!-- html5-qrcode for Camera QR Scanner -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -41,17 +45,12 @@
         <!-- Clean Sidebar Navigation -->
         <aside class="sidebar bg-white border-end" id="sidebar-wrapper">
             <!-- Brand Logo -->
-            <div class="sidebar-heading px-4 py-3 border-bottom d-flex align-items-center justify-content-between">
-                <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-decoration-none text-dark gap-2">
-                    <div class="brand-icon rounded-3 d-flex align-items-center justify-content-center text-white shadow-sm">
-                        <i class="bi bi-box-seam-fill fs-5"></i>
-                    </div>
-                    <div>
-                        <span class="fs-5 fw-extrabold tracking-tight text-primary d-block lh-1">JESCA</span>
-                        <small class="text-muted fw-semibold" style="font-size: 0.7rem; letter-spacing: 0.6px;">ASSET MANAGEMENT</small>
-                    </div>
+            <div class="sidebar-heading px-3 py-3 border-bottom d-flex align-items-center justify-content-between">
+                <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-decoration-none gap-2.5 flex-grow-1 overflow-hidden" style="min-width: 0;">
+                    <img src="{{ url_for('static', filename='img/jesca_logo.png') }}?v=2.5.8.3" alt="JESCA Logo" class="brand-logo-img">
+                    <span class="brand-title">JESCA</span>
                 </a>
-                <button class="btn btn-sm btn-light border-0 d-md-none" id="sidebar-close" aria-label="Close Sidebar">
+                <button class="btn btn-sm btn-light border-0 d-md-none flex-shrink-0 ms-1" id="sidebar-close" aria-label="Close Sidebar">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>

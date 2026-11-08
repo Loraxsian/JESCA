@@ -85,21 +85,25 @@ body, html {
     display: flex;
     align-items: center;
     gap: 16px;
+    background: transparent !important;
 }
 
-.brand-logo-svg {
-    width: 44px;
-    height: 44px;
-    filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.25));
+.brand-logo-img-login {
+    width: 58px;
+    height: 58px;
+    object-fit: contain;
+    flex-shrink: 0;
+    filter: drop-shadow(0 4px 16px rgba(0, 0, 0, 0.35)) drop-shadow(0 0 2px rgba(255, 255, 255, 0.7));
 }
 
-.brand-text {
-    font-size: 1.85rem !important; /* ~30px */
+.brand-title-login {
+    font-size: 2.35rem !important;
     font-weight: 800 !important;
     letter-spacing: 2px !important;
     color: #ffffff !important;
     margin: 0 !important;
-    text-transform: uppercase;
+    line-height: 1;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 /* 2. Main Center Content (Smart Tracking Seamless Assets) */
@@ -782,16 +786,8 @@ body, html {
 
         <!-- 1. Top Brand Header (Logo Baru + Nama JESCA) - Pojok Kiri Atas -->
         <div class="brand-header">
-            <!-- Modern Geometric Delta Logo Sesuai Sketsa -->
-            <svg class="brand-logo-svg" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- Bar 1 (Kiri) -->
-                <path d="M4 40L17 4H23L10 40H4Z" fill="#ffffff"/>
-                <!-- Bar 2 (Tengah) -->
-                <path d="M16 40L25 14H31L22 40H16Z" fill="#22d3ee"/>
-                <!-- Bar 3 (Kanan Segitiga) -->
-                <path d="M30 4L48 40H41L34 26H26L28 21H36L29 4H30Z" fill="#ffffff"/>
-            </svg>
-            <h1 class="brand-text">JESCA</h1>
+            <img src="{{ url_for('static', filename='img/jesca_logo.png') }}?v=2.5.8.3" alt="JESCA Logo" class="brand-logo-img-login">
+            <h1 class="brand-title-login">JESCA</h1>
         </div>
 
         <!-- 2. Elemen-Elemen Animasi Geometris Melayang -->
