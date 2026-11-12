@@ -1375,7 +1375,13 @@ def rupiah_filter(value):
 def format_date_filter(val):
     if not val:
         return '-'
-    if isinstance(val, (datetime, date)):
+    if isinstance(val, datetime):
+        if val.tzinfo is None:
+            val = val.replace(tzinfo=timezone.utc).astimezone(WIB)
+        else:
+            val = val.astimezone(WIB)
+        val = val.date()
+    if isinstance(val, date):
         months = [
             '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
             'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
@@ -1389,6 +1395,10 @@ def format_datetime_filter(val):
     if not val:
         return '-'
     if isinstance(val, datetime):
+        if val.tzinfo is None:
+            val = val.replace(tzinfo=timezone.utc).astimezone(WIB)
+        else:
+            val = val.astimezone(WIB)
         months = [
             '', 'Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun',
             'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'
