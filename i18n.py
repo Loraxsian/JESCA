@@ -8,6 +8,17 @@ from flask import request, session
 SUPPORTED_LANGUAGES = ("id", "en")
 DEFAULT_LANGUAGE = "id"
 
+# Kamus Istilah Baku Bahasa Indonesia (Standar Operasional JESCA)
+STANDARD_TERMS_ID = {
+    "Dashboard": "Beranda",
+    "Purchase Order": "Pengadaan Barang (PO)",
+    "System Update": "Pembaruan Sistem",
+    "Sudo Mode": "Mode Akses Khusus (Sudo)",
+    "Runtime & Server": "Lingkungan Server & Waktu Proses",
+    "WAL (Write-Ahead Log)": "Mode Jurnal WAL",
+    "Active": "Aktif",
+}
+
 TRANSLATIONS_EN = {
     # Purchase Order Form
     "Form Permohonan Pengadaan Barang Baru": "New Purchase Order Request Form",

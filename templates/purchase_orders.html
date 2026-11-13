@@ -1,6 +1,6 @@
 {% extends "base.html" %}
-{% block title %}Purchase Order (Pengadaan) - JESCA{% endblock %}
-{% block page_heading %}Purchase Order &amp; Pengadaan Aset{% endblock %}
+{% block title %}Pengadaan Barang (PO) - JESCA{% endblock %}
+{% block page_heading %}Pengadaan Barang (PO){% endblock %}
 
 {% block content %}
 <!-- Top Header & Action Controls -->
@@ -8,7 +8,7 @@
     <div class="col-md-6">
         <div class="d-flex align-items-center justify-content-between gap-2">
             <div>
-                <h5 class="fw-bold mb-1">Pengadaan &amp; Purchase Order (PO)</h5>
+                <h5 class="fw-bold mb-1">Pengadaan Barang (PO)</h5>
                 <p class="text-muted small mb-0 d-none d-md-block">Digitalisasi alur permohonan belanja barang, persetujuan bertingkat, hingga penerimaan &amp; otomatisasi penomoran aset.</p>
             </div>
             {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}

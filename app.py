@@ -61,7 +61,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.6.4'
+APP_VERSION = '2.6.5'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -4955,8 +4955,8 @@ def confirm_sudo():
         password = request.form.get('password', '')
         if current_user.check_password(password):
             session['sudo_mode_until'] = (datetime.utcnow() + timedelta(minutes=15)).isoformat()
-            log_activity('SUDO_ACCESS', details=f"Sudo Mode diverifikasi oleh {current_user.username} (valid 15 menit).")
-            flash('Autentikasi Sudo Mode berhasil! Anda memiliki akses aman selama 15 menit.', 'success')
+            log_activity('SUDO_ACCESS', details=f"Mode Akses Khusus (Sudo) diverifikasi oleh {current_user.username} (valid 15 menit).")
+            flash('Autentikasi Mode Akses Khusus (Sudo) berhasil! Anda memiliki akses aman selama 15 menit.', 'success')
             return redirect(next_url)
         else:
             log_activity('SUDO_FAILED', details=f"Percobaan sandi Sudo Mode gagal oleh {current_user.username}.")
@@ -4971,8 +4971,8 @@ def confirm_sudo():
 def lock_sudo():
     """Manually lock sudo mode session immediately."""
     session.pop('sudo_mode_until', None)
-    log_activity('SUDO_LOCKED', details=f"Sudo Mode dikunci secara manual oleh {current_user.username}.")
-    flash('Sesi Sudo Mode telah dikunci demi keamanan. Sandi akan diminta kembali saat membuka Pengaturan.', 'info')
+    log_activity('SUDO_LOCKED', details=f"Mode Akses Khusus (Sudo) dikunci secara manual oleh {current_user.username}.")
+    flash('Sesi Mode Akses Khusus (Sudo) telah dikunci demi keamanan. Sandi akan diminta kembali saat membuka Pengaturan.', 'info')
     return redirect(url_for('dashboard'))
 
 
