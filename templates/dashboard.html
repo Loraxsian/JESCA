@@ -9,7 +9,400 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
+<div class="d-flex flex-column flex-grow-1 dashboard-main-wrap" style="min-height: 0;">
+
+<!-- ==========================================
+     MOBILE SUPER-APP DASHBOARD SHELL (<= 767px)
+     ========================================== -->
+<div class="d-md-none pb-2">
+    {% if is_default_admin_password %}
+    <div class="alert alert-warning alert-dismissible fade show border d-flex align-items-center justify-content-between gap-2 py-2 px-3 mb-2 shadow-xs" data-inline-alert="1" style="border-radius: 16px; border-color: #fde68a !important; background: #fffbeb;">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+            <i class="bi bi-shield-exclamation text-warning flex-shrink-0"></i>
+            <span class="small text-dark fw-semibold text-truncate" style="font-size: 0.72rem;">Sandi Admin bawaan masih aktif</span>
+        </div>
+        <div class="d-flex align-items-center gap-2 flex-shrink-0">
+            <button type="button" class="btn btn-warning text-dark btn-sm rounded-pill px-2.5 py-0 fw-bold" style="font-size: 0.68rem;" data-bs-toggle="modal" data-bs-target="#changePasswordModal">Ganti</button>
+            <button type="button" class="btn-close position-static p-1" style="font-size: 0.65rem;" data-bs-dismiss="alert" aria-label="Tutup"></button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Hero Gradient Extension -->
+    <div class="mobile-superapp-hero">
+        <div class="d-flex align-items-center justify-content-between">
+            <span class="small opacity-75 fw-medium" style="font-size: 0.74rem;">Portal Inventaris &amp; Operasional</span>
+            <span class="badge bg-white bg-opacity-25 text-white rounded-pill font-monospace" style="font-size: 0.64rem;">{{ total_assets }} Aset Terdaftar</span>
+        </div>
+    </div>
+
+    <!-- Floating Profile Card (Real User & Role Data) -->
+    <div class="floating-profile-card" id="mobileTourProfileCard">
+        <div class="d-flex align-items-center gap-3">
+            <div class="profile-avatar-ring">
+                {% if current_user.profile_image %}
+                    <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.profile_image) }}" alt="{{ current_user.full_name }}">
+                {% else %}
+                    {{ current_user.username[0]|upper }}
+                {% endif %}
+            </div>
+            <div class="flex-grow-1 min-w-0">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+                    <h6 class="fw-bold text-dark mb-0 text-truncate" style="font-size: 0.96rem;">{{ current_user.full_name }}</h6>
+                    {% if current_user.role in ['Admin', 'Administrator'] %}
+                        <span class="role-pill-badge role-pill-admin flex-shrink-0"><i class="bi bi-shield-lock-fill"></i> {{ current_user.role }}</span>
+                    {% elif current_user.role == 'Teknisi' %}
+                        <span class="role-pill-badge role-pill-teknisi flex-shrink-0"><i class="bi bi-tools"></i> Teknisi</span>
+                    {% elif current_user.role == 'Auditor' %}
+                        <span class="role-pill-badge role-pill-auditor flex-shrink-0"><i class="bi bi-Patch-check-fill"></i> Auditor</span>
+                    {% else %}
+                        <span class="role-pill-badge role-pill-staff flex-shrink-0"><i class="bi bi-person-badge-fill"></i> {{ current_user.role }}</span>
+                    {% endif %}
+                </div>
+                <div class="text-muted small d-flex align-items-center gap-2" style="font-size: 0.74rem;">
+                    <span class="font-monospace">@{{ current_user.username }}</span>
+                    <span>&bull;</span>
+                    <span>Akses Aktif</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contextual Role Action Banner -->
+        <div class="profile-context-banner" id="mobileTourContextBtn">
+            {% if current_user.role in ['Admin', 'Administrator'] %}
+                {% if pending_pos and pending_pos|length > 0 %}
+                <div class="small text-primary fw-semibold text-truncate" style="font-size: 0.74rem;">
+                    <i class="bi bi-cart-check-fill me-1"></i>{{ pending_pos|length }} PO menunggu persetujuan
+                </div>
+                <a href="{{ url_for('purchase_orders', status='SUBMITTED') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Tinjau PO</a>
+                {% else %}
+                <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
+                    <i class="bi bi-shield-check text-success me-1"></i>Kontrol penuh inventaris &amp; sistem
+                </div>
+                <a href="{{ url_for('assets', _open='add') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">+ Aset</a>
+                {% endif %}
+            {% elif current_user.role == 'Teknisi' %}
+                <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
+                    <i class="bi bi-wrench-adjustable text-warning me-1"></i>{{ maintenance_alerts|length if maintenance_alerts else 0 }} jadwal servis aktif
+                </div>
+                <a href="{{ url_for('maintenance') }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Meja Servis</a>
+            {% elif current_user.role == 'Auditor' %}
+                <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
+                    <i class="bi bi-file-earmark-check text-primary me-1"></i>Audit nilai buku &amp; aktivitas
+                </div>
+                <a href="{{ url_for('audit_report') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Buka Audit</a>
+            {% else %}
+                <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
+                    <i class="bi bi-arrow-left-right text-primary me-1"></i>Pinjam aset atau ajukan PO baru
+                </div>
+                <a href="{{ url_for('assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Data Aset</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Menu Utama Super-App Grid (Role-Aware) -->
+    <div class="superapp-section-card" id="mobileTourMainGrid">
+        <div class="superapp-section-hdr">
+            <h6 class="superapp-section-title">Menu Utama</h6>
+            <button type="button" class="superapp-section-link" onclick="JescaMobileSheet.open()">
+                Lihat Semua <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i>
+            </button>
+        </div>
+
+        <div class="superapp-menu-grid">
+            {% if current_user.role in ['Admin', 'Administrator'] %}
+                <!-- ADMIN 4x2 GRID -->
+                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-boxes"></i></div>
+                    <span class="superapp-menu-label">Data Aset</span>
+                </a>
+                <a href="{{ url_for('purchase_orders') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-indigo">
+                        <i class="bi bi-cart-check"></i>
+                        {% if pending_po_alerts and pending_po_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ pending_po_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Purchase Order</span>
+                </a>
+                <a href="{{ url_for('maintenance') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-amber">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ maintenance_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Servis Aset</span>
+                </a>
+                <a href="{{ url_for('sites') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-teal"><i class="bi bi-geo-alt"></i></div>
+                    <span class="superapp-menu-label">Lokasi &amp; Site</span>
+                </a>
+                <a href="{{ url_for('vendors') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-purple"><i class="bi bi-building"></i></div>
+                    <span class="superapp-menu-label">Vendor</span>
+                </a>
+                <a href="{{ url_for('history') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-cyan"><i class="bi bi-clock-history"></i></div>
+                    <span class="superapp-menu-label">Log Aktivitas</span>
+                </a>
+                <a href="{{ url_for('feedbacks_list') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-rose">
+                        <i class="bi bi-chat-square-text"></i>
+                        {% if feedback_alerts and feedback_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ feedback_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Laporan Masuk</span>
+                </a>
+                <button type="button" class="superapp-menu-item" onclick="JescaMobileSheet.open()">
+                    <div class="menu-tile-52 tile-slate"><i class="bi bi-grid-fill"></i></div>
+                    <span class="superapp-menu-label">Semua Menu</span>
+                </button>
+
+            {% elif current_user.role == 'Teknisi' %}
+                <!-- TEKNISI GRID (Fokus Lapangan & Servis) -->
+                <a href="{{ url_for('maintenance') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-amber">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ maintenance_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Tugas Servis</span>
+                </a>
+                <button type="button" class="superapp-menu-item" onclick="JescaQRScanner.open()">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-qr-code-scan"></i></div>
+                    <span class="superapp-menu-label">Scan QR</span>
+                </button>
+                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-teal"><i class="bi bi-boxes"></i></div>
+                    <span class="superapp-menu-label">Data Aset</span>
+                </a>
+                <a href="{{ url_for('assets', status='Dalam Perbaikan') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-rose"><i class="bi bi-tools"></i></div>
+                    <span class="superapp-menu-label">Unit Perbaikan</span>
+                </a>
+                <a href="{{ url_for('feedbacks_list') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-purple">
+                        <i class="bi bi-chat-square-text"></i>
+                        {% if feedback_alerts and feedback_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ feedback_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Laporan Kendala</span>
+                </a>
+                <a href="{{ url_for('assets', maintenance='due') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-cyan"><i class="bi bi-calendar-event"></i></div>
+                    <span class="superapp-menu-label">Jatuh Tempo</span>
+                </a>
+                <button type="button" class="superapp-menu-item" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <div class="menu-tile-52 tile-indigo"><i class="bi bi-box-arrow-up-right"></i></div>
+                    <span class="superapp-menu-label">Export Data</span>
+                </button>
+                <button type="button" class="superapp-menu-item" onclick="JescaMobileSheet.open()">
+                    <div class="menu-tile-52 tile-slate"><i class="bi bi-grid-fill"></i></div>
+                    <span class="superapp-menu-label">Semua Menu</span>
+                </button>
+
+            {% elif current_user.role == 'Auditor' %}
+                <!-- AUDITOR GRID (Fokus Audit & Verifikasi) -->
+                <a href="{{ url_for('audit_report') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-indigo"><i class="bi bi-file-earmark-text"></i></div>
+                    <span class="superapp-menu-label">Laporan Audit</span>
+                </a>
+                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-boxes"></i></div>
+                    <span class="superapp-menu-label">Data Aset</span>
+                </a>
+                <a href="{{ url_for('purchase_orders') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-purple"><i class="bi bi-cart-check"></i></div>
+                    <span class="superapp-menu-label">Purchase Order</span>
+                </a>
+                <a href="{{ url_for('vendors') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-cyan"><i class="bi bi-building"></i></div>
+                    <span class="superapp-menu-label">Data Vendor</span>
+                </a>
+                <a href="{{ url_for('export_assets_excel') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-teal"><i class="bi bi-file-earmark-excel"></i></div>
+                    <span class="superapp-menu-label">Export Excel</span>
+                </a>
+                <a href="{{ url_for('export_assets_pdf') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-rose"><i class="bi bi-file-pdf"></i></div>
+                    <span class="superapp-menu-label">Export PDF</span>
+                </a>
+                <a href="{{ url_for('assets', warranty='expiring') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-amber"><i class="bi bi-shield-check"></i></div>
+                    <span class="superapp-menu-label">Cek Garansi</span>
+                </a>
+                <button type="button" class="superapp-menu-item" onclick="JescaMobileSheet.open()">
+                    <div class="menu-tile-52 tile-slate"><i class="bi bi-grid-fill"></i></div>
+                    <span class="superapp-menu-label">Semua Menu</span>
+                </button>
+
+            {% else %}
+                <!-- STAFF GRID (Fokus Operasional & Sirkulasi) -->
+                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-boxes"></i></div>
+                    <span class="superapp-menu-label">Data Aset</span>
+                </a>
+                <a href="{{ url_for('assets', _open='add') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-teal"><i class="bi bi-plus-circle"></i></div>
+                    <span class="superapp-menu-label">Tambah Aset</span>
+                </a>
+                <a href="{{ url_for('assets', status='Dipinjam') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-indigo"><i class="bi bi-arrow-left-right"></i></div>
+                    <span class="superapp-menu-label">Pinjam / Cek</span>
+                </a>
+                <a href="{{ url_for('purchase_orders') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-purple"><i class="bi bi-cart-check"></i></div>
+                    <span class="superapp-menu-label">Purchase Order</span>
+                </a>
+                <a href="{{ url_for('maintenance') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-amber">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ maintenance_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Jadwal Servis</span>
+                </a>
+                <a href="{{ url_for('vendors') }}" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-cyan"><i class="bi bi-building"></i></div>
+                    <span class="superapp-menu-label">Data Vendor</span>
+                </a>
+                <button type="button" class="superapp-menu-item" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <div class="menu-tile-52 tile-rose"><i class="bi bi-box-arrow-up-right"></i></div>
+                    <span class="superapp-menu-label">Export Data</span>
+                </button>
+                <button type="button" class="superapp-menu-item" onclick="JescaMobileSheet.open()">
+                    <div class="menu-tile-52 tile-slate"><i class="bi bi-grid-fill"></i></div>
+                    <span class="superapp-menu-label">Semua Menu</span>
+                </button>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- 2x2 Colored Summary Stat Cards (Real Metrics) -->
+    <div class="stat-grid-2x2" id="mobileTourStatGrid">
+        <a href="{{ url_for('assets') }}" class="stat-card-2x2 stat-blue">
+            <div class="stat-2x2-top">
+                <span class="stat-2x2-label">Total Aset</span>
+                <span class="stat-2x2-icon"><i class="bi bi-boxes"></i></span>
+            </div>
+            <div class="stat-2x2-value">{{ total_assets }} Unit</div>
+            <div class="stat-2x2-sub">
+                <i class="bi bi-check-circle-fill"></i>
+                <span>{{ active_count }} Aktif ({{ active_percentage }}%)</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('assets') }}" class="stat-card-2x2 stat-teal">
+            <div class="stat-2x2-top">
+                <span class="stat-2x2-label">Nilai Buku</span>
+                <span class="stat-2x2-icon"><i class="bi bi-calculator"></i></span>
+            </div>
+            <div class="stat-2x2-value" style="font-size: 0.92rem;">{{ total_book_value|rupiah }}</div>
+            <div class="stat-2x2-sub">
+                <i class="bi bi-cash-stack"></i>
+                <span class="text-truncate">Beli: {{ total_value|rupiah }}</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('assets', status='Dipinjam') }}" class="stat-card-2x2 stat-amber">
+            <div class="stat-2x2-top">
+                <span class="stat-2x2-label">Dipinjam</span>
+                <span class="stat-2x2-icon"><i class="bi bi-arrow-left-right"></i></span>
+            </div>
+            <div class="stat-2x2-value">{{ borrowed_count }} Unit</div>
+            <div class="stat-2x2-sub">
+                <i class="bi bi-clock-history"></i>
+                <span>{% if overdue_returns and overdue_returns|length > 0 %}{{ overdue_returns|length }} Overdue (&gt;7hr){% else %}0 Terlambat{% endif %}</span>
+            </div>
+        </a>
+
+        <a href="{{ url_for('maintenance') }}" class="stat-card-2x2 stat-rose">
+            <div class="stat-2x2-top">
+                <span class="stat-2x2-label">Perhatian</span>
+                <span class="stat-2x2-icon"><i class="bi bi-tools"></i></span>
+            </div>
+            <div class="stat-2x2-value">{{ attention_count }} Unit</div>
+            <div class="stat-2x2-sub">
+                <i class="bi bi-calendar2-check"></i>
+                <span>{{ maintenance_alerts|length if maintenance_alerts else 0 }} Jadwal Servis</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Mobile Recent Assets List Card -->
+    <div class="superapp-section-card" id="mobileTourRecentAssets">
+        <div class="superapp-section-hdr">
+            <h6 class="superapp-section-title"><i class="bi bi-boxes text-primary me-1"></i>Aset Terbaru</h6>
+            <a href="{{ url_for('assets') }}" class="superapp-section-link">Semua <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i></a>
+        </div>
+        <div class="d-flex flex-column gap-2">
+            {% for a in recent_assets[:4] %}
+            <a href="{{ url_for('assets', search=a.asset_code) }}" class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light border text-decoration-none">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    <div class="rounded-3 bg-white border d-flex align-items-center justify-content-center text-primary flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.8rem;">{{ a.name }}</div>
+                        <div class="d-flex align-items-center gap-1">
+                            <span class="font-monospace text-muted" style="font-size: 0.68rem;">{{ a.asset_code }}</span>
+                            <span class="text-muted" style="font-size: 0.65rem;">&bull; {{ a.category }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end flex-shrink-0">
+                    {% if a.status == 'Aktif' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 0.65rem;">Aktif</span>
+                    {% elif a.status == 'Dipinjam' %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill" style="font-size: 0.65rem;">Dipinjam</span>
+                    {% elif a.status == 'Dalam Perbaikan' %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill" style="font-size: 0.65rem;">Perbaikan</span>
+                    {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill" style="font-size: 0.65rem;">{{ a.status }}</span>
+                    {% endif %}
+                    <div class="font-monospace fw-semibold text-dark mt-0.5" style="font-size: 0.68rem;">{{ a.current_book_value|rupiah }}</div>
+                </div>
+            </a>
+            {% else %}
+            <div class="text-center py-3 text-muted small">Belum ada aset terdaftar.</div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Mobile Recent Activity Feed Card -->
+    <div class="superapp-section-card mb-1">
+        <div class="superapp-section-hdr">
+            <h6 class="superapp-section-title"><i class="bi bi-clock-history text-secondary me-1"></i>Aktivitas Terkini</h6>
+            {% if current_user.role in ['Admin', 'Administrator'] %}
+            <a href="{{ url_for('history') }}" class="superapp-section-link">Log Lengkap <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i></a>
+            {% endif %}
+        </div>
+        <div class="d-flex flex-column gap-2">
+            {% for log in recent_logs[:4] %}
+            <div class="p-2 px-2.5 rounded-3 bg-light border">
+                <div class="d-flex justify-content-between align-items-center mb-0.5">
+                    <span class="badge bg-secondary-subtle text-secondary font-monospace" style="font-size: 0.62rem;">{{ log.action }}</span>
+                    <small class="text-muted font-monospace" style="font-size: 0.64rem;">{{ log.created_at|format_datetime }}</small>
+                </div>
+                <div class="text-dark text-truncate fw-medium" style="font-size: 0.76rem;">{{ log.details or '-' }}</div>
+                <small class="text-muted" style="font-size: 0.65rem;"><i class="bi bi-person me-1"></i>{{ log.username }}</small>
+            </div>
+            {% else %}
+            <div class="text-center py-3 text-muted small">Belum ada aktivitas.</div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     DESKTOP DASHBOARD SHELL (>= 768px)
+     ========================================== -->
+<div class="d-none d-md-flex flex-column flex-grow-1 overflow-hidden" style="min-height: 0;">
 
 <!-- Alert: Default Admin Password Warning (Security Best Practice) -->
 {% if is_default_admin_password %}
@@ -121,8 +514,8 @@
 </div>
 {% endif %}
 
-<!-- Top Metrics Row -->
-<div class="row g-2 mb-2">
+<!-- Top Metrics Row (Desktop >= 768px) -->
+<div class="row g-2 mb-2 d-none d-md-flex">
     <div class="col-sm-6 col-xl-3">
         <div class="card stat-card border-0 shadow-sm rounded-4 h-100">
             <div class="card-body p-3">
@@ -308,6 +701,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 </div>

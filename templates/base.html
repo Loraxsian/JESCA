@@ -17,7 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.5.8.3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.5.9">
 
     <!-- Favicon JA Multi-Size -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}?v=2.5.8.3">
@@ -143,7 +143,7 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#exportModal">
+                        <a id="tourMenuExport" href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="bi bi-box-arrow-up-right"></i>
                             <span data-i18n="sidebar_export">Export Data</span>
                         </a>
@@ -175,7 +175,7 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <a id="tourMenuChangePwd" href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
                             <i class="bi bi-key"></i>
                             <span data-i18n="sidebar_change_pwd">Ganti Password</span>
                         </a>
@@ -220,16 +220,21 @@
         <!-- Main Content Area -->
         <div id="page-content-wrapper" class="flex-grow-1 d-flex flex-column min-w-0">
             <!-- Clean Top Navbar -->
-            <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top px-3 py-2">
+            <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top px-3 py-2 jesca-top-navbar" id="mobileTourTopBar">
                 <div class="container-fluid px-0">
                     <div class="d-flex align-items-center gap-2">
-                        <button class="btn btn-sm btn-light border-0 d-md-none me-1" id="sidebar-toggle" aria-label="Toggle Sidebar">
-                            <i class="bi bi-list fs-5"></i>
-                        </button>
-                        <span class="fw-bold fs-6 text-dark text-truncate" style="max-width: 240px;">{% block page_heading %}JESCA{% endblock %}</span>
+                        <!-- Mobile Super-App Brand Pill (<= 767px) -->
+                        <a href="{{ url_for('dashboard') }}" class="mobile-brand-pill d-flex d-md-none">
+                            <span class="mobile-brand-logo-box">
+                                <img src="{{ url_for('static', filename='img/jesca_logo.png') }}?v=2.5.8.3" alt="JESCA">
+                            </span>
+                            <span class="mobile-brand-text">JESCA</span>
+                        </a>
+                        <!-- Desktop Heading (>= 768px) -->
+                        <span class="fw-bold fs-6 text-dark text-truncate d-none d-md-inline" style="max-width: 260px;">{% block page_heading %}JESCA{% endblock %}</span>
                     </div>
 
-                    <div class="d-flex align-items-center gap-2 ms-auto">
+                    <div class="d-flex align-items-center gap-1 gap-md-2 ms-auto" id="mobileTourTopActions">
                         <!-- Notification Bell Dropdown -->
                         {% set total_notifs = (maintenance_alerts|length if maintenance_alerts else 0) + (pending_po_alerts|length if pending_po_alerts else 0) + (user_po_alerts|length if user_po_alerts else 0) + (feedback_alerts|length if feedback_alerts else 0) %}
                         <div class="dropdown me-1">
@@ -444,18 +449,18 @@
                             </ul>
                         </div>
 
-                        <!-- Camera QR Scanner Button -->
-                        <button class="btn btn-light border-0 rounded-circle p-2 shadow-none me-1" type="button" id="navbarQrBtn" title="Scan QR Code Aset" onclick="JescaQRScanner.open()">
+                        <!-- Camera QR Scanner Button (Desktop) -->
+                        <button class="btn btn-light border-0 rounded-circle p-2 shadow-none me-1 d-none d-md-inline-flex" type="button" id="navbarQrBtn" title="Scan QR Code Aset" onclick="JescaQRScanner.open()">
                             <i class="bi bi-camera fs-5 text-secondary"></i>
                         </button>
 
-                        <!-- Quick Add Asset Button -->
-                        <a href="{{ url_for('assets') }}" id="navbarAddAssetBtn" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-flex align-items-center gap-1 shadow-sm">
+                        <!-- Quick Add Asset Button (Desktop) -->
+                        <a href="{{ url_for('assets') }}" id="navbarAddAssetBtn" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-none d-md-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-plus-lg"></i>
                             <span class="d-none d-sm-inline" data-i18n="nav_add_asset">Tambah Aset</span>
                         </a>
 
-                        <div class="vr mx-1"></div>
+                        <div class="vr mx-1 d-none d-md-block"></div>
 
                         <!-- User Profile Menu -->
                         <div class="dropdown">
@@ -522,40 +527,40 @@
                 </div>
             </nav>
 
-            <!-- Dismissible Flash Alerts -->
-            <div class="container-fluid px-3 px-md-4 pt-3">
-                {% with messages = get_flashed_messages(with_categories=true) %}
-                    {% if messages %}
-                        {% for category, message in messages %}
-                            <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2" role="alert">
-                                {% if category == 'success' %}
-                                    <i class="bi bi-check-circle-fill fs-5"></i>
-                                {% elif category == 'danger' %}
-                                    <i class="bi bi-exclamation-octagon-fill fs-5"></i>
-                                {% elif category == 'warning' %}
-                                    <i class="bi bi-exclamation-triangle-fill fs-5"></i>
-                                {% else %}
-                                    <i class="bi bi-info-circle-fill fs-5"></i>
-                                {% endif %}
-                                <div class="flex-grow-1 small">{{ message }}</div>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        {% endfor %}
-                    {% endif %}
-                {% endwith %}
-            </div>
+            <!-- Dismissible Flash Alerts (Converted to Toasts by app.js) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="container-fluid px-3 px-md-4 pt-2 d-none d-md-block">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show border-0 shadow-sm d-flex align-items-center gap-2" role="alert">
+                            {% if category == 'success' %}
+                                <i class="bi bi-check-circle-fill fs-5"></i>
+                            {% elif category == 'danger' %}
+                                <i class="bi bi-exclamation-octagon-fill fs-5"></i>
+                            {% elif category == 'warning' %}
+                                <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                            {% else %}
+                                <i class="bi bi-info-circle-fill fs-5"></i>
+                            {% endif %}
+                            <div class="flex-grow-1 small">{{ message }}</div>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
 
             <!-- Page Main Body -->
-            <main class="flex-grow-1 container-fluid px-3 px-md-4 pb-3 d-flex flex-column overflow-y-auto">
+            <main class="flex-grow-1 container-fluid px-3 px-md-4 pt-0 pt-md-3 pb-3 d-flex flex-column overflow-y-auto">
                 {% block content %}{% endblock %}
             </main>
 
-            <!-- Clean Footer -->
-            <footer class="bg-white border-top py-2 px-4 text-center text-muted small">
+            <!-- Clean Footer (Desktop) -->
+            <footer class="bg-white border-top py-2 px-4 text-center text-muted small d-none d-md-block">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.8 Stable</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.5.9 Stable</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
@@ -984,6 +989,228 @@
         </div>
     </div>
 
+    <!-- ==========================================
+         MOBILE 5-TAB BOTTOM NAVIGATION BAR (<= 767px)
+         ========================================== -->
+    <nav class="mobile-bottom-nav d-md-none" id="mobileTourBottomNav" aria-label="Navigasi Utama Mobile">
+        <a href="{{ url_for('dashboard') }}" id="mobileNavDashboard" class="bottom-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'dashboard' %}bi-grid-1x2-fill{% else %}bi-grid-1x2{% endif %}"></i>
+            <span>Beranda</span>
+        </a>
+        <a href="{{ url_for('assets') }}" id="mobileNavAssets" class="bottom-nav-item {% if request.endpoint == 'assets' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'assets' %}bi-box-seam-fill{% else %}bi-box-seam{% endif %}"></i>
+            <span>Aset</span>
+        </a>
+        <div class="bottom-nav-qr-wrap">
+            <button type="button" class="bottom-nav-qr-fab" id="mobileTourQrFab" onclick="JescaQRScanner.open()" title="Scan QR Code Aset">
+                <i class="bi bi-qr-code-scan"></i>
+            </button>
+            <span class="bottom-nav-qr-label">Scan QR</span>
+        </div>
+        {% if current_user.role == 'Auditor' %}
+        <a href="{{ url_for('audit_report') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'audit_report' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'audit_report' %}bi-file-earmark-text-fill{% else %}bi-file-earmark-text{% endif %}"></i>
+            <span>Audit</span>
+        </a>
+        {% else %}
+        <a href="{{ url_for('maintenance') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'maintenance' %}active{% endif %}">
+            <div class="position-relative">
+                <i class="bi {% if request.endpoint == 'maintenance' %}bi-wrench-adjustable-circle-fill{% else %}bi-wrench-adjustable{% endif %}"></i>
+                {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 2px 4px;">{{ maintenance_alerts|length }}</span>
+                {% endif %}
+            </div>
+            <span>Servis</span>
+        </a>
+        {% endif %}
+        <button type="button" class="bottom-nav-item" id="mobileBottomMenuBtn" onclick="JescaMobileSheet.open()">
+            <i class="bi bi-grid-3x3-gap"></i>
+            <span>Menu</span>
+        </button>
+    </nav>
+
+    <!-- ==========================================
+         MOBILE "SEMUA MENU" BOTTOM SHEET DRAWER (<= 767px)
+         ========================================== -->
+    <div class="mobile-sheet-backdrop d-md-none" id="mobileSheetBackdrop" onclick="JescaMobileSheet.close()"></div>
+    <div class="mobile-bottom-sheet d-md-none" id="mobileAllMenuSheet" role="dialog" aria-modal="true" aria-label="Semua Menu JESCA">
+        <div class="mobile-sheet-handle"></div>
+        <div class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <span class="fw-bold text-dark" style="font-size: 0.95rem;">Semua Menu JESCA</span>
+                <span class="badge bg-primary-subtle text-primary rounded-pill" style="font-size: 0.68rem;">{{ current_user.role }}</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-light rounded-circle border-0" onclick="JescaMobileSheet.close()" aria-label="Tutup Menu">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="mobile-sheet-body" id="mobileSheetScrollBody">
+            <!-- Kategori 1: Inventaris & Operasional -->
+            <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Inventaris &amp; Operasional</div>
+            <div class="superapp-menu-grid mb-3" id="mobileTourSheetOps">
+                <a href="{{ url_for('dashboard') }}" id="mobileSheetDashboard" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-grid-1x2"></i></div>
+                    <span class="superapp-menu-label">Dashboard</span>
+                </a>
+                <a href="{{ url_for('assets') }}" id="mobileSheetAssets" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-teal"><i class="bi bi-boxes"></i></div>
+                    <span class="superapp-menu-label">Data Aset</span>
+                </a>
+                <button type="button" id="mobileSheetQr" class="superapp-menu-item" onclick="JescaMobileSheet.close(); JescaQRScanner.open();">
+                    <div class="menu-tile-52 tile-indigo"><i class="bi bi-qr-code-scan"></i></div>
+                    <span class="superapp-menu-label">Scan QR</span>
+                </button>
+                {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Auditor'] %}
+                <a href="{{ url_for('purchase_orders') }}" id="mobileSheetPO" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-purple">
+                        <i class="bi bi-cart-check"></i>
+                        {% if current_user.role in ['Admin', 'Administrator'] and pending_po_alerts and pending_po_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ pending_po_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Purchase Order</span>
+                </a>
+                {% endif %}
+                {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Teknisi'] %}
+                <a href="{{ url_for('maintenance') }}" id="mobileSheetMaintenance" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-amber">
+                        <i class="bi bi-wrench-adjustable"></i>
+                        {% if maintenance_alerts and maintenance_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ maintenance_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Servis Aset</span>
+                </a>
+                {% endif %}
+                {% if current_user.role in ['Admin', 'Administrator'] %}
+                <a href="{{ url_for('sites') }}" id="mobileSheetSites" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-cyan"><i class="bi bi-geo-alt"></i></div>
+                    <span class="superapp-menu-label">Lokasi &amp; Site</span>
+                </a>
+                {% endif %}
+                {% if current_user.role != 'Teknisi' %}
+                <a href="{{ url_for('vendors') }}" id="mobileSheetVendors" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-slate"><i class="bi bi-building"></i></div>
+                    <span class="superapp-menu-label">Data Vendor</span>
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Kategori 2: Riwayat, Audit & Export -->
+            <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Riwayat, Audit &amp; Export</div>
+            <div class="superapp-menu-grid mb-3" id="mobileTourSheetReports">
+                {% if current_user.role in ['Admin', 'Administrator'] %}
+                <a href="{{ url_for('history') }}" id="mobileSheetHistory" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-cyan"><i class="bi bi-clock-history"></i></div>
+                    <span class="superapp-menu-label">Log Aktivitas</span>
+                </a>
+                {% endif %}
+                {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
+                <a href="{{ url_for('audit_report') }}" id="mobileSheetAudit" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-indigo"><i class="bi bi-file-earmark-text"></i></div>
+                    <span class="superapp-menu-label">Laporan Audit</span>
+                </a>
+                {% endif %}
+                {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
+                <a href="{{ url_for('feedbacks_list') }}" id="mobileSheetFeedbacks" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-rose">
+                        <i class="bi bi-chat-square-text"></i>
+                        {% if feedback_alerts and feedback_alerts|length > 0 %}
+                        <span class="menu-tile-badge">{{ feedback_alerts|length }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="superapp-menu-label">Laporan Masuk</span>
+                </a>
+                {% endif %}
+                <button type="button" id="mobileSheetExport" class="superapp-menu-item" onclick="JescaMobileSheet.close();" data-bs-toggle="modal" data-bs-target="#exportModal">
+                    <div class="menu-tile-52 tile-teal"><i class="bi bi-box-arrow-up-right"></i></div>
+                    <span class="superapp-menu-label">Export Data</span>
+                </button>
+            </div>
+
+            <!-- Kategori 3: Akun, Keamanan & Pengaturan -->
+            <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Akun &amp; Pengaturan Sistem</div>
+            <div class="superapp-menu-grid mb-3" id="mobileTourSheetSettings">
+                {% if current_user.role == 'Admin' %}
+                <a href="{{ url_for('accounts') }}" id="mobileSheetAccounts" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-people"></i></div>
+                    <span class="superapp-menu-label">Kelola Akun</span>
+                </a>
+                <a href="{{ url_for('admin_backups') }}" id="mobileSheetBackups" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-amber"><i class="bi bi-database"></i></div>
+                    <span class="superapp-menu-label">Backup &amp; DB</span>
+                </a>
+                <a href="{{ url_for('system_settings') }}" id="mobileSheetSettings" class="superapp-menu-item">
+                    <div class="menu-tile-52 tile-purple"><i class="bi bi-gear-wide-connected"></i></div>
+                    <span class="superapp-menu-label">Pengaturan</span>
+                </a>
+                {% endif %}
+                <button type="button" id="mobileSheetProfile" class="superapp-menu-item" onclick="JescaMobileSheet.close();" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                    <div class="menu-tile-52 tile-slate"><i class="bi bi-person-circle"></i></div>
+                    <span class="superapp-menu-label">Profil Saya</span>
+                </button>
+                <button type="button" id="mobileSheetChangePwd" class="superapp-menu-item" onclick="JescaMobileSheet.close();" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                    <div class="menu-tile-52 tile-amber"><i class="bi bi-key"></i></div>
+                    <span class="superapp-menu-label">Ganti Sandi</span>
+                </button>
+                <button type="button" id="mobileSheetGuide" class="superapp-menu-item" onclick="JescaMobileSheet.close(); JescaOnboarding.showMenu();">
+                    <div class="menu-tile-52 tile-blue"><i class="bi bi-compass"></i></div>
+                    <span class="superapp-menu-label">Panduan</span>
+                </button>
+            </div>
+
+            <!-- Kategori 4: Pintasan Kategori Aset -->
+            <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Pintasan Kategori Aset</div>
+            <div class="chip-scroll-row mb-3" id="mobileTourSheetCategories">
+                <a href="{{ url_for('assets', category='Tech') }}" class="filter-chip"><i class="bi bi-laptop text-primary"></i> Tech</a>
+                <a href="{{ url_for('assets', category='Tools') }}" class="filter-chip"><i class="bi bi-tools text-warning"></i> Tools</a>
+                <a href="{{ url_for('assets', category='Furniture') }}" class="filter-chip"><i class="bi bi-lamp text-info"></i> Furniture</a>
+                <a href="{{ url_for('assets', category='Vehicle') }}" class="filter-chip"><i class="bi bi-car-front text-danger"></i> Vehicle</a>
+                <a href="{{ url_for('assets', category='Office') }}" class="filter-chip"><i class="bi bi-printer text-success"></i> Office</a>
+            </div>
+
+            <!-- Tombol Keluar -->
+            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-2 fw-bold">
+                <i class="bi bi-box-arrow-right me-1"></i> Keluar (Logout)
+            </a>
+        </div>
+    </div>
+
+    <script>
+    window.JescaMobileSheet = {
+        open: function(instant) {
+            var bd = document.getElementById('mobileSheetBackdrop');
+            var sh = document.getElementById('mobileAllMenuSheet');
+            if (bd && sh) {
+                if (instant) {
+                    bd.classList.add('tour-instant');
+                    sh.classList.add('tour-instant');
+                } else {
+                    bd.classList.remove('tour-instant');
+                    sh.classList.remove('tour-instant');
+                }
+                bd.classList.add('show');
+                sh.classList.add('show');
+            }
+        },
+        close: function(instant) {
+            var bd = document.getElementById('mobileSheetBackdrop');
+            var sh = document.getElementById('mobileAllMenuSheet');
+            if (bd && sh) {
+                if (instant) {
+                    bd.classList.add('tour-instant');
+                    sh.classList.add('tour-instant');
+                } else {
+                    bd.classList.remove('tour-instant');
+                    sh.classList.remove('tour-instant');
+                }
+                bd.classList.remove('show');
+                sh.classList.remove('show');
+            }
+        }
+    };
+    </script>
+
     {% else %}
         <!-- Unauthenticated View (Login / Scan View) -->
         <main class="min-vh-100 d-flex flex-column justify-content-center {% if request.endpoint != 'login' %}py-4 bg-light{% endif %}">
@@ -995,7 +1222,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Global App JS -->
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.5.8.2"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.5.9"></script>
 
     <!-- Theme Switcher JS -->
     <script>

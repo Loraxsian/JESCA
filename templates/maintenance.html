@@ -98,7 +98,7 @@
     <div class="tab-pane fade show active" id="active-maint" role="tabpanel">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light text-muted small text-uppercase">
                             <tr>
@@ -215,6 +215,111 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile Vertical Maintenance Cards (<= 767px) -->
+                <div class="d-md-none p-3 d-flex flex-column gap-3">
+                    {% for asset in in_repair_assets %}
+                    <div class="mobile-asset-card" style="border-left: 4px solid #dc3545;">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.92rem;">{{ asset.name }}</div>
+                                <div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="badge bg-light text-dark font-monospace border" style="font-size: 0.68rem;">{{ asset.asset_code }}</span>
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.66rem;">{{ asset.category }}</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill flex-shrink-0">
+                                <i class="bi bi-tools me-1"></i>Dalam Perbaikan
+                            </span>
+                        </div>
+                        <div class="mobile-asset-meta-grid">
+                            <div>
+                                <div class="text-muted" style="font-size: 0.65rem;">Lokasi</div>
+                                <div class="fw-semibold text-dark text-truncate"><i class="bi bi-geo-alt text-danger me-1"></i>{{ asset.location }}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted" style="font-size: 0.65rem;">Interval Servis</div>
+                                <div class="fw-semibold text-dark">{{ asset.maintenance_interval_days or 90 }} Hari</div>
+                            </div>
+                        </div>
+                        {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
+                        <button type="button" class="btn btn-success btn-sm w-100 rounded-pill py-2 fw-bold shadow-sm"
+                            data-asset-id="{{ asset.id }}"
+                            data-asset-code="{{ asset.asset_code }}"
+                            data-asset-name="{{ asset.name }}"
+                            data-interval="{{ asset.maintenance_interval_days or 90 }}"
+                            onclick="openCompleteMaintenanceModalFromBtn(this)">
+                            <i class="bi bi-check2-circle me-1"></i> Selesaikan Servis &amp; Bukti
+                        </button>
+                        {% else %}
+                        <div class="text-center py-1">
+                            <span class="badge bg-secondary-subtle text-secondary border font-monospace">Sedang Dikerjakan Teknisi</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+
+                    {% for asset in due_assets %}
+                    {% if asset not in in_repair_assets %}
+                    {% set today = date_today %}
+                    {% set diff = (asset.next_maintenance_date - today).days if asset.next_maintenance_date else 0 %}
+                    <div class="mobile-asset-card" style="border-left: 4px solid {% if diff < 0 %}#dc3545{% else %}#f59e0b{% endif %};">
+                        <div class="d-flex align-items-start justify-content-between gap-2">
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.92rem;">{{ asset.name }}</div>
+                                <div class="d-flex align-items-center gap-1 mt-1">
+                                    <span class="badge bg-light text-dark font-monospace border" style="font-size: 0.68rem;">{{ asset.asset_code }}</span>
+                                    <span class="badge bg-light text-secondary border" style="font-size: 0.66rem;">{{ asset.category }}</span>
+                                </div>
+                            </div>
+                            {% if diff < 0 %}
+                            <span class="badge bg-danger text-white rounded-pill font-monospace" style="font-size: 0.68rem;">Terlambat {{ -diff }} hr</span>
+                            {% elif diff <= 7 %}
+                            <span class="badge bg-warning text-dark rounded-pill font-monospace" style="font-size: 0.68rem;">{{ diff }} hr lagi</span>
+                            {% else %}
+                            <span class="badge bg-light text-secondary border rounded-pill font-monospace" style="font-size: 0.68rem;">{{ diff }} hr lagi</span>
+                            {% endif %}
+                        </div>
+                        <div class="mobile-asset-meta-grid">
+                            <div>
+                                <div class="text-muted" style="font-size: 0.65rem;">Lokasi</div>
+                                <div class="fw-semibold text-dark text-truncate"><i class="bi bi-geo-alt text-danger me-1"></i>{{ asset.location }}</div>
+                            </div>
+                            <div>
+                                <div class="text-muted" style="font-size: 0.65rem;">Jadwal Servis</div>
+                                <div class="fw-bold font-monospace text-dark">{{ asset.next_maintenance_date.strftime('%d/%m/%Y') if asset.next_maintenance_date else '-' }}</div>
+                            </div>
+                        </div>
+                        {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
+                        <form method="POST" action="{{ url_for('start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn btn-warning text-dark btn-sm w-100 rounded-pill py-2 fw-bold shadow-sm">
+                                <i class="bi bi-tools me-1"></i> Mulai Pengerjaan Servis
+                            </button>
+                        </form>
+                        {% else %}
+                        <button type="button" class="btn btn-light border btn-sm w-100 rounded-pill py-2 text-secondary fw-semibold"
+                                data-bs-toggle="modal"
+                                data-bs-target="#reportIssueModal"
+                                data-asset-id="{{ asset.id }}"
+                                data-asset-code="{{ asset.asset_code }}"
+                                data-asset-name="{{ asset.name }}"
+                                onclick="prepareReportIssue(this)">
+                            <i class="bi bi-flag me-1"></i> Lapor Kendala ke Teknisi
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if not due_assets and not in_repair_assets %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-check-circle fs-1 text-success d-block mb-2"></i>
+                        <h6 class="fw-bold mb-1">Semua Aset Dalam Kondisi Prima!</h6>
+                        <p class="small text-muted mb-0">Tidak ada antrean servis atau perbaikan saat ini.</p>
+                    </div>
+                    {% endif %}
+                </div>
             </div>
         </div>
     </div>
@@ -223,7 +328,7 @@
     <div class="tab-pane fade" id="history-maint" role="tabpanel">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
             <div class="card-body p-0">
-                <div class="table-responsive">
+                <div class="table-responsive d-none d-md-block">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-light text-muted small text-uppercase">
                             <tr>
@@ -288,6 +393,37 @@
                         </tbody>
                     </table>
                 </div>
+
+                <!-- Mobile Vertical Maintenance History Cards (<= 767px) -->
+                <div class="d-md-none p-3 d-flex flex-column gap-3">
+                    {% for rec in records %}
+                    <div class="mobile-asset-card">
+                        <div class="d-flex align-items-start justify-content-between gap-2 mb-1">
+                            <div>
+                                <div class="fw-bold text-dark" style="font-size: 0.9rem;">{{ rec.asset.name if rec.asset else '-' }}</div>
+                                <span class="badge bg-light text-secondary font-monospace border" style="font-size: 0.68rem;">{{ rec.asset.asset_code if rec.asset else '-' }}</span>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary border rounded-pill" style="font-size: 0.68rem;">{{ rec.service_type }}</span>
+                        </div>
+                        <div class="p-2 rounded-3 bg-light border small text-dark my-2" style="font-size: 0.78rem;">
+                            {{ rec.action_taken }}
+                        </div>
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 small text-muted" style="font-size: 0.72rem;">
+                            <span><i class="bi bi-person me-1"></i><strong>{{ rec.performed_by }}</strong> &bull; {{ rec.service_date.strftime('%d/%m/%Y') if rec.service_date else '-' }}</span>
+                            {% if rec.proof_file %}
+                            <a href="{{ url_for('download_maintenance_attachment', filename=rec.proof_file) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5" style="font-size: 0.7rem;">
+                                <i class="bi bi-paperclip me-1"></i>Bukti
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4 text-muted">
+                        <i class="bi bi-journal-x fs-2 d-block mb-2 opacity-50"></i>
+                        <span class="small">Belum ada riwayat pemeliharaan tercatat.</span>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
     </div>
@@ -328,8 +464,26 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-secondary">Tindakan & Catatan Perbaikan <span class="text-danger">*</span></label>
-                            <textarea class="form-control form-control-sm" name="action_taken" rows="3" required placeholder="Jelaskan komponen yang diperbaiki, diganti, atau diperiksa..."></textarea>
+                            <label class="form-label small fw-bold text-secondary mb-1">Pilihan Tindakan Cepat (Sentuh untuk Isi Otomatis)</label>
+                            <div class="quick-chip-scroll mb-2">
+                                <button type="button" class="quick-chip-btn" onclick="appendQuickChip(this, 'Pembersihan Rutin & Debu Internal')">
+                                    <i class="bi bi-stars text-primary"></i> Pembersihan Rutin
+                                </button>
+                                <button type="button" class="quick-chip-btn" onclick="appendQuickChip(this, 'Ganti Pasta Termal & Cek Suhu')">
+                                    <i class="bi bi-thermometer-half text-warning"></i> Ganti Pasta Termal
+                                </button>
+                                <button type="button" class="quick-chip-btn" onclick="appendQuickChip(this, 'Ganti Baterai / Kabel Adaptor')">
+                                    <i class="bi bi-battery-charging text-success"></i> Ganti Baterai / Kabel
+                                </button>
+                                <button type="button" class="quick-chip-btn" onclick="appendQuickChip(this, 'Install Ulang / Reset Konfigurasi')">
+                                    <i class="bi bi-arrow-repeat text-info"></i> Install Ulang / Reset
+                                </button>
+                                <button type="button" class="quick-chip-btn" onclick="appendQuickChip(this, 'Penggantian Suku Cadang (Sparepart)')">
+                                    <i class="bi bi-gear text-danger"></i> Ganti Suku Cadang
+                                </button>
+                            </div>
+                            <label class="form-label small fw-bold text-secondary">Tindakan &amp; Catatan Perbaikan <span class="text-danger">*</span></label>
+                            <textarea class="form-control form-control-sm" name="action_taken" id="maintActionTakenInput" rows="3" required placeholder="Jelaskan komponen yang diperbaiki, diganti, atau pilih tombol cepat di atas..."></textarea>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label small fw-bold text-secondary">Biaya Servis (Rp)</label>
@@ -340,9 +494,9 @@
                             <input type="number" class="form-control form-control-sm" name="interval_days" id="modalIntervalDays" min="1" value="90">
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-secondary">Upload Bukti Servis / Nota / Foto (PDF/JPG/PNG)</label>
-                            <input type="file" class="form-control form-control-sm" name="proof_file" accept=".pdf,.jpg,.jpeg,.png,.docx">
-                            <small class="text-muted" style="font-size: 0.72rem;">Lampirkan kuitansi, nota suku cadang, atau foto unit setelah diservis.</small>
+                            <label class="form-label small fw-bold text-secondary"><i class="bi bi-camera text-primary me-1"></i>Ambil Foto Kamera / Upload Bukti Servis</label>
+                            <input type="file" class="form-control form-control-sm" name="proof_file" accept="image/*,.pdf,.jpg,.jpeg,.png,.docx" capture="environment">
+                            <small class="text-muted" style="font-size: 0.72rem;">Di HP: sentuh untuk langsung membuka kamera belakang atau pilih berkas nota/foto.</small>
                         </div>
                     </div>
                 </div>
@@ -415,10 +569,26 @@ function openCompleteMaintenanceModalFromBtn(btn) {
     openCompleteMaintenanceModal(assetId, assetCode, assetName, intervalDays);
 }
 
+function appendQuickChip(btn, text) {
+    const textarea = document.getElementById('maintActionTakenInput');
+    if (!textarea) return;
+    btn.classList.toggle('active');
+    const current = textarea.value.trim();
+    if (btn.classList.contains('active')) {
+        textarea.value = current ? (current + '; ' + text) : text;
+    } else {
+        const parts = current.split(';').map(s => s.trim()).filter(s => s && s !== text);
+        textarea.value = parts.join('; ');
+    }
+}
+
 function openCompleteMaintenanceModal(assetId, assetCode, assetName, intervalDays) {
     document.getElementById('modalTargetAssetTitle').textContent = `[${assetCode}] ${assetName}`;
     document.getElementById('completeMaintenanceForm').action = `/assets/${assetId}/maintenance/complete`;
     document.getElementById('modalIntervalDays').value = intervalDays || 90;
+    const textarea = document.getElementById('maintActionTakenInput');
+    if (textarea) textarea.value = '';
+    document.querySelectorAll('.quick-chip-btn').forEach(b => b.classList.remove('active'));
     
     // Set default date today
     const now = new Date();

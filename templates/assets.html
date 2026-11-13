@@ -5,14 +5,54 @@
 
 {% block content %}
 <!-- Page Header Action Bar -->
-<div class="row g-3 align-items-center mb-4">
+<div class="row g-3 align-items-center mb-3 mb-md-4">
     <div class="col-md-5">
-        <h5 class="fw-bold mb-1">Daftar Inventaris Aset Perusahaan</h5>
-        <p class="text-muted small mb-0">
-            Kelola data aset, garansi, depresiasi nilai buku, transfer site, lampiran dokumen, dan QR tag.
-        </p>
+        <div class="d-flex align-items-center justify-content-between gap-2">
+            <div>
+                <h5 class="fw-bold mb-0 mb-md-1">Daftar Inventaris Aset</h5>
+                <p class="text-muted small mb-0 d-none d-md-block">
+                    Kelola data aset, garansi, depresiasi nilai buku, transfer site, lampiran dokumen, dan QR tag.
+                </p>
+            </div>
+            <!-- Mobile Streamlined Header Actions (<= 767px): 1 Primary CTA + Overflow (...) -->
+            <div class="d-flex d-md-none align-items-center gap-2 flex-shrink-0">
+                {% if current_user.role in ['Admin', 'Staff'] %}
+                <button type="button" class="btn btn-primary btn-sm px-3 py-2 fw-bold shadow-sm" style="border-radius: 16px;" data-bs-toggle="modal" data-bs-target="#addAssetModal">
+                    <i class="bi bi-plus-lg me-1"></i>Tambah Aset
+                </button>
+                {% endif %}
+                <div class="dropdown">
+                    <button class="btn btn-light border btn-sm d-flex align-items-center justify-content-center shadow-xs" style="width: 36px; height: 36px; border-radius: 16px;" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Opsi Lainnya">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 py-2" style="min-width: 195px;">
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#importCsvModal">
+                                <i class="bi bi-upload text-primary"></i><span>Import CSV</span>
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a href="{{ url_for('export_assets_pdf') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-file-pdf text-danger"></i><span>Export PDF</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('export_assets_excel') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-excel text-success"></i><span>Export Excel</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('export_assets_csv') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
+                                <i class="bi bi-file-earmark-spreadsheet text-secondary"></i><span>Export CSV</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-md-7 text-md-end">
+    <div class="col-md-7 text-md-end d-none d-md-block">
         <div class="d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#importCsvModal">
                 <i class="bi bi-upload me-1"></i> Import CSV
@@ -35,8 +75,8 @@
     </div>
 </div>
 
-<!-- Search & Filter Card -->
-<div class="card border-0 shadow-sm rounded-4 mb-4">
+<!-- Desktop Search & Filter Card (>= 768px) -->
+<div class="card border-0 shadow-sm rounded-4 mb-4 d-none d-md-block">
     <div class="card-body p-3 p-md-4">
         <form method="GET" action="{{ url_for('assets') }}" class="row g-2 g-md-3 align-items-end">
             <!-- Search Keyword -->
@@ -107,6 +147,64 @@
     </div>
 </div>
 
+<!-- Mobile Search + Funnel Filter Trigger (<= 767px) -->
+{% set active_filter_count = (1 if category_filter else 0) + (1 if status_filter else 0) + (1 if vendor_filter else 0) + (1 if site_filter else 0) + (1 if warranty_filter else 0) + (1 if maintenance_filter else 0) %}
+<div class="d-md-none mb-2">
+    <form method="GET" action="{{ url_for('assets') }}" class="d-flex align-items-center gap-2">
+        {% if category_filter %}<input type="hidden" name="category" value="{{ category_filter }}">{% endif %}
+        {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
+        {% if vendor_filter %}<input type="hidden" name="vendor" value="{{ vendor_filter }}">{% endif %}
+        {% if site_filter %}<input type="hidden" name="site" value="{{ site_filter }}">{% endif %}
+        {% if warranty_filter %}<input type="hidden" name="warranty" value="{{ warranty_filter }}">{% endif %}
+        {% if maintenance_filter %}<input type="hidden" name="maintenance" value="{{ maintenance_filter }}">{% endif %}
+        <div class="input-group flex-grow-1 shadow-xs" style="border-radius: 16px; overflow: hidden; border: 1px solid var(--border-color); background: var(--bg-card);">
+            <span class="input-group-text bg-transparent border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
+            <input type="text" class="form-control border-0 bg-transparent py-2" name="search" value="{{ search_query }}" placeholder="Cari nama, kode, lokasi..." style="font-size: 0.85rem; box-shadow: none;">
+            {% if search_query %}
+            <a href="{{ url_for('assets', category=category_filter, status=status_filter, vendor=vendor_filter, site=site_filter) }}" class="btn border-0 text-muted d-flex align-items-center px-2" title="Hapus pencarian">
+                <i class="bi bi-x-circle-fill"></i>
+            </a>
+            {% endif %}
+        </div>
+        <button type="button" class="btn btn-light border position-relative d-flex align-items-center justify-content-center flex-shrink-0 shadow-xs" style="width: 42px; height: 42px; border-radius: 16px;" onclick="JescaAssetFilterSheet.open()" title="Filter Lanjutan">
+            <i class="bi bi-funnel{% if active_filter_count > 0 %}-fill text-primary{% endif %} fs-6"></i>
+            {% if active_filter_count > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size: 0.6rem; padding: 3px 5px;">{{ active_filter_count }}</span>
+            {% endif %}
+        </button>
+    </form>
+</div>
+
+<!-- Mobile Horizontal Category & Status Filter Chips (<= 767px) -->
+<div class="d-md-none mb-3">
+    <div class="chip-scroll-row">
+        <a href="{{ url_for('assets') }}" class="filter-chip {% if not category_filter and not status_filter and not maintenance_filter %}active{% endif %}">
+            <i class="bi bi-grid"></i> Semua
+        </a>
+        <a href="{{ url_for('assets', category='Tech') }}" class="filter-chip {% if category_filter == 'Tech' %}active{% endif %}">
+            <i class="bi bi-laptop"></i> Tech
+        </a>
+        <a href="{{ url_for('assets', category='Tools') }}" class="filter-chip {% if category_filter == 'Tools' %}active{% endif %}">
+            <i class="bi bi-tools"></i> Tools
+        </a>
+        <a href="{{ url_for('assets', category='Furniture') }}" class="filter-chip {% if category_filter == 'Furniture' %}active{% endif %}">
+            <i class="bi bi-lamp"></i> Furniture
+        </a>
+        <a href="{{ url_for('assets', category='Vehicle') }}" class="filter-chip {% if category_filter == 'Vehicle' %}active{% endif %}">
+            <i class="bi bi-car-front"></i> Vehicle
+        </a>
+        <a href="{{ url_for('assets', category='Office') }}" class="filter-chip {% if category_filter == 'Office' %}active{% endif %}">
+            <i class="bi bi-printer"></i> Office
+        </a>
+        <a href="{{ url_for('assets', status='Dipinjam') }}" class="filter-chip {% if status_filter == 'Dipinjam' %}active{% endif %}">
+            <i class="bi bi-arrow-left-right"></i> Dipinjam
+        </a>
+        <a href="{{ url_for('assets', maintenance='due') }}" class="filter-chip {% if maintenance_filter == 'due' %}active{% endif %}">
+            <i class="bi bi-wrench-adjustable"></i> Perlu Servis
+        </a>
+    </div>
+</div>
+
 <!-- Assets Table Card -->
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
     <div class="card-header bg-white border-bottom py-3 px-4 d-flex justify-content-between align-items-center">
@@ -114,13 +212,13 @@
             <h6 class="fw-bold mb-0 text-dark">Data Inventaris ({{ assets|length }} Aset)</h6>
             <small class="text-muted">Total Nilai Perolehan: <strong class="text-success">{{ filtered_value|rupiah }}</strong></small>
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-none d-md-flex align-items-center gap-2">
             <span class="badge bg-light text-secondary border font-monospace" style="font-size: 0.72rem;">
                 <kbd style="background:#e2e8f0; color:#475569;">Ctrl+N</kbd> Aset Baru
             </span>
         </div>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
         <table class="table table-hover align-middle mb-0" id="assetsTable">
             <thead class="table-light text-secondary small text-uppercase">
                 <tr>
@@ -267,6 +365,143 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Mobile Clean Vertical Asset Cards (<= 767px) -->
+    <div class="d-md-none p-3 d-flex flex-column gap-3">
+        {% for a in assets %}
+        <div class="mobile-asset-card" style="border-radius: 16px;">
+            <!-- Header: Mini Photo + Name + Code/Category + Status -->
+            <div class="d-flex align-items-start justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    {% if a.image %}
+                    <img src="{{ url_for('static', filename='uploads/' ~ a.image) }}" alt="{{ a.name }}" class="object-fit-cover shadow-xs flex-shrink-0" style="width: 44px; height: 44px; border-radius: 12px;">
+                    {% else %}
+                    <div class="bg-light border d-flex align-items-center justify-content-center text-primary flex-shrink-0" style="width: 44px; height: 44px; border-radius: 12px;">
+                        <i class="bi bi-box-seam fs-5"></i>
+                    </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">{{ a.name }}</div>
+                        <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+                            <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.68rem;">{{ a.asset_code }}</span>
+                            <span class="badge bg-light text-secondary border" style="font-size: 0.66rem;">{{ a.category }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end flex-shrink-0">
+                    {% if a.status == 'Aktif' %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">Aktif</span>
+                    {% elif a.status == 'Dipinjam' %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill">Dipinjam</span>
+                    {% elif a.status == 'Dalam Perbaikan' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill"><i class="bi bi-tools me-1"></i>Perbaikan</span>
+                    {% elif a.status == 'Rusak' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill">Rusak</span>
+                    {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill">{{ a.status }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Essential Info Only: Lokasi + Garansi / Peminjam -->
+            <div class="d-flex align-items-center justify-content-between gap-2 mt-2 pt-2 border-top" style="font-size: 0.76rem;">
+                <div class="text-truncate text-dark fw-medium">
+                    <i class="bi bi-geo-alt text-danger me-1"></i>{{ a.location }}
+                    <span class="text-muted fw-normal">({{ a.site.name if a.site else 'Kantor Pusat' }})</span>
+                </div>
+                <div class="flex-shrink-0">
+                    {% if a.borrower %}
+                    <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill" style="font-size: 0.66rem;">
+                        <i class="bi bi-person-fill me-1"></i>{{ a.borrower }}
+                    </span>
+                    {% elif a.warranty_status %}
+                    <span class="badge bg-{{ a.warranty_status.color }}-subtle text-{{ a.warranty_status.color }} border border-{{ a.warranty_status.color }}-subtle rounded-pill" style="font-size: 0.66rem;">
+                        {{ a.warranty_status.label }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Clean Action Row: 1 Primary CTA + Context Menu (...) -->
+            <div class="d-flex align-items-center justify-content-between gap-2 mt-2 pt-2 border-top">
+                <div class="flex-grow-1">
+                    {% if current_user.role in ['Admin', 'Staff'] %}
+                        {% if a.status == 'Dipinjam' %}
+                        <button type="button" class="btn btn-success btn-sm w-100 fw-semibold" style="border-radius: 16px;" onclick="openCheckInModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}', '{{ a.borrower }}')">
+                            <i class="bi bi-box-arrow-in-down-left me-1"></i>Kembalikan Aset
+                        </button>
+                        {% elif a.status == 'Aktif' %}
+                        <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-semibold" style="border-radius: 16px;" onclick="openCheckOutModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}')">
+                            <i class="bi bi-box-arrow-up-right me-1"></i>Pinjam Aset
+                        </button>
+                        {% else %}
+                        <button type="button" class="btn btn-light border btn-sm w-100 fw-semibold" style="border-radius: 16px;" onclick="openEditAssetModal('{{ a.id }}')">
+                            <i class="bi bi-pencil me-1"></i>Lihat / Ubah Data
+                        </button>
+                        {% endif %}
+                    {% elif current_user.role == 'Teknisi' %}
+                        <a href="{{ url_for('maintenance') }}" class="btn btn-warning text-dark btn-sm w-100 fw-semibold" style="border-radius: 16px;">
+                            <i class="bi bi-wrench-adjustable me-1"></i>Buka Meja Servis
+                        </a>
+                    {% else %}
+                        <button type="button" class="btn btn-outline-secondary btn-sm w-100 fw-semibold" style="border-radius: 16px;" onclick="openQrTagModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}', '{{ a.category }}', '{{ a.location }}')">
+                            <i class="bi bi-qr-code me-1"></i>Lihat Label QR
+                        </button>
+                    {% endif %}
+                </div>
+
+                <!-- Secondary Actions Context Menu -->
+                <div class="dropdown flex-shrink-0">
+                    <button type="button" class="btn btn-light border btn-sm d-flex align-items-center justify-content-center" style="width: 36px; height: 32px; border-radius: 16px;" data-bs-toggle="dropdown" aria-expanded="false" title="Aksi Lainnya">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 py-1.5" style="min-width: 180px;">
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2 small" onclick="openQrTagModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}', '{{ a.category }}', '{{ a.location }}')">
+                                <i class="bi bi-qr-code text-primary"></i><span>Cetak QR Tag</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2 small" onclick="openAttachmentsModal('{{ a.id }}', '{{ a.asset_code }}')">
+                                <i class="bi bi-paperclip text-secondary"></i><span>Lampiran Dokumen</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2 small btn-circulation-history" data-id="{{ a.id }}" data-code="{{ a.asset_code }}" data-name="{{ a.name }}">
+                                <i class="bi bi-clock-history text-info"></i><span>Riwayat Pinjam</span>
+                            </button>
+                        </li>
+                        {% if current_user.role in ['Admin', 'Staff'] %}
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2 small" onclick="openTransferModal('{{ a.id }}', '{{ a.asset_code }}', '{{ a.location }}')">
+                                <i class="bi bi-arrow-left-right text-info"></i><span>Transfer Site / Lokasi</span>
+                            </button>
+                        </li>
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2 small" onclick="openEditAssetModal('{{ a.id }}')">
+                                <i class="bi bi-pencil text-warning"></i><span>Edit Data Aset</span>
+                            </button>
+                        </li>
+                        {% if current_user.role == 'Admin' %}
+                        <li>
+                            <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2 small text-danger" onclick="confirmDeleteAsset('{{ a.id }}', '{{ a.asset_code }}', '{{ a.name }}')">
+                                <i class="bi bi-trash"></i><span>Hapus Aset</span>
+                            </button>
+                        </li>
+                        {% endif %}
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-boxes fs-2 d-block mb-2 opacity-50"></i>
+            <span class="small">Tidak ada aset yang sesuai kriteria pencarian.</span>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
@@ -1093,6 +1328,12 @@
                 openCirculationModal(this.dataset.id, this.dataset.code, this.dataset.name);
             });
         });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('_open') === 'add') {
+            const addModal = document.getElementById('addAssetModal');
+            if (addModal) bootstrap.Modal.getOrCreateInstance(addModal).show();
+        }
     });
 
     function openCirculationModal(id, code, name) {
@@ -1172,4 +1413,87 @@
         </div>
     </div>
 </div>
+
+<!-- ==========================================
+     MOBILE FILTER BOTTOM SHEET (<= 767px)
+     ========================================== -->
+<div class="mobile-sheet-backdrop d-md-none" id="mobileAssetFilterBackdrop" onclick="JescaAssetFilterSheet.close()"></div>
+<div class="mobile-bottom-sheet d-md-none" id="mobileAssetFilterSheet" role="dialog" aria-modal="true" aria-label="Filter Daftar Aset">
+    <div class="mobile-sheet-handle"></div>
+    <div class="px-3 py-2 border-bottom d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-funnel-fill text-primary"></i>
+            <span class="fw-bold text-dark" style="font-size: 0.95rem;">Filter Inventaris</span>
+        </div>
+        <button type="button" class="btn btn-sm btn-light rounded-circle border-0" onclick="JescaAssetFilterSheet.close()" aria-label="Tutup">
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+    <div class="mobile-sheet-body">
+        <form method="GET" action="{{ url_for('assets') }}" class="d-flex flex-column gap-3">
+            {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
+            <div>
+                <label class="form-label small fw-bold text-secondary mb-1">Kategori Aset</label>
+                <select class="form-select" name="category" style="border-radius: 16px;">
+                    <option value="">Semua Kategori</option>
+                    {% for cat in categories %}
+                        <option value="{{ cat.name }}" {% if category_filter == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label small fw-bold text-secondary mb-1">Status Aset</label>
+                <select class="form-select" name="status" style="border-radius: 16px;">
+                    <option value="">Semua Status</option>
+                    {% for st in statuses %}
+                        <option value="{{ st }}" {% if status_filter == st %}selected{% endif %}>{{ st }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label small fw-bold text-secondary mb-1">Vendor / Supplier</label>
+                <select class="form-select" name="vendor" style="border-radius: 16px;">
+                    <option value="">Semua Vendor</option>
+                    {% for v in vendors %}
+                        <option value="{{ v.id }}" {% if vendor_filter == v.id|string %}selected{% endif %}>{{ v.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="form-label small fw-bold text-secondary mb-1">Lokasi &amp; Site</label>
+                <select class="form-select" name="site" style="border-radius: 16px;">
+                    <option value="">Semua Site</option>
+                    {% for s in sites %}
+                        <option value="{{ s.id }}" {% if site_filter == s.id|string %}selected{% endif %}>{{ s.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="d-flex gap-2 pt-2">
+                <a href="{{ url_for('assets') }}" class="btn btn-light border flex-grow-1 py-2 fw-semibold" style="border-radius: 16px;">Reset</a>
+                <button type="submit" class="btn btn-primary flex-grow-1 py-2 fw-bold" style="border-radius: 16px;">Terapkan Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+window.JescaAssetFilterSheet = {
+    open: function() {
+        var bd = document.getElementById('mobileAssetFilterBackdrop');
+        var sh = document.getElementById('mobileAssetFilterSheet');
+        if (bd && sh) {
+            bd.classList.add('show');
+            sh.classList.add('show');
+        }
+    },
+    close: function() {
+        var bd = document.getElementById('mobileAssetFilterBackdrop');
+        var sh = document.getElementById('mobileAssetFilterSheet');
+        if (bd && sh) {
+            bd.classList.remove('show');
+            sh.classList.remove('show');
+        }
+    }
+};
+</script>
 {% endblock %}

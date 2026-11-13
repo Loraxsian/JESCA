@@ -728,48 +728,261 @@ body, html {
 }
 
 @media (max-width: 991.98px) {
+    html, body {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        background-color: #f8fafc !important;
+    }
+    [data-theme="dark"] html,
+    [data-theme="dark"] body {
+        background-color: #0b0f19 !important;
+    }
     .login-viewport {
-        flex-direction: column;
+        display: none !important;
     }
-    .hero-panel {
-        width: 100%;
-        min-height: auto;
-        padding: 6rem 2rem 4rem 2rem;
-    }
-    .brand-header {
-        top: 2rem;
-        left: 2rem;
-    }
-    .hero-center-content {
-        margin-top: 0;
-    }
-    .split-connector-btn {
-        display: none;
-    }
-    .form-panel {
-        width: 100%;
-        min-height: auto;
-        padding: 3.5rem 1.75rem 3rem 1.75rem;
-        border-radius: 28px 28px 0 0;
-        margin-top: -24px;
-        box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
-    }
-    .hero-main-title {
-        font-size: 2.2rem !important;
-        white-space: normal !important;
-    }
-    .hero-badge-subtitle {
-        font-size: 0.95rem !important;
-        white-space: normal !important;
-    }
-    .form-title {
-        font-size: 2rem !important;
-    }
-    .orbit-system-container,
-    .anim-capsule-pill,
-    .anim-hollow-ring {
-        display: none;
-    }
+}
+
+/* ========================================================
+   MODERN MOBILE LOGIN LAYOUT (<= 991.98px)
+   Sesuai Referensi jesca_modern_mobile_login.html
+   ======================================================== */
+.mobile-modern-login {
+    min-height: 100vh;
+    width: 100%;
+    background-color: #f8fafc;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+[data-theme="dark"] .mobile-modern-login {
+    background-color: #0b0f19;
+    color: #f8fafc;
+}
+
+.m-login-hero-header {
+    background: linear-gradient(135deg, #4361ee 0%, #5d3df5 100%);
+    color: #ffffff;
+    padding: 26px 20px 76px;
+    border-bottom-left-radius: 32px;
+    border-bottom-right-radius: 32px;
+    position: relative;
+    overflow: hidden;
+}
+
+.m-hero-glow-1 {
+    position: absolute;
+    width: 190px;
+    height: 190px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 70%);
+    top: -40px;
+    right: -30px;
+    pointer-events: none;
+}
+
+.m-jesca-emblem {
+    width: 42px;
+    height: 42px;
+    border-radius: 13px;
+    background: #ffffff;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 5px;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+}
+
+.m-jesca-emblem img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.m-lang-switcher-pill {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 999px;
+    padding: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+}
+
+.m-lang-btn {
+    border: none;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.m-lang-btn.active {
+    background: #ffffff;
+    color: #4361ee;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+}
+
+.m-floating-login-card {
+    margin: -36px 16px 24px;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 24px;
+    padding: 22px 18px 20px;
+    box-shadow: 0 20px 40px -10px rgba(15, 23, 42, 0.14);
+    position: relative;
+    z-index: 10;
+}
+
+[data-theme="dark"] .m-floating-login-card {
+    background: #111827;
+    border-color: #1f2937;
+    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
+}
+
+.m-alert-banner-jesca {
+    background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+    border: 1px solid #bfdbfe;
+    border-radius: 14px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    color: #1e40af;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.m-alert-banner-jesca.alert-danger-jesca {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-color: #fecaca;
+    color: #991b1b;
+}
+
+.m-input-wrapper-jesca {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.m-input-icon-jesca {
+    position: absolute;
+    left: 14px;
+    color: #64748b;
+    font-size: 16px;
+    pointer-events: none;
+    z-index: 4;
+}
+
+.m-form-control-jesca {
+    width: 100%;
+    min-height: 48px;
+    border-radius: 14px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    background-color: #f8fafc !important;
+    padding-left: 42px !important;
+    padding-right: 42px !important;
+    font-size: 13.5px !important;
+    font-weight: 500;
+    color: #0f172a !important;
+    transition: all 0.18s ease;
+    outline: none;
+}
+
+.m-form-control-jesca:focus {
+    background-color: #ffffff !important;
+    border-color: #4361ee !important;
+    box-shadow: 0 0 0 3.5px rgba(67, 97, 238, 0.15) !important;
+}
+
+[data-theme="dark"] .m-form-control-jesca {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f8fafc !important;
+}
+
+.m-input-action-icon {
+    position: absolute;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    color: #64748b;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    cursor: pointer;
+    z-index: 4;
+}
+
+.m-btn-login-glow {
+    min-height: 50px;
+    border-radius: 14px !important;
+    background: linear-gradient(135deg, #4361ee 0%, #5d3df5 100%) !important;
+    border: none !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    font-size: 14.5px !important;
+    box-shadow: 0 8px 24px -4px rgba(67, 97, 238, 0.5) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.m-btn-login-glow:active {
+    transform: scale(0.985);
+}
+
+.m-role-auto-fill-box {
+    background: #f1f5f9;
+    border: 1px dashed #cbd5e1;
+    border-radius: 16px;
+    padding: 12px;
+    margin-top: 14px;
+}
+
+[data-theme="dark"] .m-role-auto-fill-box {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+.m-quick-action-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.m-quick-action-btn {
+    border: 1.5px solid #e2e8f0;
+    background: #ffffff;
+    border-radius: 14px;
+    padding: 9px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    text-align: left;
+    width: 100%;
+}
+
+[data-theme="dark"] .m-quick-action-btn {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.m-quick-action-btn:active {
+    transform: scale(0.97);
 }
 </style>
 
@@ -914,7 +1127,7 @@ body, html {
             {% endwith %}
 
             <!-- Login Form -->
-            <form method="POST" action="{{ url_for('login') }}" id="loginForm" novalidate>
+            <form method="POST" action="{{ url_for('login', next=request.args.get('next')) if request.args.get('next') else url_for('login') }}" id="loginForm" novalidate>
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <!-- Username Input -->
@@ -1024,6 +1237,184 @@ body, html {
 </div>
 
 <!-- ========================================================
+     MODERN MOBILE LOGIN LAYOUT (<= 991.98px)
+     Sesuai Desain jesca_modern_mobile_login.html + Admin Login & Laporan / Saran
+     ======================================================== -->
+<div class="mobile-modern-login d-lg-none">
+    <!-- Hero Header -->
+    <div class="m-login-hero-header">
+        <div class="m-hero-glow-1"></div>
+
+        <div class="d-flex align-items-center justify-content-between mb-3 position-relative" style="z-index: 2;">
+            <div class="d-flex align-items-center gap-2">
+                <div class="m-jesca-emblem">
+                    <img src="{{ url_for('static', filename='img/jesca_logo.png') }}?v=2.5.8.3" alt="JESCA">
+                </div>
+                <div class="fw-bold text-white" style="font-size: 20px; letter-spacing: 0.5px;">JESCA</div>
+            </div>
+
+            <!-- Language Switcher Pill (ID / EN) -->
+            <div class="m-lang-switcher-pill" role="group" aria-label="Language Switcher">
+                <button type="button" class="m-lang-btn active" id="m-lang-id" onclick="setMobileLoginLang('id')">ID</button>
+                <button type="button" class="m-lang-btn" id="m-lang-en" onclick="setMobileLoginLang('en')">EN</button>
+            </div>
+        </div>
+
+        <div class="position-relative" style="z-index: 2;">
+            <div class="text-uppercase text-white-50 fw-bold mb-1" style="font-size: 9.5px; letter-spacing: 0.08em;">
+                EFEKTIF &bull; AKUNTABEL &bull; INTEGRATIF
+            </div>
+            <h2 class="fw-bold text-white mb-0" style="font-size: 22px; line-height: 1.25;" id="m-txt-headline">
+                Smart Tracking &amp; Seamless Assets
+            </h2>
+            <div class="mt-2" style="width: 48px; height: 3px; background: #34d399; border-radius: 999px;"></div>
+        </div>
+    </div>
+
+    <!-- Floating White Login Card -->
+    <div class="m-floating-login-card">
+        <div class="d-flex align-items-center justify-content-between mb-3">
+            <h5 class="fw-bold mb-0" style="font-size: 18px;" id="m-txt-title" data-i18n="login_title">Silahkan Masuk</h5>
+            <span class="badge rounded-pill bg-light text-primary border" style="font-size: 10px; font-weight: 700;">
+                <i class="bi bi-shield-lock-fill me-1 text-success"></i>Secure SSL
+            </span>
+        </div>
+
+        <!-- Flash Error / Success / Info Banner -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                <div class="m-alert-banner-jesca {% if category == 'danger' %}alert-danger-jesca{% endif %} mb-3" id="m-alert-banner-{{ loop.index }}">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi {% if category == 'danger' %}bi-exclamation-triangle-fill text-danger{% elif category == 'success' %}bi-check-circle-fill text-success{% else %}bi-info-circle-fill text-primary{% endif %}" style="font-size: 15px;"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    <button type="button" class="btn btn-link p-0 text-secondary opacity-75" onclick="this.parentElement.style.display='none'" title="Tutup">
+                        <i class="bi bi-x-lg" style="font-size: 12px;"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <!-- Mobile Login Form -->
+        <form method="POST" action="{{ url_for('login', next=request.args.get('next')) if request.args.get('next') else url_for('login') }}" id="mobileLoginForm" novalidate>
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <!-- Username -->
+            <div class="mb-3">
+                <label class="form-label fw-bold mb-1" for="mobileUsername" style="font-size: 12px; color: #334155;" id="m-txt-label-user">
+                    Username
+                </label>
+                <div class="m-input-wrapper-jesca">
+                    <i class="bi bi-person m-input-icon-jesca"></i>
+                    <input
+                        type="text"
+                        id="mobileUsername"
+                        name="username"
+                        class="form-control m-form-control-jesca font-monospace"
+                        placeholder="Masukkan username"
+                        required
+                        autocomplete="username"
+                    />
+                    <button type="button" class="m-input-action-icon" title="Bersihkan" onclick="clearMobileUsername()">
+                        <i class="bi bi-x"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="mb-3">
+                <label class="form-label fw-bold mb-1" for="mobilePassword" style="font-size: 12px; color: #334155;" id="m-txt-label-pass">
+                    Password
+                </label>
+                <div class="m-input-wrapper-jesca">
+                    <i class="bi bi-lock m-input-icon-jesca"></i>
+                    <input
+                        type="password"
+                        id="mobilePassword"
+                        name="password"
+                        class="form-control m-form-control-jesca"
+                        placeholder="Masukkan password"
+                        required
+                        autocomplete="current-password"
+                    />
+                    <button type="button" class="m-input-action-icon" id="m-btn-eye" title="Lihat password" onclick="toggleMobilePassword()">
+                        <i class="bi bi-eye" id="m-icon-eye"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Remember me -->
+            <div class="d-flex align-items-center justify-content-between mb-4">
+                <div class="form-check form-switch mb-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="mobileRemember" name="remember" checked style="cursor: pointer;" />
+                    <label class="form-check-label text-secondary fw-semibold" for="mobileRemember" style="font-size: 12px; cursor: pointer;" id="m-txt-remember">
+                        Remember me
+                    </label>
+                </div>
+                <button type="button" class="btn btn-link p-0 text-decoration-none fw-bold" style="font-size: 12px; color: #4361ee;" data-bs-toggle="modal" data-bs-target="#feedbackModal">
+                    Butuh Bantuan?
+                </button>
+            </div>
+
+            <!-- Glowing Login Button -->
+            <button type="submit" class="btn m-btn-login-glow w-100 d-flex align-items-center justify-content-center gap-2 mb-3" id="mobileBtnLoginSubmit">
+                <span id="m-txt-btn-login">Login</span>
+                <i class="bi bi-arrow-right-short" style="font-size: 20px;"></i>
+            </button>
+        </form>
+
+        <!-- Dashed Auto-Fill & Laporan / Saran Box (Tetap Ada Sesuai Sistem JESCA) -->
+        <div class="m-role-auto-fill-box">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="fw-bold text-secondary" style="font-size: 10.5px;">
+                    <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Pintasan Cepat &amp; Bantuan:
+                </span>
+                <span class="font-monospace text-primary fw-bold" style="font-size: 10px;">JESCA v2.5.9</span>
+            </div>
+            <div class="m-quick-action-grid">
+                <!-- Button 1: Admin Login (Auto-fill Admin) -->
+                <button type="button"
+                        class="m-quick-action-btn"
+                        id="mobileBtnFillAdmin"
+                        data-user="Admin"
+                        data-pass="Admin123"
+                        onclick="fillMobileAdmin()">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 32px; height: 32px; background: #eef2ff; color: #4361ee;">
+                        <i class="bi bi-shield-lock-fill"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 11.5px; line-height: 1.2;">Admin Login</div>
+                        <div class="text-muted text-truncate" style="font-size: 9.5px;">Auto-fill Admin</div>
+                    </div>
+                </button>
+
+                <!-- Button 2: Laporan / Saran -->
+                <button type="button"
+                        class="m-quick-action-btn"
+                        id="mobileBtnOpenFeedback"
+                        data-bs-toggle="modal"
+                        data-bs-target="#feedbackModal">
+                    <div class="d-flex align-items-center justify-content-center rounded-3 flex-shrink-0" style="width: 32px; height: 32px; background: #ecfeff; color: #0891b2;">
+                        <i class="bi bi-chat-square-text-fill"></i>
+                    </div>
+                    <div class="min-w-0">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 11.5px; line-height: 1.2;">Laporan / Saran</div>
+                        <div class="text-muted text-truncate" style="font-size: 9.5px;">Bantuan &amp; Masukan</div>
+                    </div>
+                </button>
+            </div>
+        </div>
+
+        <!-- Copyright Footer -->
+        <div class="text-center text-muted mt-3" style="font-size: 10.5px;">
+            JESCA &copy; 2026 &bull; Jessica Assets Management System
+        </div>
+    </div>
+</div>
+
+<!-- ========================================================
      MODAL INTERAKTIF: LAPORAN / SARAN SISTEM
      ======================================================== -->
 <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
@@ -1112,7 +1503,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // 3. Tombol Login Loading Animation
+    // 3. Tombol Login Loading Animation (Desktop & Mobile)
     const loginForm = document.getElementById('loginForm');
     const btnSubmit = document.getElementById('btnLoginSubmit');
     if (loginForm && btnSubmit) {
@@ -1121,6 +1512,19 @@ document.addEventListener('DOMContentLoaded', function () {
             btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memverifikasi...';
         });
     }
+
+    const mobileLoginForm = document.getElementById('mobileLoginForm');
+    const mobileBtnSubmit = document.getElementById('mobileBtnLoginSubmit');
+    if (mobileLoginForm && mobileBtnSubmit) {
+        mobileLoginForm.addEventListener('submit', function () {
+            mobileBtnSubmit.disabled = true;
+            mobileBtnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Memproses...';
+        });
+    }
+
+    // Sinkronisasi status tombol bahasa di Mobile Login
+    const savedLang = localStorage.getItem('jesca_lang') || 'id';
+    setMobileLoginLang(savedLang, true);
 
     // 4. Kolom 1: Auto-fill Login sebagai Admin
     const btnFillAdmin = document.getElementById('btnFillAdmin');
@@ -1227,5 +1631,82 @@ function submitFeedback() {
 try {
     sessionStorage.removeItem('jesca_tour_session_dismissed');
 } catch (e) {}
+
+// Helper Fungsi Mobile Modern Login
+function clearMobileUsername() {
+    const el = document.getElementById('mobileUsername');
+    if (el) {
+        el.value = '';
+        el.focus();
+    }
+}
+
+function toggleMobilePassword() {
+    const input = document.getElementById('mobilePassword');
+    const icon = document.getElementById('m-icon-eye');
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'bi bi-eye-slash text-primary';
+    } else {
+        input.type = 'password';
+        icon.className = 'bi bi-eye';
+    }
+}
+
+function fillMobileAdmin() {
+    const uInput = document.getElementById('mobileUsername');
+    const pInput = document.getElementById('mobilePassword');
+    if (uInput) uInput.value = 'Admin';
+    if (pInput) pInput.value = 'Admin123';
+
+    [uInput, pInput].forEach(function(el) {
+        if (!el) return;
+        el.style.borderColor = '#4361ee';
+        el.style.boxShadow = '0 0 0 4px rgba(67, 97, 238, 0.2)';
+        setTimeout(function() {
+            el.style.borderColor = '';
+            el.style.boxShadow = '';
+        }, 800);
+    });
+
+    if (window.JescaToast) {
+        window.JescaToast.show('Kredensial Admin berhasil diisi!', 'success');
+    }
+}
+
+function setMobileLoginLang(lang, silent) {
+    const btnId = document.getElementById('m-lang-id');
+    const btnEn = document.getElementById('m-lang-en');
+    if (btnId) btnId.classList.toggle('active', lang === 'id');
+    if (btnEn) btnEn.classList.toggle('active', lang === 'en');
+
+    const titleEl = document.getElementById('m-txt-title');
+    const userLbl = document.getElementById('m-txt-label-user');
+    const userInp = document.getElementById('mobileUsername');
+    const passInp = document.getElementById('mobilePassword');
+    const btnTxt = document.getElementById('m-txt-btn-login');
+
+    if (lang === 'en') {
+        if (titleEl) titleEl.textContent = 'Welcome Back';
+        if (userLbl) userLbl.textContent = 'Username';
+        if (userInp) userInp.placeholder = 'Enter your username';
+        if (passInp) passInp.placeholder = 'Enter your password';
+        if (btnTxt) btnTxt.textContent = 'Sign In';
+    } else {
+        if (titleEl) titleEl.textContent = 'Silahkan Masuk';
+        if (userLbl) userLbl.textContent = 'Username';
+        if (userInp) userInp.placeholder = 'Masukkan username';
+        if (passInp) passInp.placeholder = 'Masukkan password';
+        if (btnTxt) btnTxt.textContent = 'Login';
+    }
+
+    if (window.JescaI18n) {
+        window.JescaI18n.apply(lang);
+    }
+    if (!silent && window.JescaToast) {
+        window.JescaToast.show(lang === 'en' ? 'Language switched to English' : 'Bahasa Indonesia aktif', 'info');
+    }
+}
 </script>
 {% endblock %}

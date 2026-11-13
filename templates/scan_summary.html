@@ -346,7 +346,7 @@
 
             <!-- Action Buttons -->
             <div class="d-flex flex-column gap-2">
-                <a href="{{ url_for('login') }}" class="btn btn-primary btn-touch shadow-sm">
+                <a href="{{ url_for('login', next=url_for('assets', search=asset.asset_code)) }}" class="btn btn-primary btn-touch shadow-sm">
                     <i class="bi bi-box-arrow-in-right me-1.5"></i> Masuk untuk Akses Lengkap
                 </a>
                 <button type="button" class="btn btn-light border btn-touch text-secondary" onclick="copyAssetCode('{{ asset.asset_code }}')">

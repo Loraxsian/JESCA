@@ -1649,99 +1649,311 @@ window.JescaOnboarding = {
     menuModalId: 'panduanMenuModal',
     currentTourStep: 0,
     tourActive: false,
+    activeSteps: [],
+    _boundReposition: null,
 
-    tourSteps: [
+    desktopTourSteps: [
         {
             elementId: 'tourMenuDashboard',
-            title: '1. Dashboard (Ringkasan Sistem)',
+            title: 'Dashboard (Ringkasan Sistem)',
             desc: 'Pusat ringkasan dan statistik utama seluruh aset kantor. Menampilkan total unit, perkiraan nilai aset rupiah, grafik status barang, dan peringatan dini secara real-time.',
             actionHint: 'Klik menu ini untuk melihat ringkasan performa inventaris Anda.'
         },
         {
             elementId: 'tourMenuAssets',
-            title: '2. Data Aset (Master Inventaris)',
+            title: 'Data Aset (Master Inventaris)',
             desc: 'Tempat utama untuk melihat, mencari, menambah barang baru, mencetak stiker barcode/QR Code, mengelola riwayat peminjaman, serta mengunggah foto dan invoice aset.',
             actionHint: 'Gunakan menu ini untuk mendata dan memantau aset fisik kantor.'
         },
         {
             elementId: 'tourMenuPO',
-            title: '3. Purchase Order (Pengadaan Aset)',
+            title: 'Purchase Order (Pengadaan Aset)',
             desc: 'Tempat Anda mengajukan permohonan pembelian barang inventaris baru ke vendor, menyusun estimasi biaya, meminta persetujuan anggaran, dan mencatat barang yang tiba.',
             actionHint: 'Ajukan pengadaan unit barang baru melalui modul ini.'
         },
         {
             elementId: 'tourMenuMaintenance',
-            title: '4. Pemeliharaan Aset (Meja Servis)',
+            title: 'Pemeliharaan Aset (Meja Servis)',
             desc: 'Tempat menjadwalkan servis rutin barang, mencatat riwayat perbaikan kerusakan oleh teknisi, pengajuan servis dari staf, serta memantau pengeluaran biaya perbaikan.',
             actionHint: 'Jadwalkan servis rutin agar usia pakai aset kantor lebih awet.'
         },
         {
             elementId: 'tourMenuSites',
-            title: '5. Lokasi & Site (Ruangan & Gedung)',
+            title: 'Lokasi & Site (Ruangan & Gedung)',
             desc: 'Tempat mengelompokkan barang berdasarkan gedung kantor, lantai, gudang, maupun kantor cabang. Memudahkan staf mengetahui di mana posisi fisik setiap barang berada.',
             actionHint: 'Atur ruangan dan cabang kantor untuk ketertiban posisi aset.'
         },
         {
             elementId: 'tourMenuVendors',
-            title: '6. Vendor & Supplier (Mitra Rekanan)',
+            title: 'Vendor & Supplier (Mitra Rekanan)',
             desc: 'Buku data rekanan toko atau supplier tempat kantor membeli barang inventaris, lengkap dengan kontak sales/PIC, alamat, dan daftar aset yang pernah dibeli.',
             actionHint: 'Simpan data kontak toko rekanan untuk kemudahan klaim garansi.'
         },
         {
             elementId: 'tourMenuHistory',
-            title: '7. Log Aktivitas (Audit Keamanan)',
+            title: 'Log Aktivitas (Audit Keamanan)',
             desc: 'Rekam jejak otomatis mencatat setiap aktivitas di sistem: siapa staf yang menambah, mengedit, meminjam, atau menghapus aset beserta tanggal dan jam pastinya.',
             actionHint: 'Pantau rekam jejak sistem untuk transparansi dan akuntabilitas tim.'
         },
         {
             elementId: 'tourMenuAudit',
-            title: '8. Laporan Audit & Export Data',
+            fallbackId: 'tourMenuExport',
+            title: 'Laporan Audit & Export Data',
             desc: 'Cetak dokumen laporan inventaris resmi dalam format PDF standar eksekutif, serta ekspor seluruh data ke file Excel/CSV untuk rekonsiliasi pembukuan kantor.',
             actionHint: 'Cetak dokumen laporan PDF atau unduh data Excel dari modul ini.'
         },
         {
             elementId: 'tourMenuSettings',
-            title: '9. Pengaturan Sistem & Pengguna',
-            desc: 'Pusat kontrol administrator untuk mengelola akun staf, hak akses, backup & restore database (cadangan data), proteksi jaringan, serta notifikasi email SMTP.',
+            fallbackId: 'tourMenuChangePwd',
+            title: 'Pengaturan Sistem & Keamanan Akun',
+            desc: 'Pusat kontrol untuk mengelola keamanan kata sandi, akun pengguna, backup & restore database (cadangan data), proteksi jaringan, serta notifikasi email SMTP.',
             actionHint: 'Kelola keamanan akun dan konfigurasi sistem pada menu ini.'
         },
         {
             elementId: 'tourMenuCategories',
-            title: '10. Kategori Aset (Filter Cepat)',
+            title: 'Kategori Aset (Filter Cepat)',
             desc: 'Di kolom ini Anda bisa menyaring data aset berdasarkan jenisnya dengan satu klik: Tech/IT, Tools (Peralatan), Furnitur, Kendaraan, dan Kantor untuk pencarian instan.',
             actionHint: 'Klik salah satu kategori untuk langsung melihat aset terkait.'
         },
         {
             elementId: 'navbarQrBtn',
-            title: '11. Pemindai Kamera QR Code',
+            title: 'Pemindai Kamera QR Code',
             desc: 'Klik tombol kamera ini kapan saja untuk memindai stiker QR Code fisik pada label aset langsung lewat kamera smartphone atau webcam laptop untuk cek data instan.',
             actionHint: 'Arahkan kamera ke stiker label aset untuk identifikasi cepat.'
         },
         {
             elementId: 'navbarAddAssetBtn',
-            title: '12. Tambah Aset Baru (Pintasan Cepat)',
+            title: 'Tambah Aset Baru (Pintasan Cepat)',
             desc: 'Tombol pintas untuk mendaftarkan barang baru ke sistem dari halaman mana pun tanpa harus masuk ke menu Data Aset terlebih dahulu.',
             actionHint: 'Pencet tombol ini untuk input cepat penerimaan barang baru.'
         },
         {
             elementId: 'navbarNotifBell',
-            title: '13. Pusat Notifikasi & Pengingat',
+            title: 'Pusat Notifikasi & Pengingat',
             desc: 'Ikon lonceng ini akan menyala jika ada barang yang jatuh tempo jadwal servisnya, atau peminjaman aset kantor yang terlambat dikembalikan oleh staf.',
             actionHint: 'Periksa pemberitahuan berkala agar tidak ada aset yang terlewat.'
         },
         {
             elementId: 'footerCommandBadge',
-            title: '14. Pintasan Keyboard (Ctrl + K)',
+            title: 'Pintasan Keyboard (Ctrl + K)',
             desc: 'Tekan tombol Ctrl + K pada keyboard Anda kapan saja. Jendela pencarian pintar akan terbuka untuk mencari nama barang, membuka menu, atau berpindah fitur secepat kilat.',
             actionHint: 'Tekan Ctrl + K di keyboard Anda untuk navigasi kilat.'
         }
     ],
 
+    mobileTourSteps: [
+        {
+            elementId: 'mobileTourProfileCard',
+            fallbackId: 'mobileNavDashboard',
+            requiresSheet: false,
+            scrollMode: 'top',
+            title: 'Kartu Identitas & Status Role',
+            desc: 'Menampilkan profil akun Anda, lencana hak akses (Admin, Staff, Teknisi, atau Auditor), serta ringkasan status operasional hari ini.',
+            actionHint: 'Pastikan akun dan hak akses Anda sudah sesuai sebelum memulai aktivitas.'
+        },
+        {
+            elementId: 'mobileTourContextBtn',
+            fallbackId: 'mobileTourTopBar',
+            requiresSheet: false,
+            scrollMode: 'top',
+            title: 'Pintasan Tugas Prioritas Role',
+            desc: 'Bilah kontekstual pintar yang otomatis menyesuaikan peran Anda: persetujuan PO atau tambah aset bagi Admin/Staff, meja servis bagi Teknisi, dan laporan bagi Auditor.',
+            actionHint: 'Ketuk tombol aksi di sebelah kanan bilah ini untuk langsung menjalankan tugas utama.'
+        },
+        {
+            elementId: 'mobileTourMainGrid',
+            fallbackId: 'mobileTourBottomNav',
+            requiresSheet: false,
+            scrollMode: 'belowNav',
+            title: 'Menu Utama Super-App (4x2)',
+            desc: 'Delapan ikon pintasan cepat ke modul utama JESCA (Data Aset, Purchase Order, Servis Aset, Lokasi, Vendor, Log, Laporan) yang tersusun rapi untuk layar sentuh.',
+            actionHint: 'Ketuk salah satu ikon berwarna untuk membuka modul yang diinginkan.'
+        },
+        {
+            elementId: 'mobileTourStatGrid',
+            fallbackId: 'mobileTourBottomNav',
+            requiresSheet: false,
+            scrollMode: 'belowNav',
+            title: 'Kartu Ringkasan Real-Time (2x2)',
+            desc: 'Pantau cepat Total Aset Aktif, Nilai Buku Depresiasi, Unit Dipinjam, serta Aset yang Perlu Perhatian atau Jadwal Servis langsung dari beranda.',
+            actionHint: 'Ketuk kartu ringkasan mana saja untuk langsung memfilter daftar aset.'
+        },
+        {
+            elementId: 'mobileTourRecentAssets',
+            fallbackId: 'mobileTourBottomNav',
+            requiresSheet: false,
+            scrollMode: 'belowNav',
+            title: 'Daftar Aset & Aktivitas Terbaru',
+            desc: 'Menampilkan daftar barang inventaris yang baru didaftarkan beserta status, nilai buku, dan aktivitas terakhir secara langsung di beranda HP.',
+            actionHint: 'Ketuk salah satu baris aset untuk melihat rincian lengkapnya.'
+        },
+        {
+            elementId: 'mobileTourTopActions',
+            requiresSheet: false,
+            isFixed: true,
+            scrollMode: 'top',
+            title: 'Pusat Notifikasi, Tema & Bahasa',
+            desc: 'Ketuk ikon lonceng untuk memeriksa peringatan jadwal servis atau keterlambatan pinjam, serta tombol di sebelahnya untuk mengganti tema warna, bahasa (ID/EN), dan profil.',
+            actionHint: 'Periksa ikon lonceng secara berkala agar tidak ada jadwal yang terlewat.'
+        },
+        {
+            elementId: 'mobileNavAssets',
+            requiresSheet: false,
+            isFixed: true,
+            title: 'Tab Navigasi Cepat: Data Aset',
+            desc: 'Akses langsung ke Master Inventaris Aset untuk mencari barang, meminjam/mengembalikan aset, mengunggah lampiran, serta mencetak label QR Code.',
+            actionHint: 'Ketuk tab Aset di bilah bawah untuk membuka daftar seluruh inventaris.'
+        },
+        {
+            elementId: 'mobileTourQrFab',
+            requiresSheet: false,
+            isFixed: true,
+            title: 'Tombol Utama Scan QR Kamera',
+            desc: 'Tombol kamera di tengah navigasi bawah untuk langsung memindai stiker QR Code fisik pada aset atau menjalankan mode Stok Opname lapangan.',
+            actionHint: 'Ketuk tombol biru tengah ini kapan saja saat berada di dekat fisik barang.'
+        },
+        {
+            elementId: 'mobileNavService',
+            fallbackId: 'mobileBottomMenuBtn',
+            requiresSheet: false,
+            isFixed: true,
+            title: 'Tab Meja Servis & Pemeliharaan',
+            desc: 'Pintasan cepat untuk memantau jadwal pemeliharaan rutin, mencatat perbaikan unit yang rusak, atau membuka Laporan Audit sesuai hak akses akun Anda.',
+            actionHint: 'Perhatikan lencana angka merah pada ikon ini jika ada jadwal servis jatuh tempo.'
+        },
+        {
+            elementId: 'mobileBottomMenuBtn',
+            requiresSheet: false,
+            isFixed: true,
+            title: 'Tombol Laci Semua Menu',
+            desc: 'Membuka laci menu lengkap dari bawah layar (Bottom Sheet) yang berisi seluruh fitur operasional, laporan, pengaturan akun, dan filter kategori aset.',
+            actionHint: 'Ketuk tab Menu di pojok kanan bawah untuk membuka seluruh fitur JESCA.'
+        },
+        {
+            elementId: 'mobileTourSheetOps',
+            requiresSheet: true,
+            sheetScroll: 'top',
+            title: 'Semua Menu: Inventaris & Operasional',
+            desc: 'Di dalam laci Semua Menu, bagian pertama ini memuat akses lengkap ke Dashboard, Data Aset, Scan QR, Purchase Order (PO), Servis Aset, Lokasi & Site, serta Data Vendor.',
+            actionHint: 'Pilih salah satu ikon modul operasional untuk berpindah halaman dengan cepat.'
+        },
+        {
+            elementId: 'mobileTourSheetReports',
+            requiresSheet: true,
+            sheetScroll: 'middle',
+            title: 'Semua Menu: Riwayat, Audit & Export',
+            desc: 'Bagian kedua memuat Log Aktivitas keamanan, Laporan Audit, Laporan Masuk/Kendala, serta fitur Export Data untuk mengunduh laporan Excel (.xlsx), PDF, atau CSV.',
+            actionHint: 'Gunakan tombol Export Data untuk mengunduh laporan inventaris resmi.'
+        },
+        {
+            elementId: 'mobileTourSheetSettings',
+            requiresSheet: true,
+            sheetScroll: 'middle',
+            title: 'Semua Menu: Akun & Pengaturan Sistem',
+            desc: 'Pusat pengaturan untuk mengelola Profil Saya, Ganti Kata Sandi, Panduan Aplikasi, serta menu Admin (Kelola Akun, Backup Database, dan Pengaturan Sistem).',
+            actionHint: 'Ketuk ikon Panduan di bagian ini kapan saja jika ingin mengulang tur layar.'
+        },
+        {
+            elementId: 'mobileTourSheetCategories',
+            requiresSheet: true,
+            sheetScroll: 'bottom',
+            title: 'Semua Menu: Pintasan Kategori Aset',
+            desc: 'Baris tombol geser di bagian bawah laci untuk menyaring aset berdasarkan kategori (Tech, Tools, Furniture, Vehicle, dan Office) hanya dengan satu sentuhan.',
+            actionHint: 'Geser ke samping dan ketuk kategori untuk memfilter aset secara instan.'
+        }
+    ],
+
+    getCompletionKey: function() {
+        return window.innerWidth < 768 ? 'jesca_tour_completed_mobile' : 'jesca_tour_completed';
+    },
+
+    resolveStepTarget: function(step) {
+        var el = null;
+        if (step.elementId) {
+            el = document.getElementById(step.elementId);
+        }
+        if (!el && step.fallbackId) {
+            el = document.getElementById(step.fallbackId);
+        }
+        if (!el && step.selector) {
+            el = document.querySelector(step.selector);
+        }
+        if (!el) return null;
+
+        // Jangan ambil elemen di dalam Bottom Sheet kecuali langkah tersebut memang langkah Sheet
+        if (!step.requiresSheet && el.closest && el.closest('#mobileAllMenuSheet')) {
+            return null;
+        }
+
+        var style = window.getComputedStyle(el);
+        if (style.display === 'none' || style.visibility === 'hidden') return null;
+
+        // Untuk elemen di dalam Bottom Sheet pada layar HP, cek apakah sheet diizinkan tampil di layar HP
+        if (step.requiresSheet) {
+            var sheet = document.getElementById('mobileAllMenuSheet');
+            if (!sheet || window.innerWidth >= 768) return null;
+            return el;
+        }
+
+        if (el.offsetWidth === 0 && el.offsetHeight === 0 && el.getClientRects().length === 0) return null;
+        return el;
+    },
+
+    buildActiveSteps: function() {
+        var isMobile = window.innerWidth < 768;
+        var source = isMobile ? this.mobileTourSteps : this.desktopTourSteps;
+        var self = this;
+        var wrapper = document.getElementById('wrapper');
+        if (wrapper) {
+            wrapper.classList.remove('toggled');
+        }
+        if (window.JescaMobileSheet && typeof window.JescaMobileSheet.close === 'function') {
+            window.JescaMobileSheet.close(true);
+        }
+        this.activeSteps = source.filter(function(step) {
+            return self.resolveStepTarget(step) !== null;
+        });
+    },
+
     init: function() {
         if (!document.getElementById('sidebar-wrapper')) {
             return;
         }
-        var completed = localStorage.getItem('jesca_tour_completed');
+
+        // Selalu pasang listener carousel Buku Panduan agar tombol slide terakhir bekerja kapan saja
+        var carouselEl = document.getElementById('onboardingCarousel');
+        if (carouselEl && !carouselEl.dataset.boundOnboarding) {
+            carouselEl.dataset.boundOnboarding = '1';
+            carouselEl.addEventListener('slid.bs.carousel', function(e) {
+                var nextBtn = document.getElementById('btn-onboarding-next');
+                if (!nextBtn) return;
+                if (e.to === 3) {
+                    nextBtn.removeAttribute('data-bs-slide');
+                    nextBtn.innerHTML = 'Mulai Gunakan JESCA <i class="bi bi-check2 ms-1"></i>';
+                    nextBtn.onclick = function() {
+                        JescaOnboarding.complete(true);
+                    };
+                } else {
+                    nextBtn.setAttribute('data-bs-slide', 'next');
+                    nextBtn.innerHTML = 'Selanjutnya <i class="bi bi-chevron-right ms-1"></i>';
+                    nextBtn.onclick = null;
+                }
+            });
+        }
+
+        // Cek apakah halaman dibuka dari redirect _tour=1 (mis. mulai tur dari halaman selain Dashboard)
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('_tour') === '1') {
+            var cleanUrl = new URL(window.location);
+            cleanUrl.searchParams.delete('_tour');
+            window.history.replaceState({}, '', cleanUrl);
+            setTimeout(function() {
+                JescaOnboarding.startSpotlightTour(true);
+            }, 350);
+            return;
+        }
+
+        var completed = localStorage.getItem(this.getCompletionKey());
         if (completed === 'true') {
             return;
         }
@@ -1752,28 +1964,14 @@ window.JescaOnboarding = {
         }
 
         setTimeout(function() {
-            JescaOnboarding.startSpotlightTour();
-        }, 800);
-
-        var carouselEl = document.getElementById('onboardingCarousel');
-        if (carouselEl) {
-            carouselEl.addEventListener('slid.bs.carousel', function(e) {
-                var nextBtn = document.getElementById('btn-onboarding-next');
-                if (!nextBtn) return;
-                if (e.to === 3) {
-                    nextBtn.innerHTML = 'Mulai Gunakan JESCA <i class="bi bi-check2 ms-1"></i>';
-                    nextBtn.onclick = function() {
-                        JescaOnboarding.complete(true);
-                    };
-                } else {
-                    nextBtn.innerHTML = 'Selanjutnya <i class="bi bi-chevron-right ms-1"></i>';
-                    nextBtn.onclick = null;
-                }
-            });
-        }
+            JescaOnboarding.startSpotlightTour(false);
+        }, 700);
     },
 
     showMenu: function() {
+        if (window.JescaMobileSheet && typeof window.JescaMobileSheet.close === 'function') {
+            window.JescaMobileSheet.close(true);
+        }
         var menuEl = document.getElementById(this.menuModalId);
         if (menuEl) {
             var bsModal = bootstrap.Modal.getOrCreateInstance(menuEl);
@@ -1798,6 +1996,7 @@ window.JescaOnboarding = {
         }
         var nextBtn = document.getElementById('btn-onboarding-next');
         if (nextBtn) {
+            nextBtn.setAttribute('data-bs-slide', 'next');
             nextBtn.innerHTML = 'Selanjutnya <i class="bi bi-chevron-right ms-1"></i>';
             nextBtn.onclick = null;
         }
@@ -1807,11 +2006,12 @@ window.JescaOnboarding = {
 
     complete: function(isFinished) {
         if (isFinished === true) {
+            localStorage.setItem(this.getCompletionKey(), 'true');
             localStorage.setItem('jesca_tour_completed', 'true');
             try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
         } else {
             try { sessionStorage.setItem('jesca_tour_session_dismissed', 'true'); } catch (e) {}
-            localStorage.removeItem('jesca_tour_completed');
+            localStorage.removeItem(this.getCompletionKey());
             JescaToast.show('Panduan dilewati. Sesuai aturan, panduan akan otomatis muncul kembali pada sesi login berikutnya hingga selesai.', 'warning');
         }
         var modalEl = document.getElementById(this.modalId);
@@ -1826,7 +2026,7 @@ window.JescaOnboarding = {
         }
     },
 
-    startSpotlightTour: function() {
+    startSpotlightTour: function(fromManualTrigger) {
         var modalEl = document.getElementById(this.modalId);
         if (modalEl) {
             var bsModal = bootstrap.Modal.getInstance(modalEl);
@@ -1837,51 +2037,129 @@ window.JescaOnboarding = {
             var bsMenu = bootstrap.Modal.getInstance(menuEl);
             if (bsMenu) bsMenu.hide();
         }
+
+        // Jika pengguna menekan Mulai Tur dari halaman selain Dashboard di HP, arahkan ke Dashboard agar seluruh 10 langkah tampil utuh
+        if (window.innerWidth < 768 && !document.getElementById('mobileTourProfileCard')) {
+            if (fromManualTrigger !== false && window.location.pathname !== '/dashboard') {
+                window.location.href = '/dashboard?_tour=1';
+                return;
+            }
+        }
+
+        // Bersihkan sisa penguncian scroll dari modal Bootstrap agar halaman bebas di-scroll oleh tur
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+        document.querySelectorAll('.modal-backdrop').forEach(function(bd) { bd.remove(); });
+
+        this.buildActiveSteps();
+        if (!this.activeSteps || this.activeSteps.length === 0) {
+            return;
+        }
         this.tourActive = true;
         this.currentTourStep = 0;
+
+        if (!this._boundReposition) {
+            var self = this;
+            this._boundReposition = function() {
+                if (!self.tourActive) return;
+                var step = self.activeSteps[self.currentTourStep];
+                if (!step) return;
+                var target = self.resolveStepTarget(step);
+                if (!target) return;
+                self.renderSpotlightUI(target.getBoundingClientRect(), step, self.currentTourStep + 1);
+            };
+            window.addEventListener('resize', this._boundReposition, { passive: true });
+            window.addEventListener('scroll', this._boundReposition, { passive: true });
+        }
+
         this.renderTourStep();
     },
 
     renderTourStep: function() {
         if (!this.tourActive) return;
-        var step = this.tourSteps[this.currentTourStep];
+        var step = this.activeSteps[this.currentTourStep];
         if (!step) {
-            this.endTour();
+            this.endTour(true);
             return;
         }
 
-        // Buka sidebar jika elemen ada di dalam sidebar
+        // Pastikan sidebar desktop tidak pernah dibuka paksa di layar HP
         var wrapper = document.getElementById('wrapper');
-        if (wrapper && step.elementId.startsWith('tourMenu')) {
-            if (window.innerWidth < 768) {
-                wrapper.classList.add('toggled');
+        if (wrapper) {
+            wrapper.classList.remove('toggled');
+        }
+
+        var isMobile = window.innerWidth < 768;
+
+        // Buka atau tutup Bottom Sheet secara instan (0ms) sesuai kebutuhan langkah di HP
+        if (isMobile && window.JescaMobileSheet) {
+            if (step.requiresSheet) {
+                window.JescaMobileSheet.open(true);
             } else {
-                wrapper.classList.remove('toggled');
+                window.JescaMobileSheet.close(true);
             }
         }
 
-        var target = document.getElementById(step.elementId);
+        var target = this.resolveStepTarget(step);
         if (!target) {
             this.currentTourStep++;
-            if (this.currentTourStep < this.tourSteps.length) {
+            if (this.currentTourStep < this.activeSteps.length) {
                 this.renderTourStep();
             } else {
-                this.endTour();
+                this.endTour(true);
             }
             return;
         }
 
-        try {
-            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        } catch (e) {}
+        // Penyesuaian posisi scroll secara instan & deterministik (tanpa jeda smooth scroll yang meleset)
+        if (isMobile) {
+            if (step.requiresSheet) {
+                var sheetBody = document.getElementById('mobileSheetScrollBody');
+                if (sheetBody) {
+                    if (step.sheetScroll === 'top') {
+                        sheetBody.scrollTop = 0;
+                    } else if (step.sheetScroll === 'bottom') {
+                        sheetBody.scrollTop = sheetBody.scrollHeight;
+                    } else {
+                        sheetBody.scrollTop = Math.max(0, target.offsetTop - 70);
+                    }
+                }
+            } else if (step.scrollMode === 'top') {
+                window.scrollTo(0, 0);
+            } else if (step.scrollMode === 'belowNav') {
+                var r0 = target.getBoundingClientRect();
+                var targetY = Math.max(0, window.pageYOffset + r0.top - 64);
+                window.scrollTo(0, targetY);
+            }
+        } else {
+            // Di Desktop, pastikan item di dalam sidebar-menu selalu ter-scroll ke area terlihat
+            var sidebarMenu = target.closest && target.closest('.sidebar-menu');
+            if (sidebarMenu) {
+                var smRect = sidebarMenu.getBoundingClientRect();
+                var tRect = target.getBoundingClientRect();
+                if (tRect.top < smRect.top + 10 || tRect.bottom > smRect.bottom - 10) {
+                    sidebarMenu.scrollTop = Math.max(0, target.offsetTop - (sidebarMenu.clientHeight / 2) + (target.offsetHeight / 2));
+                }
+            } else if (!step.isFixed) {
+                try {
+                    target.scrollIntoView({ behavior: 'instant', block: 'center' });
+                } catch (e) {
+                    target.scrollIntoView(false);
+                }
+            }
+        }
 
-        setTimeout(function() {
+        var stepNumber = this.currentTourStep + 1;
+        var self = this;
+        requestAnimationFrame(function() {
+            if (!self.tourActive) return;
             var rect = target.getBoundingClientRect();
-            JescaOnboarding.renderSpotlightUI(rect, step);
-        }, 220);
+            self.renderSpotlightUI(rect, step, stepNumber);
+        });
     },
 
-    renderSpotlightUI: function(rect, step) {
+    renderSpotlightUI: function(rect, step, stepNumber) {
         var overlay = document.getElementById('jesca-spotlight-overlay');
         if (!overlay) {
             overlay = document.createElement('div');
@@ -1901,11 +2179,18 @@ window.JescaOnboarding = {
             document.body.appendChild(box);
         }
 
+        var winW = window.innerWidth;
+        var winH = window.innerHeight;
         var pad = 6;
-        box.style.top = Math.max(0, rect.top - pad) + 'px';
-        box.style.left = Math.max(0, rect.left - pad) + 'px';
-        box.style.width = (rect.width + (pad * 2)) + 'px';
-        box.style.height = (rect.height + (pad * 2)) + 'px';
+        var boxTop = Math.max(4, rect.top - pad);
+        var boxLeft = Math.max(4, rect.left - pad);
+        var boxWidth = Math.min(winW - boxLeft - 4, rect.width + (pad * 2));
+        var boxHeight = Math.min(winH - boxTop - 4, rect.height + (pad * 2));
+
+        box.style.top = boxTop + 'px';
+        box.style.left = boxLeft + 'px';
+        box.style.width = Math.max(24, boxWidth) + 'px';
+        box.style.height = Math.max(24, boxHeight) + 'px';
 
         var popover = document.getElementById('jesca-spotlight-popover');
         if (!popover) {
@@ -1914,15 +2199,15 @@ window.JescaOnboarding = {
             document.body.appendChild(popover);
         }
 
-        var total = this.tourSteps.length;
-        var cur = this.currentTourStep + 1;
+        var total = this.activeSteps.length;
+        var cur = stepNumber || (this.currentTourStep + 1);
         var isLast = (cur === total);
 
         popover.innerHTML = '<div class="d-flex justify-content-between align-items-center mb-2">' +
             '<span class="badge bg-primary-subtle text-primary font-monospace rounded-pill px-2.5 py-1" style="font-size:0.7rem;">Langkah ' + cur + ' dari ' + total + '</span>' +
             '<button type="button" class="btn-close" style="font-size:0.75rem;" onclick="JescaOnboarding.endTour(false)"></button>' +
             '</div>' +
-            '<div class="fw-bold text-dark mb-1" style="font-size:0.92rem;">' + step.title + '</div>' +
+            '<div class="fw-bold text-dark mb-1" style="font-size:0.92rem;">' + cur + '. ' + step.title + '</div>' +
             '<p class="text-secondary small mb-2" style="font-size:0.78rem;line-height:1.45;">' + step.desc + '</p>' +
             '<div class="p-2 rounded-2 bg-light border mb-3 small text-muted d-flex align-items-center gap-2" style="font-size:0.72rem;">' +
             '<i class="bi bi-lightbulb-fill text-warning fs-6 flex-shrink-0"></i>' +
@@ -1938,28 +2223,29 @@ window.JescaOnboarding = {
             '</div>' +
             '</div>';
 
-        var popW = 360;
-        var popH = 240;
-        var winW = window.innerWidth;
-        var winH = window.innerHeight;
+        var popW = winW < 768 ? Math.min(344, winW - 24) : 360;
+        popover.style.width = popW + 'px';
 
+        var popH = popover.offsetHeight || 225;
         var sidebarEl = document.getElementById('sidebar-wrapper');
         var sidebarRight = sidebarEl ? sidebarEl.getBoundingClientRect().right : 260;
 
         var top, left;
 
         if (winW < 768) {
-            // Posisi Mobile: Selalu terpusat dan pas di dalam layar HP
-            popW = Math.min(360, winW - 32);
-            left = Math.max(16, Math.floor((winW - popW) / 2));
-            if (rect.top > popH + 30) {
-                top = Math.max(16, rect.top - popH - 12);
+            left = Math.max(12, Math.floor((winW - popW) / 2));
+            var bottomNavLimit = step.requiresSheet ? (winH - 12) : (winH - 74);
+            var spaceBelow = bottomNavLimit - (boxTop + boxHeight) - 10;
+            var spaceAbove = boxTop - 12;
+
+            if (spaceBelow >= popH || spaceBelow >= spaceAbove) {
+                top = Math.min(winH - popH - 12, boxTop + boxHeight + 12);
             } else {
-                top = Math.min(rect.bottom + 12, winH - popH - 16);
+                top = Math.max(12, boxTop - popH - 12);
             }
         } else {
             // Posisi Layar PC & Laptop (Tetap Sempurna)
-            var isSidebarItem = (step.elementId.startsWith('tourMenu') || (rect.left < 340 && rect.right <= sidebarRight + 40));
+            var isSidebarItem = ((step.elementId && step.elementId.startsWith('tourMenu')) || (rect.left < 340 && rect.right <= sidebarRight + 40));
             var isTopNavbarItem = (rect.top < 90 && rect.right > 300);
             var isBottomFooterItem = (rect.bottom > winH - 90);
 
@@ -1986,14 +2272,13 @@ window.JescaOnboarding = {
             }
         }
 
-        popover.style.width = popW + 'px';
         popover.style.top = top + 'px';
         popover.style.left = left + 'px';
     },
 
     nextTourStep: function() {
         this.currentTourStep++;
-        if (this.currentTourStep < this.tourSteps.length) {
+        if (this.currentTourStep < this.activeSteps.length) {
             this.renderTourStep();
         } else {
             this.endTour(true);
@@ -2020,14 +2305,18 @@ window.JescaOnboarding = {
         if (wrapper && window.innerWidth < 768) {
             wrapper.classList.remove('toggled');
         }
+        if (window.JescaMobileSheet && typeof window.JescaMobileSheet.close === 'function') {
+            window.JescaMobileSheet.close(false);
+        }
 
         if (completed === true) {
+            localStorage.setItem(this.getCompletionKey(), 'true');
             localStorage.setItem('jesca_tour_completed', 'true');
             try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
             JescaToast.show('Selamat! Anda telah menyelesaikan seluruh panduan interaktif JESCA.', 'success');
         } else {
             try { sessionStorage.setItem('jesca_tour_session_dismissed', 'true'); } catch (e) {}
-            localStorage.removeItem('jesca_tour_completed');
+            localStorage.removeItem(this.getCompletionKey());
             JescaToast.show('Panduan dilewati. Sesuai aturan, panduan akan otomatis muncul kembali di setiap sesi login hingga Anda menyelesaikannya.', 'warning');
         }
     }
