@@ -29,11 +29,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="row justify-content-center py-4 py-md-5">
-    <div class="col-11 col-sm-9 col-md-7 col-lg-5 col-xl-4">
+<div class="row justify-content-center py-3 py-md-5 mx-0">
+    <div class="col-12 col-sm-10 col-md-7 col-lg-5 col-xl-4 px-1 px-sm-3">
         
         <!-- Sudo Verification Card -->
-        <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
+        <div class="card border-0 shadow-lg overflow-hidden" style="border-radius: 16px;">
             <!-- Header -->
             <div class="card-header bg-transparent border-0 p-4 pb-2 text-center">
                 <div class="sudo-shield-icon text-white mx-auto mb-3">
@@ -73,12 +73,12 @@
                         <label for="sudoPasswordInput" class="form-label small fw-bold text-secondary">
                             Kata Sandi Administrator <span class="text-danger">*</span>
                         </label>
-                        <div class="input-group">
-                            <span class="input-group-text bg-light border-end-0 text-muted">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text bg-light border-end-0 text-muted px-3">
                                 <i class="bi bi-key-fill"></i>
                             </span>
-                            <input type="password" class="form-control border-start-0 border-end-0" id="sudoPasswordInput" name="password" required placeholder="Masukkan kata sandi login Anda" autofocus autocomplete="current-password">
-                            <button class="btn btn-light border border-start-0 text-muted" type="button" id="togglePasswordBtn" onclick="toggleSudoPassword()">
+                            <input type="password" class="form-control border-start-0 border-end-0 py-2 fs-6" id="sudoPasswordInput" name="password" required placeholder="Masukkan kata sandi login Anda" autofocus autocomplete="current-password">
+                            <button class="btn btn-light border border-start-0 text-muted px-3" type="button" id="togglePasswordBtn" onclick="toggleSudoPassword()">
                                 <i class="bi bi-eye" id="togglePasswordIcon"></i>
                             </button>
                         </div>

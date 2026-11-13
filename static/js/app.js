@@ -677,6 +677,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         alert.style.display = 'none';
     });
+
+    // Auto-close inline alerts that declare data-auto-close (milliseconds)
+    document.querySelectorAll('.alert[data-auto-close]').forEach(function(alertEl) {
+        var delay = parseInt(alertEl.getAttribute('data-auto-close'), 10);
+        if (!delay || delay < 500) delay = 6000;
+        setTimeout(function() {
+            if (!document.body.contains(alertEl)) return;
+            if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                bootstrap.Alert.getOrCreateInstance(alertEl).close();
+            } else {
+                alertEl.style.transition = 'opacity 0.3s ease';
+                alertEl.style.opacity = '0';
+                setTimeout(function() { alertEl.remove(); }, 300);
+            }
+        }, delay);
+    });
 });
 
 // ==========================================

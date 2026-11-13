@@ -101,6 +101,56 @@
     border-color: #334155;
 }
 
+/* Mobile 2x2 Submenu Selector Grid */
+.settings-mobile-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+.settings-mobile-tab-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 12px;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    min-width: 0;
+}
+.settings-mobile-tab-card.active {
+    border-color: #4361ee;
+    background: #f0f4ff;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.12);
+}
+.settings-mobile-tab-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 1rem;
+    background: #f1f5f9;
+    color: #475569;
+}
+.settings-mobile-tab-card.active .settings-mobile-tab-icon {
+    background: #4361ee;
+    color: #ffffff;
+}
+[data-theme="dark"] .settings-mobile-tab-card {
+    background: #1e293b;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+[data-theme="dark"] .settings-mobile-tab-card.active {
+    border-color: #60a5fa;
+    background: rgba(96, 165, 250, 0.12);
+}
+
 /* Mobile-Friendly Airy Layout for Settings (<= 767px) */
 @media (max-width: 767.98px) {
     .settings-status-strip {
@@ -120,31 +170,20 @@
         font-size: 0.7rem !important;
         padding: 5px 10px !important;
     }
-    .settings-nav-pills {
-        flex-wrap: nowrap !important;
-        overflow-x: auto;
-        scrollbar-width: none;
-        -webkit-overflow-scrolling: touch;
-        padding: 5px !important;
-        border-radius: 16px !important;
-    }
-    .settings-nav-pills::-webkit-scrollbar {
-        display: none;
-    }
-    .settings-nav-pills .nav-link {
-        white-space: nowrap;
-        font-size: 0.78rem !important;
-        padding: 8px 14px !important;
-        border-radius: 12px !important;
+    #settingsTabContent .row.g-4 {
+        --bs-gutter-y: 0.75rem;
     }
     #settingsTabContent .card {
         border-radius: 16px !important;
     }
     #settingsTabContent .card-header {
-        padding: 13px 16px !important;
+        padding: 12px 14px !important;
+    }
+    #settingsTabContent .card-header small {
+        display: none;
     }
     #settingsTabContent .card-body {
-        padding: 16px !important;
+        padding: 14px !important;
     }
     .net-mode-btn-group {
         display: flex;
@@ -175,7 +214,7 @@
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap settings-status-strip">
         <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill font-monospace" style="font-size: 0.76rem;">
-            <i class="bi bi-patch-check-fill me-1"></i>Release v{{ app_version }} (Stable)
+            <i class="bi bi-patch-check-fill me-1"></i>Rilis v{{ app_version }} (Stabil)
         </span>
         <span class="badge {% if setting.ip_whitelist_enabled %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %} px-3 py-2 rounded-pill font-monospace" style="font-size: 0.76rem;">
             <i class="bi {% if setting.ip_whitelist_enabled %}bi-shield-check{% else %}bi-shield{% endif %} me-1"></i>
@@ -197,8 +236,40 @@
     </div>
 </div>
 
-<!-- Tab Navigation (Modern Segmented Pills) -->
-<ul class="nav nav-pills settings-nav-pills mb-4 flex-wrap" id="settingsTab" role="tablist">
+<!-- Mobile 2x2 Submenu Grid (<= 767px) -->
+<div class="d-md-none settings-mobile-grid mb-3" id="settingsMobileGrid">
+    <button type="button" class="settings-mobile-tab-card active" data-tab-btn="tab-btn-network" onclick="switchSettingsMobileTab(this, 'tab-btn-network')">
+        <span class="settings-mobile-tab-icon"><i class="bi bi-globe2"></i></span>
+        <div class="min-w-0">
+            <div class="fw-bold text-dark text-truncate" style="font-size: 0.78rem;">Jaringan</div>
+            <div class="text-muted text-truncate" style="font-size: 0.68rem;">Domain &amp; IP</div>
+        </div>
+    </button>
+    <button type="button" class="settings-mobile-tab-card" data-tab-btn="tab-btn-smtp" onclick="switchSettingsMobileTab(this, 'tab-btn-smtp')">
+        <span class="settings-mobile-tab-icon"><i class="bi bi-envelope-gear-fill"></i></span>
+        <div class="min-w-0">
+            <div class="fw-bold text-dark text-truncate" style="font-size: 0.78rem;">Email SMTP</div>
+            <div class="text-muted text-truncate" style="font-size: 0.68rem;">Notifikasi</div>
+        </div>
+    </button>
+    <button type="button" class="settings-mobile-tab-card" data-tab-btn="tab-btn-update" onclick="switchSettingsMobileTab(this, 'tab-btn-update')">
+        <span class="settings-mobile-tab-icon"><i class="bi bi-arrow-repeat"></i></span>
+        <div class="min-w-0">
+            <div class="fw-bold text-dark text-truncate" style="font-size: 0.78rem;">Pembaruan</div>
+            <div class="text-muted text-truncate" style="font-size: 0.68rem;">Versi &amp; Rilis</div>
+        </div>
+    </button>
+    <button type="button" class="settings-mobile-tab-card" data-tab-btn="tab-btn-diagnostics" onclick="switchSettingsMobileTab(this, 'tab-btn-diagnostics')">
+        <span class="settings-mobile-tab-icon"><i class="bi bi-cpu-fill"></i></span>
+        <div class="min-w-0">
+            <div class="fw-bold text-dark text-truncate" style="font-size: 0.78rem;">Diagnostik</div>
+            <div class="text-muted text-truncate" style="font-size: 0.68rem;">Status Sistem</div>
+        </div>
+    </button>
+</div>
+
+<!-- Tab Navigation (Modern Segmented Pills - Desktop) -->
+<ul class="nav nav-pills settings-nav-pills mb-4 flex-wrap d-none d-md-flex" id="settingsTab" role="tablist">
     <li class="nav-item" role="presentation">
         <button class="nav-link active" id="tab-btn-network" data-bs-toggle="pill" data-bs-target="#tab-pane-network" type="button" role="tab">
             <i class="bi bi-globe2"></i>
@@ -702,12 +773,12 @@
                                     <i class="bi bi-arrow-repeat fs-5"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-dark">Pusat Pembaruan Sistem (Release Management)</h6>
+                                    <h6 class="fw-bold mb-0 text-dark">Pusat Pembaruan Sistem (Manajemen Rilis)</h6>
                                     <small class="text-muted">Deteksi versi terbaru dan pembaruan mandiri otomatis</small>
                                 </div>
                             </div>
                             <span class="badge bg-success-subtle text-success border border-success-subtle font-monospace px-3 py-1.5 rounded-pill" style="font-size: 0.75rem;" id="currentVersionBadge">
-                                v{{ app_version }} (Stable Version)
+                                v{{ app_version }} (Versi Stabil)
                             </span>
                         </div>
                         <div class="card-body p-4">
@@ -1379,6 +1450,17 @@ function doSelfUpdate() {
         logEl.textContent += '\nError: ' + err.message;
         JescaToast.show('Koneksi ke server gagal saat proses update.', 'danger');
     });
+}
+
+function switchSettingsMobileTab(cardEl, targetBtnId) {
+    var tabBtn = document.getElementById(targetBtnId);
+    if (tabBtn && typeof bootstrap !== 'undefined' && bootstrap.Tab) {
+        bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+    }
+    document.querySelectorAll('#settingsMobileGrid .settings-mobile-tab-card').forEach(function(el) {
+        el.classList.remove('active');
+    });
+    if (cardEl) cardEl.classList.add('active');
 }
 </script>
 {% endblock %}

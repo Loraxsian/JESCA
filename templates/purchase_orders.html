@@ -1,17 +1,42 @@
 {% extends "base.html" %}
-{% block title %}Purchase Order (Pengadaan) - JESCA v2{% endblock %}
-{% block page_heading %}Purchase Order & Pengadaan Aset{% endblock %}
+{% block title %}Purchase Order (Pengadaan) - JESCA{% endblock %}
+{% block page_heading %}Purchase Order &amp; Pengadaan Aset{% endblock %}
 
 {% block content %}
 <!-- Top Header & Action Controls -->
 <div class="row g-3 align-items-center mb-3">
     <div class="col-md-6">
-        <h5 class="fw-bold mb-1">Pengadaan & Purchase Order (PO)</h5>
-        <p class="text-muted small mb-0">Digitalisasi alur permohonan belanja barang, approval bertingkat, hingga penerimaan & otomatisasi penomoran aset.</p>
+        <div class="d-flex align-items-center justify-content-between gap-2">
+            <div>
+                <h5 class="fw-bold mb-1">Pengadaan &amp; Purchase Order (PO)</h5>
+                <p class="text-muted small mb-0 d-none d-md-block">Digitalisasi alur permohonan belanja barang, persetujuan bertingkat, hingga penerimaan &amp; otomatisasi penomoran aset.</p>
+            </div>
+            {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
+            <div class="dropdown d-md-none flex-shrink-0">
+                <button class="btn btn-light border btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 36px; height: 36px;" title="Menu Ekspor">
+                    <i class="bi bi-three-dots-vertical text-secondary"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-2">
+                    <li>
+                        <a class="dropdown-item py-2 d-flex align-items-center gap-2 small" href="{{ url_for('export_purchase_orders_pdf') }}">
+                            <i class="bi bi-file-earmark-pdf text-danger fs-6"></i>
+                            <span>Ekspor Laporan PDF</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="dropdown-item py-2 d-flex align-items-center gap-2 small" href="{{ url_for('export_purchase_orders_csv') }}">
+                            <i class="bi bi-file-earmark-spreadsheet text-success fs-6"></i>
+                            <span>Ekspor Format CSV</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
     </div>
     <div class="col-md-6 text-md-end d-flex flex-wrap align-items-center justify-content-md-end gap-2">
         {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
-        <div class="dropdown">
+        <div class="dropdown d-none d-md-inline-block">
             <button class="btn btn-light border btn-sm rounded-pill px-3 dropdown-toggle shadow-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-download me-1 text-primary"></i> Ekspor Laporan
             </button>
@@ -33,7 +58,7 @@
         {% endif %}
 
         {% if current_user.role in ['Admin', 'Administrator', 'Staff'] %}
-        <a href="{{ url_for('create_purchase_order') }}" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm d-flex align-items-center gap-1">
+        <a href="{{ url_for('create_purchase_order') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-2 py-md-1 shadow-sm d-flex align-items-center justify-content-center gap-1 w-100 w-md-auto fw-semibold">
             <i class="bi bi-plus-lg"></i>
             <span>Buat PO Baru</span>
         </a>
@@ -42,7 +67,7 @@
 </div>
 
 <!-- Status Summary Pills (Quick Filters) -->
-<div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-3" style="white-space: nowrap;">
+<div class="d-flex align-items-center gap-2 overflow-x-auto pb-2 mb-3" style="white-space: nowrap; scrollbar-width: none;">
     <a href="{{ url_for('purchase_orders') }}" class="btn btn-sm rounded-pill px-3 {% if not current_status %}btn-dark{% else %}btn-light border text-secondary{% endif %}">
         Semua <span class="badge bg-secondary ms-1">{{ counts.total }}</span>
     </a>
@@ -50,19 +75,19 @@
         Draft <span class="badge bg-secondary-subtle text-secondary ms-1">{{ counts.draft }}</span>
     </a>
     <a href="{{ url_for('purchase_orders', status='SUBMITTED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'SUBMITTED' %}btn-primary{% else %}btn-light border text-primary{% endif %}">
-        Menunggu Approval <span class="badge bg-primary-subtle text-primary ms-1">{{ counts.submitted }}</span>
+        Menunggu <span class="badge bg-primary-subtle text-primary ms-1">{{ counts.submitted }}</span>
     </a>
     <a href="{{ url_for('purchase_orders', status='APPROVED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'APPROVED' %}btn-success{% else %}btn-light border text-success{% endif %}">
         Disetujui <span class="badge bg-success-subtle text-success ms-1">{{ counts.approved }}</span>
     </a>
     <a href="{{ url_for('purchase_orders', status='ORDERED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'ORDERED' %}btn-warning text-dark{% else %}btn-light border text-warning{% endif %}">
-        Dipesan ke Vendor <span class="badge bg-warning-subtle text-dark ms-1">{{ counts.ordered }}</span>
+        Dipesan <span class="badge bg-warning-subtle text-dark ms-1">{{ counts.ordered }}</span>
     </a>
     <a href="{{ url_for('purchase_orders', status='RECEIVED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'RECEIVED' %}btn-info text-white{% else %}btn-light border text-info{% endif %}">
-        Barang Tiba (Siap Convert) <span class="badge bg-info-subtle text-info ms-1">{{ counts.received }}</span>
+        Barang Tiba <span class="badge bg-info-subtle text-info ms-1">{{ counts.received }}</span>
     </a>
     <a href="{{ url_for('purchase_orders', status='CLOSED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'CLOSED' %}btn-dark{% else %}btn-light border text-dark{% endif %}">
-        Selesai (Closed) <span class="badge bg-light text-dark border ms-1">{{ counts.closed }}</span>
+        Selesai <span class="badge bg-light text-dark border ms-1">{{ counts.closed }}</span>
     </a>
     {% if counts.rejected > 0 %}
     <a href="{{ url_for('purchase_orders', status='REJECTED') }}" class="btn btn-sm rounded-pill px-3 {% if current_status == 'REJECTED' %}btn-danger{% else %}btn-light border text-danger{% endif %}">
@@ -71,8 +96,50 @@
     {% endif %}
 </div>
 
-<!-- Search & Date Filter Bar -->
-<div class="card border-0 shadow-sm rounded-4 mb-3">
+<!-- Search & Date Filter Bar (Mobile Collapsible) -->
+<div class="d-md-none mb-3">
+    <form method="GET" action="{{ url_for('purchase_orders') }}">
+        {% if current_status %}
+        <input type="hidden" name="status" value="{{ current_status }}">
+        {% endif %}
+        <div class="d-flex gap-2 align-items-center">
+            <div class="input-group shadow-xs flex-grow-1" style="border-radius: 16px; overflow: hidden;">
+                <span class="input-group-text bg-white border-end-0 text-muted ps-3"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" class="form-control border-start-0 border-end-0 ps-1 py-2" style="font-size: 0.85rem;" placeholder="Cari No. PO atau judul..." value="{{ search_query }}">
+                <button type="submit" class="btn btn-white border border-start-0 text-primary fw-semibold pe-3" style="font-size: 0.8rem;">Cari</button>
+            </div>
+            <button type="button" class="btn btn-white border shadow-xs position-relative flex-shrink-0 d-inline-flex align-items-center justify-content-center" data-bs-toggle="collapse" data-bs-target="#mobilePoDateFilter" style="width: 42px; height: 42px; border-radius: 16px;" title="Filter Tanggal">
+                <i class="bi bi-funnel text-secondary"></i>
+                {% if from_date or to_date %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-primary" style="font-size: 0.6rem;">!</span>
+                {% endif %}
+            </button>
+        </div>
+        <div class="collapse {% if from_date or to_date %}show{% endif %} mt-2" id="mobilePoDateFilter">
+            <div class="card border shadow-xs p-3 bg-white" style="border-radius: 16px;">
+                <div class="row g-2">
+                    <div class="col-6">
+                        <label class="form-label text-muted mb-1" style="font-size: 0.72rem;">Dari Tanggal</label>
+                        <input type="date" name="from" class="form-control form-control-sm" value="{{ from_date }}">
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label text-muted mb-1" style="font-size: 0.72rem;">Sampai Tanggal</label>
+                        <input type="date" name="to" class="form-control form-control-sm" value="{{ to_date }}">
+                    </div>
+                    <div class="col-12 d-flex gap-2 mt-2">
+                        <button type="submit" class="btn btn-primary btn-sm rounded-pill flex-grow-1">Terapkan Filter</button>
+                        {% if search_query or from_date or to_date or current_status %}
+                        <a href="{{ url_for('purchase_orders') }}" class="btn btn-light border btn-sm rounded-pill px-3">Atur Ulang</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Search & Date Filter Bar (Desktop >= 768px) -->
+<div class="card border-0 shadow-sm rounded-4 mb-3 d-none d-md-block">
     <div class="card-body p-3">
         <form method="GET" action="{{ url_for('purchase_orders') }}" class="row g-2 align-items-center">
             {% if current_status %}
@@ -104,8 +171,8 @@
     </div>
 </div>
 
-<!-- Orders Table -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+<!-- Orders Table (Desktop >= 768px) -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden d-none d-md-block">
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light text-secondary small text-uppercase" style="font-size: 0.75rem; letter-spacing: 0.5px;">
@@ -230,5 +297,89 @@
             </tbody>
         </table>
     </div>
+</div>
+
+<!-- PO Card List (Mobile <= 767px) -->
+<div class="d-md-none d-flex flex-column gap-3 mb-4">
+    {% if purchase_orders %}
+        {% for po in purchase_orders %}
+        <div class="card border shadow-xs bg-white" style="border-radius: 16px; border-color: #e2e8f0 !important;">
+            <div class="card-body p-3">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle font-monospace rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+                        {{ po.po_number }}
+                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        {% if po.status == 'DRAFT' %}
+                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Draft</span>
+                        {% elif po.status == 'SUBMITTED' %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Menunggu</span>
+                        {% elif po.status == 'APPROVED' %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Disetujui</span>
+                        {% elif po.status == 'ORDERED' %}
+                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Dipesan</span>
+                        {% elif po.status == 'RECEIVED' %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Barang Tiba</span>
+                        {% elif po.status == 'CLOSED' %}
+                        <span class="badge bg-dark text-white rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Selesai</span>
+                        {% elif po.status == 'REJECTED' %}
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Ditolak</span>
+                        {% endif %}
+
+                        <div class="dropdown">
+                            <button class="btn btn-light border btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 30px; height: 30px;" title="Aksi Lainnya">
+                                <i class="bi bi-three-dots-vertical text-secondary" style="font-size: 0.85rem;"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-1" style="font-size: 0.82rem;">
+                                {% if po.status in ['DRAFT', 'REJECTED'] or (current_user.role in ['Admin', 'Administrator'] and po.status == 'SUBMITTED') %}
+                                <li>
+                                    <a class="dropdown-item rounded-2 py-2" href="{{ url_for('edit_purchase_order', po_id=po.id) }}">
+                                        <i class="bi bi-pencil text-secondary me-2"></i>Ubah PO
+                                    </a>
+                                </li>
+                                {% endif %}
+                                <li>
+                                    <a class="dropdown-item rounded-2 py-2" href="{{ url_for('print_purchase_order_pdf', po_id=po.id) }}" target="_blank">
+                                        <i class="bi bi-printer text-primary me-2"></i>Cetak Dokumen PDF
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 0.95rem;">{{ po.title }}</h6>
+                <div class="d-flex flex-wrap align-items-center gap-2 text-muted mb-3" style="font-size: 0.75rem;">
+                    <span><i class="bi bi-building me-1"></i>{{ po.vendor.name if po.vendor else 'Tanpa Vendor' }}</span>
+                    <span>&bull;</span>
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ po.created_at.strftime('%d/%m/%Y') if po.created_at else '-' }}</span>
+                </div>
+
+                <div class="d-flex align-items-center justify-content-between gap-2 pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                    <div>
+                        <div class="text-muted" style="font-size: 0.68rem;">Estimasi Total ({{ po.items|length }} Item)</div>
+                        <div class="fw-bold text-dark font-monospace" style="font-size: 0.9rem;">Rp {{ "{:,.0f}".format(po.total_calculated).replace(',', '.') }}</div>
+                    </div>
+                    <a href="{{ url_for('purchase_order_detail', po_id=po.id) }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold" style="font-size: 0.78rem;">
+                        Tinjau <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="card border shadow-xs bg-white text-center py-4 px-3" style="border-radius: 16px;">
+            <i class="bi bi-clipboard-x fs-1 text-secondary opacity-50 mb-2"></i>
+            <div class="fw-bold text-dark mb-1">Belum ada Purchase Order</div>
+            <p class="text-muted small mb-3">Mulai buat pengajuan pembelian barang baru.</p>
+            {% if current_user.role in ['Admin', 'Administrator', 'Staff'] %}
+            <div>
+                <a href="{{ url_for('create_purchase_order') }}" class="btn btn-primary btn-sm rounded-pill px-4">
+                    <i class="bi bi-plus-lg me-1"></i> Buat PO Pertama
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

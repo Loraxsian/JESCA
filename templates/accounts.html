@@ -1,26 +1,29 @@
 {% extends "base.html" %}
 
-{% block title %}Accounts & API - JESCA v2{% endblock %}
-{% block page_heading %}Manajemen Akun & Akses{% endblock %}
+{% block title %}Kelola Akun &amp; API - JESCA{% endblock %}
+{% block page_heading %}Manajemen Akun &amp; Akses{% endblock %}
 
 {% block content %}
 <!-- Header Bar -->
-<div class="row g-3 align-items-center mb-4">
+<div class="row g-3 align-items-center mb-3 mb-md-4">
     <div class="col-md-6">
-        <h5 class="fw-bold mb-1">Manajemen Pengguna & Kredensial API</h5>
-        <p class="text-muted small mb-0">
-            Kelola peran (Role), keamanan password (min 8 karakter kombinasi huruf & angka), serta REST API Key.
+        <h5 class="fw-bold mb-1">Manajemen Pengguna &amp; Kredensial API</h5>
+        <p class="text-muted small mb-0 d-none d-md-block">
+            Kelola peran (Role), keamanan kata sandi (min 8 karakter kombinasi huruf &amp; angka), serta Kunci REST API.
+        </p>
+        <p class="text-muted small mb-0 d-md-none" style="font-size: 0.78rem;">
+            Kelola peran pengguna, kata sandi, dan akses API.
         </p>
     </div>
     <div class="col-md-6 text-md-end">
-        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 py-2 py-md-1 shadow-sm w-100 w-md-auto fw-semibold" data-bs-toggle="modal" data-bs-target="#addAccountModal">
             <i class="bi bi-person-plus-fill me-1"></i> Tambah Akun Baru
         </button>
     </div>
 </div>
 
-<!-- Accounts Table Card -->
-<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+<!-- Accounts Table Card (Desktop >= 768px) -->
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 d-none d-md-block">
     <div class="card-body p-0">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
@@ -135,6 +138,91 @@
             </table>
         </div>
     </div>
+</div>
+
+<!-- Accounts Card List (Mobile <= 767px) -->
+<div class="d-md-none d-flex flex-column gap-3 mb-4">
+    {% for user in users %}
+    <div class="card border shadow-xs bg-white" style="border-radius: 16px; border-color: #e2e8f0 !important;">
+        <div class="card-body p-3">
+            <div class="d-flex align-items-start justify-content-between gap-2 mb-3">
+                <div class="d-flex align-items-center gap-3 min-w-0">
+                    {% if user.profile_image %}
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + user.profile_image) }}" alt="{{ user.username }}" class="rounded-circle object-fit-cover border flex-shrink-0" style="width: 44px; height: 44px;">
+                    {% else %}
+                    <div class="rounded-circle bg-primary-subtle text-primary d-flex align-items-center justify-content-center fw-bold flex-shrink-0" style="width: 44px; height: 44px; font-size: 1rem;">
+                        {{ user.username[0]|upper }}
+                    </div>
+                    {% endif %}
+                    <div class="min-w-0">
+                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.92rem;">
+                            {{ user.full_name or user.username }}
+                            {% if user.id == current_user.id %}
+                            <span class="badge bg-info-subtle text-info border ms-1" style="font-size: 0.65rem;">Anda</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-muted font-monospace text-truncate" style="font-size: 0.74rem;">@{{ user.username }}</div>
+                    </div>
+                </div>
+                <div class="dropdown flex-shrink-0">
+                    <button class="btn btn-light border btn-sm rounded-circle p-0 d-inline-flex align-items-center justify-content-center" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width: 32px; height: 32px;" title="Menu Lainnya">
+                        <i class="bi bi-three-dots-vertical text-secondary"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-1" style="font-size: 0.82rem;">
+                        <li>
+                            <button type="button" class="dropdown-item rounded-2 py-2" onclick="openChangeUserPasswordModal('{{ user.id }}', '{{ user.username }}')">
+                                <i class="bi bi-key text-warning me-2"></i>Atur Ulang Kata Sandi
+                            </button>
+                        </li>
+                        <li>
+                            <form method="POST" action="{{ url_for('generate_api_key', user_id=user.id) }}" class="m-0">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="dropdown-item rounded-2 py-2" onclick="return confirm('Buat/perbarui Kunci API untuk {{ user.username }}?')">
+                                    <i class="bi bi-shield-check text-success me-2"></i>{{ 'Perbarui Kunci API' if user.api_key else 'Buat Kunci API' }}
+                                </button>
+                            </form>
+                        </li>
+                        {% if user.id != current_user.id %}
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <button type="button" class="dropdown-item rounded-2 py-2 text-danger" onclick="confirmDeleteAccount('{{ user.id }}', '{{ user.username }}')">
+                                <i class="bi bi-trash me-2"></i>Hapus Akun
+                            </button>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 pt-2 border-top" style="border-color: #f1f5f9 !important;">
+                <div class="d-flex flex-wrap align-items-center gap-1.5">
+                    {% if user.role == 'Admin' %}
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Admin</span>
+                    {% elif user.role == 'Staff' %}
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Staff</span>
+                    {% elif user.role == 'Auditor' %}
+                    <span class="badge bg-warning-subtle text-warning border border-warning-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Auditor</span>
+                    {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">{{ user.role }}</span>
+                    {% endif %}
+
+                    {% if user.is_active %}
+                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Aktif</span>
+                    {% else %}
+                    <span class="badge bg-secondary-subtle text-secondary border rounded-pill px-2.5 py-1" style="font-size: 0.7rem;">Nonaktif</span>
+                    {% endif %}
+
+                    {% if user.api_key %}
+                    <span class="badge bg-light text-dark border rounded-pill px-2 py-1 font-monospace" style="font-size: 0.68rem;">API: {{ user.api_key[:8] }}...</span>
+                    {% endif %}
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-semibold" style="font-size: 0.76rem;" onclick="openEditAccountModal('{{ user.id }}', '{{ user.username }}', '{{ user.full_name or '' }}', '{{ user.role }}', '{{ 1 if user.is_active else 0 }}')">
+                    <i class="bi bi-pencil me-1"></i>Edit
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
 </div>
 
 <!-- Modal Tambah Akun Baru -->
