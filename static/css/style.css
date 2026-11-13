@@ -936,7 +936,21 @@ footer {
 }
 
 [data-theme="dark"] .text-muted {
-    color: #64748b !important;
+    color: #94a3b8 !important;
+}
+
+[data-theme="dark"] .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .list-group-item {
+    background-color: transparent !important;
+    color: #f1f5f9 !important;
+    border-color: #1c263c !important;
+}
+
+[data-theme="dark"] .form-label {
+    color: #cbd5e1 !important;
 }
 
 [data-theme="dark"] .border,
@@ -962,11 +976,38 @@ footer {
     border: 1px solid rgba(16, 185, 129, 0.3) !important;
 }
 
+.jesca-toast {
+    background: #ffffff;
+    color: #1e293b;
+}
+
+.jesca-toast-msg {
+    color: #1e293b;
+}
+
 [data-theme="dark"] .jesca-toast {
     background: #101726 !important;
     color: #f8fafc !important;
-    border: 1px solid #1c263c !important;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6) !important;
+    border: 1px solid #26334d !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.65) !important;
+}
+
+[data-theme="dark"] .jesca-toast-msg {
+    color: #f8fafc !important;
+}
+
+/* Ensure scrollable modals with <form> inside .modal-content scroll smoothly on mobile */
+.modal-dialog-scrollable .modal-content > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.modal-dialog-scrollable .modal-body {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
 }
 
 [data-theme="dark"] kbd {

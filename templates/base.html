@@ -17,7 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.6.1">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.6.2">
 
     <!-- Favicon JA Multi-Size -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}?v=2.5.8.3">
@@ -64,7 +64,7 @@
                     <li class="nav-item">
                         <a id="tourMenuDashboard" href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-grid-1x2"></i>
-                            <span data-i18n="sidebar_dashboard">Dashboard</span>
+                            <span data-i18n="sidebar_dashboard">Beranda</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -145,7 +145,7 @@
                     <li class="nav-item">
                         <a id="tourMenuExport" href="#" class="nav-link d-flex align-items-center gap-3" data-bs-toggle="modal" data-bs-target="#exportModal">
                             <i class="bi bi-box-arrow-up-right"></i>
-                            <span data-i18n="sidebar_export">Export Data</span>
+                            <span data-i18n="sidebar_export">Ekspor Data</span>
                         </a>
                     </li>
                 </ul>
@@ -164,7 +164,7 @@
                     <li class="nav-item">
                         <a href="{{ url_for('admin_backups') }}" class="nav-link {% if request.endpoint == 'admin_backups' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-database"></i>
-                            <span data-i18n="sidebar_backups">Backup & Restore</span>
+                            <span data-i18n="sidebar_backups">Cadangan DB</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -210,7 +210,7 @@
                 <!-- Keyboard Shortcut Hint -->
                 <div class="p-2 rounded-2 bg-light border text-center">
                     <small class="text-muted d-block" style="font-size: 0.68rem;">
-                        <kbd style="font-size: 0.65rem; background: #e2e8f0; border-radius: 3px; padding: 1px 4px;">Ctrl+K</kbd> Command Palette
+                        <kbd style="font-size: 0.65rem; background: #e2e8f0; border-radius: 3px; padding: 1px 4px;">Ctrl+K</kbd> Palet Perintah
                     </small>
                 </div>
 
@@ -560,14 +560,14 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.6.1 Stabil</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.6.2 Stabil</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
-                        <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Print halaman ini">
-                            <i class="bi bi-printer me-1"></i>Print
+                        <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Cetak halaman ini">
+                            <i class="bi bi-printer me-1"></i>Cetak
                         </button>
                         <span class="badge bg-light text-secondary border font-monospace" id="footerCommandBadge" style="font-size: 0.68rem;">
-                            <kbd style="font-size:0.65rem; background:transparent; padding:0;">Ctrl+K</kbd> Command Palette
+                            <kbd style="font-size:0.65rem; background:transparent; padding:0;">Ctrl+K</kbd> Palet Perintah
                         </span>
                     </div>
                 </div>
@@ -580,77 +580,80 @@
          ========================================== -->
     <div class="modal fade" id="exportModal" tabindex="-1" aria-labelledby="exportModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg rounded-4">
-                <div class="modal-header border-bottom py-3 px-4">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header border-bottom py-3 px-3 px-md-4">
                     <div class="d-flex align-items-center gap-2">
                         <div class="bg-primary-subtle text-primary rounded-3 p-2 d-flex align-items-center justify-content-center">
                             <i class="bi bi-box-arrow-up-right fs-5"></i>
                         </div>
                         <div>
-                            <h6 class="modal-title fw-bold mb-0" id="exportModalLabel">Export Data Inventaris</h6>
-                            <small class="text-muted">Pilih format berkas yang ingin diunduh</small>
+                            <h6 class="modal-title fw-bold mb-0" id="exportModalLabel">Ekspor Data Inventaris</h6>
+                            <small class="text-muted">Pilih format berkas</small>
                         </div>
                     </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
-                <div class="modal-body p-4">
-                    <div class="d-flex flex-column gap-3">
+                <div class="modal-body p-3 p-md-4">
+                    <div class="d-flex flex-column gap-2.5">
                         <!-- Pilihan 1: Excel (.xlsx) -->
-                        <div class="card border rounded-3 p-3">
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="bg-success-subtle text-success rounded-3 p-2 mt-1 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                        <i class="bi bi-file-earmark-excel fs-4"></i>
+                        <div class="card border p-3" style="border-radius: 16px;">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="d-flex align-items-center gap-2.5 min-w-0">
+                                    <div class="bg-success-subtle text-success rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-file-earmark-excel fs-5"></i>
                                     </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">Microsoft Excel (.xlsx)</div>
-                                        <small class="text-muted d-block">Tabel spreadsheet rapi, auto-fit lebar kolom, dan pemisah ribuan Rupiah.</small>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Excel (.xlsx)</div>
+                                        <small class="text-muted d-block d-sm-none text-truncate" style="font-size: 0.74rem;">Tabel siap olah</small>
+                                        <small class="text-muted d-none d-sm-block">Tabel spreadsheet rapi, auto-fit lebar kolom, dan pemisah ribuan Rupiah.</small>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 flex-shrink-0">
+                                <a href="{{ url_for('export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
                                     <i class="bi bi-download me-1"></i>Unduh
                                 </a>
                             </div>
                         </div>
 
                         <!-- Pilihan 2: PDF Landscape -->
-                        <div class="card border rounded-3 p-3">
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="bg-danger-subtle text-danger rounded-3 p-2 mt-1 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                        <i class="bi bi-file-pdf fs-4"></i>
+                        <div class="card border p-3" style="border-radius: 16px;">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="d-flex align-items-center gap-2.5 min-w-0">
+                                    <div class="bg-danger-subtle text-danger rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-file-pdf fs-5"></i>
                                     </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">Dokumen PDF (.pdf)</div>
-                                        <small class="text-muted d-block">Format landscape A4 formal, siap dicetak untuk arsip fisik dan audit.</small>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Dokumen PDF (.pdf)</div>
+                                        <small class="text-muted d-block d-sm-none text-truncate" style="font-size: 0.74rem;">Siap cetak A4 Landscape</small>
+                                        <small class="text-muted d-none d-sm-block">Format landscape A4 formal, siap dicetak untuk arsip fisik dan audit.</small>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 flex-shrink-0">
+                                <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
                                     <i class="bi bi-download me-1"></i>Unduh
                                 </a>
                             </div>
                         </div>
 
                         <!-- Pilihan 3: CSV Universal -->
-                        <div class="card border rounded-3 p-3">
-                            <div class="d-flex align-items-center justify-content-between gap-3">
-                                <div class="d-flex align-items-start gap-3">
-                                    <div class="bg-secondary-subtle text-secondary rounded-3 p-2 mt-1 d-flex align-items-center justify-content-center" style="width: 42px; height: 42px;">
-                                        <i class="bi bi-file-earmark-spreadsheet fs-4"></i>
+                        <div class="card border p-3" style="border-radius: 16px;">
+                            <div class="d-flex align-items-center justify-content-between gap-2">
+                                <div class="d-flex align-items-center gap-2.5 min-w-0">
+                                    <div class="bg-secondary-subtle text-secondary rounded-3 p-2 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 40px; height: 40px;">
+                                        <i class="bi bi-file-earmark-spreadsheet fs-5"></i>
                                     </div>
-                                    <div>
-                                        <div class="fw-bold text-dark">Berkas CSV (.csv)</div>
-                                        <small class="text-muted d-block">Data mentah berstandar UTF-8 dengan BOM, kompatibel dengan semua sistem.</small>
+                                    <div class="min-w-0">
+                                        <div class="fw-bold text-dark text-truncate" style="font-size: 0.9rem;">Berkas CSV (.csv)</div>
+                                        <small class="text-muted d-block d-sm-none text-truncate" style="font-size: 0.74rem;">Data mentah UTF-8</small>
+                                        <small class="text-muted d-none d-sm-block">Data mentah berstandar UTF-8 dengan BOM, kompatibel dengan semua sistem.</small>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 flex-shrink-0">
+                                <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
                                     <i class="bi bi-download me-1"></i>Unduh
                                 </a>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-2 bg-light rounded-bottom-4 justify-content-end">
+                <div class="modal-footer border-top px-3 px-md-4 py-2 bg-light justify-content-end" style="border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;">
                     <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Tutup</button>
                 </div>
             </div>
@@ -1222,7 +1225,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Global App JS -->
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.6.1"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.6.2"></script>
 
     <!-- Theme Switcher JS -->
     <script>

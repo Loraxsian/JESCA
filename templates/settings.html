@@ -176,6 +176,21 @@
     #settingsTabContent .card {
         border-radius: 16px !important;
     }
+    #settingsTabContent .card,
+    #settingsTabContent .card-body,
+    #settingsTabContent .card-header {
+        min-width: 0;
+        overflow-x: hidden;
+    }
+    #settingsTabContent .list-group-item {
+        flex-wrap: wrap !important;
+        gap: 4px 10px;
+    }
+    #settingsTabContent code,
+    #settingsTabContent .font-monospace {
+        word-break: break-word;
+        overflow-wrap: anywhere;
+    }
     #settingsTabContent .card-header {
         padding: 12px 14px !important;
     }
@@ -990,7 +1005,7 @@
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-0">
                                     <span class="text-muted"><i class="bi bi-laptop me-2"></i>Platform Arsitektur</span>
-                                    <span class="font-monospace text-dark small text-truncate ms-2" style="max-width: 240px;">{{ runtime.platform }}</span>
+                                    <span class="font-monospace text-dark small text-break min-w-0">{{ runtime.platform }}</span>
                                 </li>
                                 <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2.5 border-0">
                                     <span class="text-muted"><i class="bi bi-send me-2"></i>Dispatcher Email Notifikasi</span>

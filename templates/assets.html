@@ -28,23 +28,23 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 py-2" style="min-width: 195px;">
                         <li>
                             <button type="button" class="dropdown-item py-2 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#importCsvModal">
-                                <i class="bi bi-upload text-primary"></i><span>Import CSV</span>
+                                <i class="bi bi-upload text-primary"></i><span>Impor CSV</span>
                             </button>
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
                             <a href="{{ url_for('export_assets_pdf') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-file-pdf text-danger"></i><span>Export PDF</span>
+                                <i class="bi bi-file-pdf text-danger"></i><span>Ekspor PDF</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ url_for('export_assets_excel') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-file-earmark-excel text-success"></i><span>Export Excel</span>
+                                <i class="bi bi-file-earmark-excel text-success"></i><span>Ekspor Excel</span>
                             </a>
                         </li>
                         <li>
                             <a href="{{ url_for('export_assets_csv') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
-                                <i class="bi bi-file-earmark-spreadsheet text-secondary"></i><span>Export CSV</span>
+                                <i class="bi bi-file-earmark-spreadsheet text-secondary"></i><span>Ekspor CSV</span>
                             </a>
                         </li>
                     </ul>
@@ -55,16 +55,16 @@
     <div class="col-md-7 text-md-end d-none d-md-block">
         <div class="d-flex align-items-center justify-content-md-end gap-2 flex-wrap">
             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#importCsvModal">
-                <i class="bi bi-upload me-1"></i> Import CSV
+                <i class="bi bi-upload me-1"></i> Impor CSV
             </button>
             <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm">
-                <i class="bi bi-file-pdf me-1"></i> Export PDF
+                <i class="bi bi-file-pdf me-1"></i> Ekspor PDF
             </a>
             <a href="{{ url_for('export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm">
-                <i class="bi bi-file-earmark-excel me-1"></i> Export Excel
+                <i class="bi bi-file-earmark-excel me-1"></i> Ekspor Excel
             </a>
             <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
-                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Export CSV
+                <i class="bi bi-file-earmark-spreadsheet me-1"></i> Ekspor CSV
             </a>
             {% if current_user.role in ['Admin', 'Staff'] %}
             <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#addAssetModal">
@@ -510,15 +510,17 @@
      ========================================== -->
 <div class="modal fade" id="addAssetModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow-lg rounded-4">
-            <div class="modal-header border-bottom py-3 px-4">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+            <div class="modal-header border-bottom py-3 px-3 px-md-4">
                 <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Baru ke Inventaris</h6>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <form method="POST" action="{{ url_for('create_asset') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-body p-4">
-                    <div class="row g-3">
+                <div class="modal-body p-3 p-md-4">
+                    <!-- Bagian 1: Informasi Utama -->
+                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px;">1. Informasi Utama</div>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-8">
                             <label class="form-label small fw-bold">Nama Aset <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" required placeholder="Contoh: MacBook Pro M3 16 Inch">
@@ -531,12 +533,11 @@
                                 {% endfor %}
                             </select>
                         </div>
-
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Kode Aset (Opsional)</label>
-                            <input type="text" class="form-control font-monospace" name="asset_code" placeholder="Kosongkan untuk auto-code">
+                        <div class="col-md-4 col-6">
+                            <label class="form-label small fw-bold">Kode Aset</label>
+                            <input type="text" class="form-control font-monospace" name="asset_code" placeholder="Otomatis jika kosong">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-6">
                             <label class="form-label small fw-bold">Tanggal Perolehan</label>
                             <input type="date" class="form-control" name="purchase_date" value="{{ today }}">
                         </div>
@@ -544,7 +545,11 @@
                             <label class="form-label small fw-bold">Nilai Perolehan (IDR)</label>
                             <input type="text" class="form-control" name="purchase_price" placeholder="25.000.000">
                         </div>
+                    </div>
 
+                    <!-- Bagian 2: Lokasi & Rekanan -->
+                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px;">2. Lokasi &amp; Rekanan</div>
+                    <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label small fw-bold">Lokasi / Ruangan</label>
                             <input type="text" class="form-control" name="location" placeholder="Ruang IT / Lantai 2">
@@ -580,21 +585,24 @@
                                 {% endfor %}
                             </select>
                         </div>
+                    </div>
 
-                        <!-- Garansi & Penyusutan -->
-                        <div class="col-md-3">
+                    <!-- Bagian 3: Garansi, Pemeliharaan & Lampiran -->
+                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px;">3. Garansi, Pemeliharaan &amp; Lampiran</div>
+                    <div class="row g-3">
+                        <div class="col-md-3 col-6">
                             <label class="form-label small fw-bold">Garansi Mulai</label>
                             <input type="date" class="form-control" name="warranty_start">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <label class="form-label small fw-bold">Garansi Berakhir</label>
                             <input type="date" class="form-control" name="warranty_end">
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label small fw-bold">Masa Manfaat (Tahun)</label>
+                        <div class="col-md-3 col-6">
+                            <label class="form-label small fw-bold">Masa Manfaat (Thn)</label>
                             <input type="number" class="form-control" name="useful_life_years" placeholder="Contoh: 4">
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 col-6">
                             <label class="form-label small fw-bold">Nilai Residu (IDR)</label>
                             <input type="text" class="form-control" name="salvage_value" placeholder="0">
                         </div>
@@ -628,9 +636,9 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-4 py-3">
+                <div class="modal-footer border-top px-3 px-md-4 py-3">
                     <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Simpan Aset</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold">Simpan Aset</button>
                 </div>
             </form>
         </div>
@@ -866,7 +874,7 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Import Inventaris dari CSV</h6>
+                <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Impor Inventaris dari CSV</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('import_assets_csv') }}" enctype="multipart/form-data">

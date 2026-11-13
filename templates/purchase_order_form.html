@@ -1,6 +1,51 @@
 {% extends "base.html" %}
-{% block title %}{% if is_edit %}Edit PO {{ po.po_number }}{% else %}Buat Purchase Order Baru{% endif %} - JESCA v2{% endblock %}
+{% block title %}{% if is_edit %}Edit PO {{ po.po_number }}{% else %}Buat Purchase Order Baru{% endif %} - JESCA{% endblock %}
 {% block page_heading %}{% if is_edit %}Edit Purchase Order{% else %}Buat Purchase Order Baru{% endif %}{% endblock %}
+
+{% block head %}
+<style>
+@media (max-width: 767.98px) {
+    #itemsTable,
+    #itemsTable tbody,
+    #itemsTable tr.item-row,
+    #itemsTable tr.item-row td {
+        display: block;
+        width: 100% !important;
+    }
+    #itemsTable thead {
+        display: none;
+    }
+    #itemsTable tr.item-row {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 16px;
+        padding: 12px;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+    #itemsTable tr.item-row td {
+        border: none !important;
+        padding: 4px 0 !important;
+        text-align: left !important;
+    }
+    #itemsTable tr.item-row td:nth-child(1)::before { content: "Nama & Spesifikasi Barang"; display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+    #itemsTable tr.item-row td:nth-child(2)::before { content: "Kategori"; display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+    #itemsTable tr.item-row td:nth-child(3)::before { content: "Jumlah (Qty)"; display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+    #itemsTable tr.item-row td:nth-child(4)::before { content: "Harga Satuan (IDR)"; display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 4px; }
+    #itemsTable tr.item-row td:nth-child(5)::before { content: "Subtotal"; display: block; font-size: 0.72rem; font-weight: 700; color: #64748b; margin-bottom: 2px; }
+    #itemsTable tr.item-row td:nth-child(6) {
+        padding-top: 8px !important;
+        margin-top: 6px;
+        border-top: 1px dashed #e2e8f0 !important;
+        text-align: right !important;
+    }
+    [data-theme="dark"] #itemsTable tr.item-row {
+        background: #101726;
+        border-color: #1c263c;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">

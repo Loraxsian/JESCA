@@ -619,7 +619,7 @@ window.JescaToast = {
         if (this.container) return;
         this.container = document.createElement('div');
         this.container.id = 'jesca-toast-container';
-        this.container.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:380px;pointer-events:none;';
+        this.container.style.cssText = 'position:fixed;bottom:1.25rem;right:1rem;left:auto;z-index:9999;display:flex;flex-direction:column;gap:0.5rem;max-width:min(380px, calc(100vw - 2rem));pointer-events:none;';
         document.body.appendChild(this.container);
     },
 
@@ -641,10 +641,10 @@ window.JescaToast = {
 
         var toast = document.createElement('div');
         toast.className = 'jesca-toast shadow-lg';
-        toast.style.cssText = 'pointer-events:auto;background:white;border-radius:12px;padding:12px 16px;display:flex;align-items:flex-start;gap:12px;border-left:4px solid ' + (colors[type] || colors.info) + ';animation:slideInRight 0.3s ease;min-width:280px;box-shadow:0 10px 25px rgba(0,0,0,0.12);';
-        toast.innerHTML = '<i class="bi ' + (icons[type] || icons.info) + '" style="color:' + (colors[type] || colors.info) + ';font-size:1.2rem;flex-shrink:0;margin-top:1px;"></i>' +
-            '<div style="flex:1;font-size:0.875rem;color:#1e293b;line-height:1.45;word-break:break-word;">' + message + '</div>' +
-            '<button onclick="this.parentElement.remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0;font-size:1.1rem;line-height:1;margin-left:4px;">&times;</button>';
+        toast.style.cssText = 'pointer-events:auto;border-radius:14px;padding:12px 14px;display:flex;align-items:flex-start;gap:10px;border-left:4px solid ' + (colors[type] || colors.info) + ';animation:slideInRight 0.3s ease;width:100%;max-width:100%;box-shadow:0 10px 25px rgba(0,0,0,0.16);';
+        toast.innerHTML = '<i class="bi ' + (icons[type] || icons.info) + '" style="color:' + (colors[type] || colors.info) + ';font-size:1.15rem;flex-shrink:0;margin-top:1px;"></i>' +
+            '<div class="jesca-toast-msg" style="flex:1;font-size:0.86rem;line-height:1.45;word-break:break-word;">' + message + '</div>' +
+            '<button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#94a3b8;cursor:pointer;padding:0;font-size:1.15rem;line-height:1;margin-left:4px;flex-shrink:0;" aria-label="Tutup">&times;</button>';
 
         this.container.appendChild(toast);
 
