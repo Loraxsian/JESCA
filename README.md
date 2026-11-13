@@ -1,8 +1,8 @@
-# JESCA (Jessica Assets) - Asset Management System
+# JESCA (Jessica Assets) - Asset Management System (v2.6.5)
 
-JESCA (Jessica Assets) adalah aplikasi web manajemen aset dan inventaris yang dibuat menggunakan Python Flask, SQLite (Flask-SQLAlchemy), dan Bootstrap 5. 
+JESCA (Jessica Assets) adalah aplikasi web manajemen aset dan inventaris berbahasa Indonesia (**Full Bahasa Indonesia**) yang dibuat menggunakan Python Flask, SQLite (Flask-SQLAlchemy), dan Bootstrap 5.
 
-Aplikasi ini awalnya dirancang untuk mempermudah pencatatan aset kantor, pelacakan peminjaman barang, pengelolaan jadwal servis rutin teknisi, hingga alur pengadaan barang (Purchase Order) agar semuanya rapi, terdokumentasi, dan punya jejak audit yang jelas.
+Aplikasi ini dirancang untuk mempermudah pencatatan aset kantor, pelacakan peminjaman barang, pengelolaan jadwal servis rutin teknisi, hingga alur **Pengadaan Barang (PO)** dengan tampilan yang responsif di desktop maupun perangkat mobile agar semuanya rapi, terdokumentasi, dan memiliki jejak audit yang jelas.
 
 ---
 
@@ -26,10 +26,11 @@ Aplikasi ini awalnya dirancang untuk mempermudah pencatatan aset kantor, pelacak
 - Pemisahan hak akses: Staf biasa tidak bisa langsung menandai servis selesai. Staf disediakan tombol "Lapor Kendala Aset" untuk mengirimkan keluhan kerusakan ke antrean teknisi.
 - Alert lonceng dan banner dashboard otomatis bersih begitu barang mulai diservis maupun setelah servis diselesaikan.
 
-### 3. Alur Pengadaan Barang (Purchase Order Workflow)
+### 3. Alur Pengadaan Barang (PO)
 - Siklus pengajuan bertahap: Draft -> Diajukan (Submitted) -> Disetujui Admin (Approved) -> Dipesan ke Vendor (Ordered) -> Barang Diterima (Received) -> Dikonversi Menjadi Aset Resmi (Converted).
 - Wajib melampirkan berkas bukti fisik (invoice DP saat status pemesanan, dan Surat Jalan / BAST saat barang sampai) sebelum unit bisa masuk ke daftar aset.
-- Riwayat persetujuan tercatat lengkap pada timeline audit Purchase Order.
+- Riwayat persetujuan tercatat lengkap pada timeline audit Pengadaan Barang (PO).
+- Form pembuatan/edit PO mendukung tampilan stacked yang rapi di perangkat mobile maupun tabel penuh di desktop.
 
 ### 4. Hak Akses Pengguna (Role-Based Access Control / RBAC)
 Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-masing:
@@ -50,12 +51,12 @@ Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-mas
   - Ekspor CSV Kompatibel Excel: Format UTF-8 dengan BOM agar tanda baca dan angka tidak berantakan saat dibuka di Microsoft Excel.
 
 ### 7. Keamanan, Pengaturan Sistem & Ketahanan Aplikasi
-- Sudo Mode: Konfirmasi password ulang saat membuka menu Pengaturan Sistem (/settings) demi keamanan jika laptop ditinggal sebentar di meja kantor.
+- Mode Akses Khusus (Sudo): Konfirmasi password ulang saat membuka menu Pengaturan Sistem (/settings) demi keamanan jika perangkat ditinggal sebentar di meja kantor.
 - Penyederhanaan Akses Jaringan (Base URL): Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri / Localhost, Jaringan Lokal Kabel LAN / Wi-Fi dilengkapi panduan perintah cek IP komputer server, atau Domain Sendiri / VPS Cloud). Alamat Base URL yang dipilih otomatis tertanam pada cetakan stiker label QR Code fisik dan tautan email notifikasi tim.
 - Uji Coba Akses Luar Otomatis (Tunnel Instan 1-Klik): Sistem dapat membuatkan tautan internet sementara yang aman (HTTPS) secara otomatis langsung dari dalam aplikasi tanpa perlu membeli domain atau membuka terminal. Dilengkapi keterangan lengkap fungsi tautan, batas waktu aktif (expired), dan tombol salin/terapkan ke Base URL.
 - Dynamic SMTP: Pengaturan server email (Gmail, cPanel, Outlook, dsb.) bisa diubah langsung dari halaman web tanpa perlu restart aplikasi. Dilengkapi standarisasi format email resmi perusahaan dengan zona waktu WIB (Waktu Indonesia Barat).
 - IP Whitelist & VPN Access: Pembatasan akses web hanya untuk jaringan kantor atau VPN internal tertentu.
-- Mode SQLite WAL & Busy Timeout: Menggunakan Write-Ahead Logging (WAL) dan timeout antrean 30 detik untuk mencegah error database terkunci saat banyak aksi dijalankan bersamaan.
+- Mode Jurnal WAL & Busy Timeout: Menggunakan SQLite Write-Ahead Logging (WAL) dan timeout antrean 30 detik untuk mencegah error database terkunci saat banyak aksi dijalankan bersamaan, serta panel diagnostik Lingkungan Server & Waktu Proses.
 - Halaman Error Ramah & Auto-Rollback: Jika terjadi gangguan tak terduga, sistem tidak menampilkan layar putih error server, melainkan halaman kustom JESCA dengan tombol kembali yang aman dan otomatis membatalkan transaksi database (rollback) agar data tidak rusak.
 - Proteksi brute-force login dan penggantian password default otomatis pada login pertama.
 
@@ -139,6 +140,7 @@ Saat pertama kali login dengan password bawaan ini, sistem akan langsung meminta
 ```
 jesca-assets/
 ├── app.py                     # File utama aplikasi (routing, database model, logika bisnis)
+├── i18n.py                    # Modul lokalisasi & kamus istilah baku Bahasa Indonesia
 ├── requirements.txt           # Daftar pustaka Python yang digunakan
 ├── Dockerfile                 # Konfigurasi container Docker
 ├── docker-compose.yml         # Konfigurasi orkestrasi container dan volume penyimpanan
@@ -148,29 +150,57 @@ jesca-assets/
 ├── backups/                   # Folder arsip backup database otomatis dan manual
 ├── static/
 │   ├── css/
-│   │   └── style.css          # Kustomisasi styling dan tema tampilan
+│   │   └── style.css          # Kustomisasi styling, tema tampilan, dan layout responsif
 │   ├── js/
-│   │   └── app.js             # Skrip interaksi UI, scanner QR, dan shortcut keyboard
+│   │   └── app.js             # Skrip interaksi UI, toast notifikasi, scanner QR, dan shortcut
 │   ├── uploads/
 │   │   └── avatars/           # Foto profil pengguna
 │   └── attachments/
-│       ├── po/                # Dokumen pendukung Purchase Order (invoice, surat jalan)
+│       ├── po/                # Dokumen pendukung Pengadaan Barang / PO (invoice, surat jalan)
 │       └── maintenance/       # Bukti foto/nota servis dari teknisi
 └── templates/
-    ├── base.html              # Template induk (layout, navbar, sidebar)
+    ├── base.html              # Template induk (layout, navbar, sidebar, bottom nav mobile)
     ├── 404.html               # Halaman kustom jika URL tidak ditemukan
     ├── 500.html               # Halaman kustom penanganan gangguan server
     ├── login.html             # Halaman masuk sistem
-    ├── dashboard.html         # Ringkasan statistik inventaris dan grafik
-    ├── assets.html            # Halaman utama daftar aset dan pencarian
+    ├── confirm_sudo.html      # Halaman verifikasi Mode Akses Khusus (Sudo)
+    ├── dashboard.html         # Beranda, ringkasan statistik inventaris, dan grafik
+    ├── assets.html            # Halaman utama daftar aset, modal tambah/edit, dan pencarian
     ├── maintenance.html       # Meja kerja servis teknisi
-    ├── purchase_orders.html   # Daftar pengadaan barang
+    ├── purchase_orders.html   # Daftar Pengadaan Barang (PO)
+    ├── purchase_order_form.html   # Form buat/edit Pengadaan Barang (PO)
     ├── purchase_order_detail.html # Detail transaksi PO dan upload bukti terima
     ├── feedbacks.html         # Pengelolaan laporan bug dan masukan pengguna
-    ├── settings.html          # Pengaturan SMTP, IP Whitelist, dan diagnostik
+    ├── settings.html          # Pengaturan sistem, SMTP, IP Whitelist, dan diagnostik
     ├── accounts.html          # Pengelolaan akun pengguna dan role
     └── ...
 ```
+
+---
+
+## Riwayat Pembaruan Terbaru (v2.6.0 - v2.6.5)
+
+### v2.6.5 — Standarisasi Full Bahasa Indonesia
+- Penyeragaman seluruh antarmuka ke **Full Bahasa Indonesia** sebagai bahasa operasional utama tanpa campuran istilah Inggris yang tidak konsisten.
+- Penambahan kamus istilah baku `STANDARD_TERMS_ID` di [i18n.py](i18n.py) dan penyeragaman label di seluruh navigasi, modal, log, dan diagnostik:
+  - `Beranda` (menggantikan *Dashboard*)
+  - `Pengadaan Barang (PO)` / `Pengadaan (PO)` (menggantikan *Purchase Order*)
+  - `Mode Akses Khusus (Sudo)` (menggantikan *Sudo Mode*)
+  - `Lingkungan Server & Waktu Proses` (menggantikan *Runtime & Server*)
+  - `Mode Jurnal WAL` (menggantikan *WAL (Write-Ahead Log)*)
+  - `Pembaruan Sistem` (menggantikan *System Update*) dan status `Aktif`
+
+### v2.6.4 — Lokalisasi Python, Perbaikan Form PO & Penyempurnaan UI Mobile
+- Penambahan modul lokalisasi Python [i18n.py](i18n.py) yang terintegrasi ke Jinja2 context processor (`t()`).
+- Perbaikan form buat/edit **Pengadaan Barang (PO)** (`purchase_order_form.html`): perbaikan bug kategori dan tampilan item stacked yang bersih di perangkat mobile tanpa mengubah tampilan tabel desktop.
+- Penyederhanaan **Beranda** di layar mobile: kartu ringkasan statistik 2x2 terpadu, grid menu 4x2 dengan palet aksen terpadu, serta ruang scroll bawah yang aman dari bottom navigation bar.
+- Modal **Tambah Aset** (`#addAssetModal`): pengelompokan field opsional (*Lokasi & Kode Aset*, *Garansi & Depresiasi*) ke dalam bagian yang dapat dilipat (*collapsible*) agar nyaman digulir di layar HP.
+- Perbaikan **Pengaturan Sistem** di mobile: mencegah teks panjang (seperti badge versi) keluar kotak (*overflow*) dan menampilkan status ringkas (Rilis, IP Whitelist, SMTP, Akses Sudo) secara rapi.
+- Penyesuaian posisi dropdown notifikasi lonceng agar tidak terpotong di tepi layar HP.
+
+### v2.6.0 – v2.6.3 — Redesain UI Mobile & Konsistensi Kontras Tema
+- Redesain tampilan mobile untuk menu **Servis**, **Backup & DB**, **Kelola Akun**, **Laporan Masuk**, **Mode Akses Khusus**, dan **Export Data** agar ringkas dan bebas *horizontal overflow*.
+- Pembaruan sistem notifikasi toast agar *auto-close* otomatis dan memiliki kontras teks yang jelas pada seluruh tema (Terang, Gelap, Pink).
 
 ---
 
