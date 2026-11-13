@@ -3,8 +3,82 @@
 {% block page_heading %}Backup & Pemulihan Basis Data{% endblock %}
 
 {% block content %}
-<!-- Kartu Operasi Basis Data -->
-<div class="row g-4 mb-4">
+<!-- Mobile Compact Database Operations (<= 767px) -->
+<div class="d-md-none d-flex flex-column gap-3 mb-3">
+    <!-- Primary Snapshot & Quick Tools Card -->
+    <div class="superapp-section-card mb-0" style="border-radius: 16px; padding: 16px;">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-3">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="bg-primary-subtle text-primary rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 38px; height: 38px;">
+                    <i class="bi bi-cloud-arrow-up fs-5"></i>
+                </div>
+                <div class="min-w-0">
+                    <h6 class="fw-bold mb-0 text-truncate" style="font-size: 0.92rem;">Cadangkan Basis Data</h6>
+                    <small class="text-muted d-block text-truncate" style="font-size: 0.72rem;">Auto-backup harian 02:00 WIB (30 hr)</small>
+                </div>
+            </div>
+            <span class="badge bg-light text-primary border font-monospace flex-shrink-0" style="font-size: 0.68rem;">{{ backups|length }} Arsip</span>
+        </div>
+
+        <form method="POST" action="{{ url_for('manual_backup') }}" class="mb-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm" style="border-radius: 16px;">
+                <i class="bi bi-hdd me-2"></i>Buat Backup Sekarang
+            </button>
+        </form>
+
+        <div class="row g-2">
+            <div class="col-6">
+                <form method="POST" action="{{ url_for('optimize_database') }}" onsubmit="return confirm('Jalankan proses optimasi database (VACUUM & Uji Integritas)?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-outline-success btn-sm w-100 py-2 fw-semibold" style="border-radius: 16px;">
+                        <i class="bi bi-speedometer2 me-1"></i>Optimasi DB
+                    </button>
+                </form>
+            </div>
+            <div class="col-6">
+                <button type="button" class="btn btn-light border btn-sm w-100 py-2 fw-semibold" style="border-radius: 16px;" data-bs-toggle="modal" data-bs-target="#editBackupModal">
+                    <i class="bi bi-gear me-1"></i>Destinasi
+                </button>
+            </div>
+        </div>
+
+        {% if setting and setting.remote_backup_enabled and setting.remote_backup_host %}
+        <div class="badge bg-success-subtle text-success border mt-2 py-1.5 px-2 text-truncate w-100 text-start" style="font-size: 0.68rem; border-radius: 10px;">
+            <i class="bi bi-cloud-check me-1"></i>Remote: {{ setting.remote_backup_protocol|upper }} ({{ setting.remote_backup_host }})
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Smart Import & Merge DB Card (Mobile) -->
+    <div class="superapp-section-card mb-0" style="border-radius: 16px; padding: 16px;">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+                <div class="bg-info-subtle text-info rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 34px; height: 34px;">
+                    <i class="bi bi-node-plus fs-6"></i>
+                </div>
+                <div class="min-w-0">
+                    <div class="fw-bold text-dark text-truncate" style="font-size: 0.86rem;">Smart Import &amp; Merge (.db)</div>
+                    <small class="text-muted d-block text-truncate" style="font-size: 0.7rem;">Gabung data tanpa bentrok kode aset</small>
+                </div>
+            </div>
+        </div>
+        <form method="POST" action="{{ url_for('import_db_merge') }}" enctype="multipart/form-data" onsubmit="return confirm('Mulai proses Smart Import & Merge? Snapshot keamanan akan dibuat otomatis.');" class="d-flex flex-column gap-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="file" class="form-control form-control-sm" name="db_file" accept=".db" required style="border-radius: 12px;">
+            <button type="submit" class="btn btn-info text-white btn-sm w-100 py-2 fw-bold shadow-xs" style="border-radius: 16px;">
+                <i class="bi bi-cloud-arrow-down me-1"></i>Smart Merge Database
+            </button>
+        </form>
+        <div class="mt-2 pt-2 border-top d-flex align-items-center gap-2 text-muted" style="font-size: 0.7rem;">
+            <i class="bi bi-shield-check text-warning flex-shrink-0"></i>
+            <span>Proteksi aktif: snapshot <em>pre_restore_*</em> dibuat otomatis sebelum restore.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Desktop Kartu Operasi Basis Data (>= 768px) -->
+<div class="row g-4 mb-4 d-none d-md-flex">
     <!-- 1. Buat Backup Manual -->
     <div class="col-md-6 col-xl-3">
         <div class="card border-0 shadow-sm rounded-4 h-100">
@@ -169,7 +243,7 @@
             <small class="text-muted">Tersedia {{ backups|length }} arsip cadangan di server</small>
         </div>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive d-none d-md-block">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light text-secondary small">
                 <tr>
@@ -224,6 +298,51 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <!-- Mobile Vertical Snapshot Cards (<= 767px) -->
+    <div class="d-md-none p-3 d-flex flex-column gap-3">
+        {% for b in backups %}
+        <div class="mobile-asset-card" style="border-radius: 16px;">
+            <div class="d-flex align-items-start justify-content-between gap-2">
+                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0 overflow-hidden">
+                    <div class="bg-light border rounded-3 d-flex align-items-center justify-content-center text-secondary flex-shrink-0" style="width: 36px; height: 36px;">
+                        <i class="bi bi-file-earmark-binary fs-5"></i>
+                    </div>
+                    <div class="flex-grow-1 min-w-0 overflow-hidden">
+                        <div class="fw-bold font-monospace text-dark text-truncate" style="font-size: 0.8rem;">{{ b.name }}</div>
+                        <div class="d-flex align-items-center gap-2 text-muted" style="font-size: 0.68rem;">
+                            <span class="font-monospace">{{ (b.size / 1024)|round(1) }} KB</span>
+                            <span>&bull;</span>
+                            <span class="font-monospace text-truncate">{{ b.created|format_datetime }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex-shrink-0">
+                    {% if 'auto_' in b.name %}
+                    <span class="badge bg-info-subtle text-info border font-monospace" style="font-size: 0.64rem;">Auto</span>
+                    {% elif 'manual_' in b.name %}
+                    <span class="badge bg-success-subtle text-success border font-monospace" style="font-size: 0.64rem;">Manual</span>
+                    {% elif 'pre_merge_' in b.name %}
+                    <span class="badge bg-primary-subtle text-primary border font-monospace" style="font-size: 0.64rem;">Pre-Merge</span>
+                    {% elif 'pre_restore_' in b.name %}
+                    <span class="badge bg-warning-subtle text-warning border font-monospace" style="font-size: 0.64rem;">Safety</span>
+                    {% endif %}
+                </div>
+            </div>
+            <form method="POST" action="{{ url_for('restore_backup', filename=b.name) }}" class="mt-2 pt-2 border-top" onsubmit="return confirm('PERINGATAN: Pulihkan database dari {{ b.name }}? Database saat ini akan digantikan oleh cadangan ini.');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm w-100 py-1.5 fw-semibold" style="border-radius: 16px;">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Restore ke Versi Ini
+                </button>
+            </form>
+        </div>
+        {% else %}
+        <div class="text-center py-4 text-muted">
+            <i class="bi bi-database-slash fs-1 d-block mb-2 opacity-50"></i>
+            <span class="small">Belum ada file arsip cadangan tersimpan.</span>
+        </div>
+        {% endfor %}
     </div>
 </div>
 
