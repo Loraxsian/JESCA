@@ -43,6 +43,18 @@
         background: #101726;
         border-color: #1c263c;
     }
+    #itemsTable tr.item-row .form-control,
+    #itemsTable tr.item-row .form-select {
+        font-size: 0.85rem !important;
+        padding: 0.45rem 0.75rem !important;
+        border-radius: 10px !important;
+    }
+    #poForm .card-header {
+        padding: 14px 16px !important;
+    }
+    #poForm .card-body {
+        padding: 16px !important;
+    }
 }
 </style>
 {% endblock %}
@@ -204,16 +216,16 @@
 
             <!-- Form Action Footer -->
             <div class="card border-0 shadow-sm rounded-4 mb-4">
-                <div class="card-body p-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-                    <a href="{% if is_edit %}{{ url_for('purchase_order_detail', po_id=po.id) }}{% else %}{{ url_for('purchase_orders') }}{% endif %}" class="btn btn-light border btn-sm rounded-pill px-4">
+                <div class="card-body p-3 p-md-4 d-flex flex-column-reverse flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-2">
+                    <a href="{% if is_edit %}{{ url_for('purchase_order_detail', po_id=po.id) }}{% else %}{{ url_for('purchase_orders') }}{% endif %}" class="btn btn-light border btn-sm rounded-pill px-4 py-2 text-center">
                         Batal
                     </a>
-                    <div class="d-flex align-items-center gap-2">
-                        <button type="submit" name="action" value="save_draft" class="btn btn-light border btn-sm rounded-pill px-4 shadow-none">
+                    <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+                        <button type="submit" name="action" value="save_draft" class="btn btn-light border btn-sm rounded-pill px-4 py-2 shadow-none">
                             <i class="bi bi-save me-1"></i> Simpan Draft
                         </button>
-                        <button type="submit" name="action" value="submit_now" class="btn btn-primary btn-sm rounded-pill px-4 shadow-sm fw-semibold">
-                            <i class="bi bi-send-check me-1"></i> Simpan & Langsung Ajukan
+                        <button type="submit" name="action" value="submit_now" class="btn btn-primary btn-sm rounded-pill px-4 py-2 shadow-sm fw-semibold">
+                            <i class="bi bi-send-check me-1"></i> Simpan &amp; Langsung Ajukan
                         </button>
                     </div>
                 </div>
