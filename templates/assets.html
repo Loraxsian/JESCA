@@ -517,15 +517,15 @@
             </div>
             <form method="POST" action="{{ url_for('create_asset') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                <div class="modal-body p-3 p-md-4">
-                    <!-- Bagian 1: Informasi Utama -->
-                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px;">1. Informasi Utama</div>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-8">
+                <div class="modal-body p-3 p-md-4 pb-5">
+                    <!-- Bagian 1: Informasi Utama (Selalu Terbuka) -->
+                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.72rem; letter-spacing: 0.5px;">1. Informasi Utama</div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-12 col-md-8">
                             <label class="form-label small fw-bold">Nama Aset <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" required placeholder="Contoh: MacBook Pro M3 16 Inch">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label small fw-bold">Kategori <span class="text-danger">*</span></label>
                             <select class="form-select" name="category" id="addCategorySelect" onchange="updateCustomFields('add', this.value)">
                                 {% for cat in categories %}
@@ -533,110 +533,128 @@
                                 {% endfor %}
                             </select>
                         </div>
-                        <div class="col-md-4 col-6">
+                        <div class="col-12 col-md-4">
                             <label class="form-label small fw-bold">Kode Aset</label>
                             <input type="text" class="form-control font-monospace" name="asset_code" placeholder="Otomatis jika kosong">
                         </div>
-                        <div class="col-md-4 col-6">
+                        <div class="col-12 col-md-4">
                             <label class="form-label small fw-bold">Tanggal Perolehan</label>
                             <input type="date" class="form-control" name="purchase_date" value="{{ today }}">
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label small fw-bold">Nilai Perolehan (IDR)</label>
                             <input type="text" class="form-control" name="purchase_price" placeholder="25.000.000">
                         </div>
                     </div>
 
-                    <!-- Bagian 2: Lokasi & Rekanan -->
-                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px;">2. Lokasi &amp; Rekanan</div>
-                    <div class="row g-3 mb-4">
-                        <div class="col-md-4">
-                            <label class="form-label small fw-bold">Lokasi / Ruangan</label>
-                            <input type="text" class="form-control" name="location" placeholder="Ruang IT / Lantai 2">
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label small fw-bold mb-0">Site Fisik</label>
-                                {% if current_user.role in ['Admin', 'Staff'] %}
-                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.75rem;" onclick="openQuickAddSiteModal()">
-                                    <i class="bi bi-plus-lg"></i> Site Baru
-                                </button>
-                                {% endif %}
+                    <!-- Bagian 2: Lokasi & Rekanan (Collapsible) -->
+                    <div class="border rounded-4 mb-3 overflow-hidden" style="border-color: #e2e8f0 !important;">
+                        <button class="btn btn-light w-100 d-flex align-items-center justify-content-between px-3 py-2.5 text-start border-0 rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#addSectionLokasi" aria-expanded="false">
+                            <span class="text-uppercase text-primary fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">2. Lokasi &amp; Rekanan (Opsional)</span>
+                            <i class="bi bi-chevron-down text-muted small"></i>
+                        </button>
+                        <div class="collapse" id="addSectionLokasi">
+                            <div class="p-3 border-top bg-white">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold">Lokasi / Ruangan</label>
+                                        <input type="text" class="form-control" name="location" placeholder="Ruang IT / Lantai 2">
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold">Site Fisik</label>
+                                        <div class="input-group">
+                                            <select class="form-select site-select-target" name="site_id">
+                                                {% for s in sites %}
+                                                <option value="{{ s.id }}">{{ s.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if current_user.role in ['Admin', 'Staff'] %}
+                                            <button type="button" class="btn btn-outline-primary px-3" onclick="openQuickAddSiteModal()" title="Tambah Site Baru">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-4">
+                                        <label class="form-label small fw-bold">Vendor / Supplier</label>
+                                        <div class="input-group">
+                                            <select class="form-select vendor-select-target" name="vendor_id">
+                                                <option value="">-- Tanpa Vendor --</option>
+                                                {% for v in vendors %}
+                                                <option value="{{ v.id }}">{{ v.name }}</option>
+                                                {% endfor %}
+                                            </select>
+                                            {% if current_user.role in ['Admin', 'Staff'] %}
+                                            <button type="button" class="btn btn-outline-primary px-3" onclick="openQuickAddVendorModal()" title="Tambah Vendor Baru">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                            <select class="form-select site-select-target" name="site_id">
-                                {% for s in sites %}
-                                <option value="{{ s.id }}">{{ s.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <label class="form-label small fw-bold mb-0">Vendor / Supplier</label>
-                                {% if current_user.role in ['Admin', 'Staff'] %}
-                                <button type="button" class="btn btn-link p-0 text-decoration-none small text-primary" style="font-size: 0.75rem;" onclick="openQuickAddVendorModal()">
-                                    <i class="bi bi-plus-lg"></i> Vendor Baru
-                                </button>
-                                {% endif %}
-                            </div>
-                            <select class="form-select vendor-select-target" name="vendor_id">
-                                <option value="">-- Tanpa Vendor --</option>
-                                {% for v in vendors %}
-                                <option value="{{ v.id }}">{{ v.name }}</option>
-                                {% endfor %}
-                            </select>
                         </div>
                     </div>
 
-                    <!-- Bagian 3: Garansi, Pemeliharaan & Lampiran -->
-                    <div class="text-uppercase text-primary fw-bold mb-2 pb-1 border-bottom" style="font-size: 0.7rem; letter-spacing: 0.5px;">3. Garansi, Pemeliharaan &amp; Lampiran</div>
-                    <div class="row g-3">
-                        <div class="col-md-3 col-6">
-                            <label class="form-label small fw-bold">Garansi Mulai</label>
-                            <input type="date" class="form-control" name="warranty_start">
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <label class="form-label small fw-bold">Garansi Berakhir</label>
-                            <input type="date" class="form-control" name="warranty_end">
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <label class="form-label small fw-bold">Masa Manfaat (Thn)</label>
-                            <input type="number" class="form-control" name="useful_life_years" placeholder="Contoh: 4">
-                        </div>
-                        <div class="col-md-3 col-6">
-                            <label class="form-label small fw-bold">Nilai Residu (IDR)</label>
-                            <input type="text" class="form-control" name="salvage_value" placeholder="0">
-                        </div>
+                    <!-- Bagian 3: Garansi, Pemeliharaan & Lampiran (Collapsible) -->
+                    <div class="border rounded-4 mb-2 overflow-hidden" style="border-color: #e2e8f0 !important;">
+                        <button class="btn btn-light w-100 d-flex align-items-center justify-content-between px-3 py-2.5 text-start border-0 rounded-0" type="button" data-bs-toggle="collapse" data-bs-target="#addSectionGaransi" aria-expanded="false">
+                            <span class="text-uppercase text-primary fw-bold" style="font-size: 0.72rem; letter-spacing: 0.5px;">3. Garansi, Servis &amp; Lampiran (Opsional)</span>
+                            <i class="bi bi-chevron-down text-muted small"></i>
+                        </button>
+                        <div class="collapse" id="addSectionGaransi">
+                            <div class="p-3 border-top bg-white">
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small fw-bold">Garansi Mulai</label>
+                                        <input type="date" class="form-control" name="warranty_start">
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small fw-bold">Garansi Berakhir</label>
+                                        <input type="date" class="form-control" name="warranty_end">
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small fw-bold">Masa Manfaat (Tahun)</label>
+                                        <input type="number" class="form-control" name="useful_life_years" placeholder="Contoh: 4">
+                                    </div>
+                                    <div class="col-12 col-md-3">
+                                        <label class="form-label small fw-bold">Nilai Residu (IDR)</label>
+                                        <input type="text" class="form-control" name="salvage_value" placeholder="0">
+                                    </div>
 
-                        <!-- Dynamic Custom Fields Section -->
-                        <div class="col-12" id="addCustomFieldsContainer">
-                            <!-- Populated via JS based on selected category -->
-                        </div>
+                                    <!-- Dynamic Custom Fields Section -->
+                                    <div class="col-12" id="addCustomFieldsContainer">
+                                        <!-- Populated via JS based on selected category -->
+                                    </div>
 
-                        <!-- Maintenance Toggle -->
-                        <div class="col-md-6">
-                            <label class="form-label small fw-bold">Perlu Pemeliharaan Berkala?</label>
-                            <select class="form-select" name="needs_maintenance" id="addNeedsMaintenance" onchange="toggleMaintInput('add')">
-                                <option value="0">Tidak Perlu (-)</option>
-                                <option value="1">Ya, Perlu Servis Rutin</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6 d-none" id="addMaintIntervalCol">
-                            <label class="form-label small fw-bold">Interval Pemeliharaan (Hari)</label>
-                            <input type="number" class="form-control" name="maintenance_interval_days" value="90">
-                        </div>
+                                    <!-- Maintenance Toggle -->
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold">Perlu Pemeliharaan Berkala?</label>
+                                        <select class="form-select" name="needs_maintenance" id="addNeedsMaintenance" onchange="toggleMaintInput('add')">
+                                            <option value="0">Tidak Perlu (-)</option>
+                                            <option value="1">Ya, Perlu Servis Rutin</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12 col-md-6 d-none" id="addMaintIntervalCol">
+                                        <label class="form-label small fw-bold">Interval Pemeliharaan (Hari)</label>
+                                        <input type="number" class="form-control" name="maintenance_interval_days" value="90">
+                                    </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold">Foto Fisik Aset</label>
-                            <input type="file" class="form-control" name="photo" accept="image/*">
-                        </div>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Foto Fisik Aset</label>
+                                        <input type="file" class="form-control" name="photo" accept="image/*">
+                                    </div>
 
-                        <div class="col-md-12">
-                            <label class="form-label small fw-bold">Deskripsi / Spesifikasi Tambahan</label>
-                            <textarea class="form-control" name="description" rows="2" placeholder="Catatan spesifikasi, kelengkapan, nomor seri internal..."></textarea>
+                                    <div class="col-12">
+                                        <label class="form-label small fw-bold">Deskripsi / Spesifikasi Tambahan</label>
+                                        <textarea class="form-control" name="description" rows="2" placeholder="Catatan spesifikasi, kelengkapan, nomor seri internal..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top px-3 px-md-4 py-3">
+                <div class="modal-footer border-top bg-white shadow-sm px-3 px-md-4 py-3" style="z-index: 2;">
                     <button type="button" class="btn btn-light border btn-sm rounded-pill px-3" data-bs-dismiss="modal">Batal</button>
                     <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4 fw-semibold">Simpan Aset</button>
                 </div>

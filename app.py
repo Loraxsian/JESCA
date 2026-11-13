@@ -20,6 +20,7 @@ from email.mime.multipart import MIMEMultipart
 from functools import wraps
 from datetime import datetime, date, timedelta, timezone
 from urllib.parse import quote
+from i18n import get_current_lang, translate as i18n_translate, SUPPORTED_LANGUAGES
 
 from flask import (
     Flask, render_template, request, redirect, url_for, flash, jsonify, Response, send_from_directory, session
@@ -60,7 +61,7 @@ except ImportError:
 # ==========================================
 # Application Version
 # ==========================================
-APP_VERSION = '2.6.3'
+APP_VERSION = '2.6.4'
 GITHUB_REPO = 'Loraxsian/JESCA'  # Used for release check via GitHub API
 
 # ==========================================
@@ -982,7 +983,9 @@ def inject_alerts():
             'user_po_alerts': user_po_alerts,
             'feedback_alerts': feedback_alerts,
             'is_sudo_active': is_sudo_active(),
-            'csrf_token': lambda: ''
+            'csrf_token': lambda: '',
+            't': i18n_translate,
+            'current_lang': get_current_lang()
         }
     today_now = date.today()
     return {
@@ -993,6 +996,8 @@ def inject_alerts():
         'overdue_returns': [],
         'pending_po_alerts': [],
         'user_po_alerts': [],
+        't': i18n_translate,
+        'current_lang': get_current_lang(),
         'feedback_alerts': [],
         'is_sudo_active': False,
         'csrf_token': lambda: ''
@@ -1796,6 +1801,19 @@ def index():
     if current_user.is_authenticated:
         return redirect(url_for('dashboard'))
     return redirect(url_for('login'))
+
+
+@app.route('/set-lang/<lang>')
+def set_language(lang):
+    """Simpan preferensi bahasa (ID / EN) di session & cookie via Python."""
+    chosen = lang.lower().strip()
+    if chosen not in SUPPORTED_LANGUAGES:
+        chosen = 'id'
+    session['jesca_lang'] = chosen
+    next_url = request.referrer or url_for('dashboard')
+    resp = redirect(next_url)
+    resp.set_cookie('jesca_lang', chosen, max_age=365 * 24 * 3600, samesite='Lax')
+    return resp
 
 
 @app.route('/login', methods=['GET', 'POST'])

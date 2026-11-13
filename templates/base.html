@@ -17,7 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.6.3">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.6.4">
 
     <!-- Favicon JA Multi-Size -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}?v=2.5.8.3">
@@ -247,7 +247,7 @@
                                     </span>
                                 {% endif %}
                             </button>
-                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2" style="min-width: 320px; max-height: 420px; overflow-y: auto;">
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm border mt-2 py-2 jesca-notif-dropdown" style="min-width: 320px; max-height: 420px; overflow-y: auto;">
                                 <!-- Section: Bug Report & Feedback Alerts (Admin & Teknisi) -->
                                 {% if feedback_alerts and feedback_alerts|length > 0 %}
                                 <li class="px-3 py-2 bg-danger bg-opacity-10 border-bottom d-flex justify-content-between align-items-center">
@@ -327,37 +327,37 @@
 
                                 <!-- Section: Maintenance Alerts -->
                                 <li class="px-3 py-2 border-bottom d-flex justify-content-between align-items-center">
-                                    <span class="fw-bold small text-dark"><i class="bi bi-tools text-warning me-1"></i> Jadwal Maintenance (7 Hari)</span>
+                                    <span class="fw-bold small text-dark"><i class="bi bi-tools text-warning me-1"></i> Jadwal Pemeliharaan (7 Hari)</span>
                                     <span class="badge bg-light text-secondary border font-monospace">{{ maintenance_alerts|length }} Aset</span>
                                 </li>
                                 {% if maintenance_alerts and maintenance_alerts|length > 0 %}
                                     {% for item in maintenance_alerts %}
                                     <li>
-                                        <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('assets', search=item.asset.asset_code) }}">
+                                        <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('maintenance') }}">
                                             <div class="mt-1">
                                                 <i class="bi bi-exclamation-triangle-fill text-{{ item.badge_class }}"></i>
                                             </div>
-                                            <div class="flex-grow-1">
-                                                <div class="d-flex justify-content-between align-items-center">
+                                            <div class="flex-grow-1 min-w-0">
+                                                <div class="d-flex justify-content-between align-items-center gap-1">
                                                     <span class="badge bg-light text-primary font-monospace border" style="font-size: 0.7rem;">{{ item.asset.asset_code }}</span>
                                                     <span class="badge bg-{{ item.badge_class }}-subtle text-{{ item.badge_class }}" style="font-size: 0.68rem;">{{ item.status_text }}</span>
                                                 </div>
-                                                <div class="fw-semibold small text-dark text-truncate mt-1" style="max-width: 220px;">{{ item.asset.name }}</div>
+                                                <div class="fw-semibold small text-dark text-truncate mt-1">{{ item.asset.name }}</div>
                                                 <small class="text-muted d-block" style="font-size: 0.72rem;">Jadwal: {{ item.asset.next_maintenance_date|format_date }}</small>
                                             </div>
                                         </a>
                                     </li>
                                     {% endfor %}
                                     <li class="pt-2 text-center">
-                                        <a href="{{ url_for('assets', maintenance='due') }}" class="small text-primary fw-semibold text-decoration-none">
-                                            Lihat Semua Aset Jatuh Tempo &rarr;
+                                        <a href="{{ url_for('maintenance') }}" class="small text-primary fw-semibold text-decoration-none">
+                                            Buka Halaman Pemeliharaan Aset &rarr;
                                         </a>
                                     </li>
                                 {% else %}
                                     {% if not pending_po_alerts and not user_po_alerts %}
                                     <li class="p-3 text-center text-muted small">
                                         <i class="bi bi-check-circle text-success fs-4 d-block mb-1"></i>
-                                        Tidak ada jadwal maintenance dalam 7 hari ke depan. Semua perangkat beroperasi normal!
+                                        Tidak ada jadwal pemeliharaan dalam 7 hari ke depan. Semua perangkat beroperasi normal!
                                     </li>
                                     {% endif %}
                                 {% endif %}
@@ -560,7 +560,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.6.3 Stabil</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.6.4 Stabil</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Cetak halaman ini">
@@ -1225,7 +1225,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Global App JS -->
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.6.3"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.6.4"></script>
 
     <!-- Theme Switcher JS -->
     <script>

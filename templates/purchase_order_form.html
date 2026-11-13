@@ -74,33 +74,33 @@
 
             <!-- Header Card: General Information -->
             <div class="card border-0 shadow-sm rounded-4 mb-3">
-                <div class="card-header bg-white border-bottom p-4">
+                <div class="card-header bg-white border-bottom p-3 p-md-4">
                     <div class="d-flex align-items-center gap-3">
-                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle p-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
-                            <i class="bi bi-file-earmark-text fs-4"></i>
+                        <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                            <i class="bi bi-file-earmark-text fs-5"></i>
                         </div>
-                        <div>
-                            <h5 class="fw-bold mb-1 text-dark">
+                        <div class="min-w-0">
+                            <h5 class="fw-bold mb-1 text-dark" style="font-size: 1.05rem;">
                                 {% if is_edit %}
                                 Edit Purchase Order <span class="font-monospace text-primary">#{{ po.po_number }}</span>
                                 {% else %}
-                                Form Permohonan Pengadaan Barang Baru
+                                {{ t('Form Permohonan Pengadaan Barang Baru') }}
                                 {% endif %}
                             </h5>
-                            <p class="text-muted small mb-0">Isi data permohonan belanja, rincian barang, dan vendor penyedia.</p>
+                            <p class="text-muted small mb-0">{{ t('Isi data permohonan belanja, rincian barang, dan vendor penyedia.') }}</p>
                         </div>
                     </div>
                 </div>
-                <div class="card-body p-4">
+                <div class="card-body p-3 p-md-4">
                     <div class="row g-3">
                         <div class="col-md-8">
-                            <label class="form-label small fw-bold text-secondary">Judul Pengadaan / Keperluan <span class="text-danger">*</span></label>
+                            <label class="form-label small fw-bold text-secondary">{{ t('Judul Pengadaan / Keperluan') }} <span class="text-danger">*</span></label>
                             <input type="text" name="title" class="form-control" placeholder="Contoh: Pengadaan Laptop & Monitor Divisi IT Kuartal 4" value="{% if is_edit %}{{ po.title }}{% endif %}" required autofocus>
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label small fw-bold text-secondary">Mitra Vendor / Supplier</label>
+                            <label class="form-label small fw-bold text-secondary">{{ t('Mitra Vendor / Supplier') }}</label>
                             <select name="vendor_id" class="form-select">
-                                <option value="">-- Pilih Vendor (Opsional) --</option>
+                                <option value="">{{ t('-- Pilih Vendor (Opsional) --') }}</option>
                                 {% for v in vendors %}
                                 <option value="{{ v.id }}" {% if is_edit and po.vendor_id == v.id %}selected{% endif %}>
                                     {{ v.name }}
@@ -109,8 +109,8 @@
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label small fw-bold text-secondary">Catatan / Justifikasi Pengadaan (Opsional)</label>
-                            <textarea name="notes" class="form-control" rows="2" placeholder="Jelaskan latar belakang atau peruntukan barang yang diajukan...">{% if is_edit %}{{ po.notes }}{% endif %}</textarea>
+                            <label class="form-label small fw-bold text-secondary">{{ t('Catatan / Justifikasi Pengadaan (Opsional)') }}</label>
+                            <textarea name="notes" class="form-control" rows="2" placeholder="{{ t('Jelaskan latar belakang atau peruntukan barang yang diajukan...') }}">{% if is_edit %}{{ po.notes }}{% endif %}</textarea>
                         </div>
                     </div>
                 </div>
@@ -118,13 +118,13 @@
 
             <!-- Items Table Card -->
             <div class="card border-0 shadow-sm rounded-4 mb-3 overflow-hidden">
-                <div class="card-header bg-white border-bottom p-4 d-flex align-items-center justify-content-between">
-                    <div>
-                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-boxes me-2 text-primary"></i>Rincian Barang yang Diajukan</h6>
-                        <small class="text-muted">Masukkan daftar item barang yang ingin dibeli beserta estimasi harga satuannya.</small>
+                <div class="card-header bg-white border-bottom p-3 p-md-4 d-flex flex-wrap align-items-center justify-content-between gap-2">
+                    <div class="min-w-0">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-boxes me-2 text-primary"></i>{{ t('Rincian Barang yang Diajukan') }}</h6>
+                        <small class="text-muted d-block">{{ t('Masukkan daftar item barang yang ingin dibeli beserta estimasi harga satuannya.') }}</small>
                     </div>
-                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-none" id="addRowBtn">
-                        <i class="bi bi-plus-lg me-1"></i> Tambah Baris
+                    <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 shadow-none flex-shrink-0 text-nowrap" id="addRowBtn">
+                        <i class="bi bi-plus-lg me-1"></i> {{ t('Tambah Baris') }}
                     </button>
                 </div>
                 <div class="table-responsive">
@@ -150,7 +150,9 @@
                                     <td>
                                         <select name="category[]" class="form-select form-select-sm">
                                             {% for cat in categories %}
-                                            <option value="{{ cat }}" {% if cat == itm.category %}selected{% endif %}>{{ cat }}</option>
+                                            {% set cat_val = cat.name if cat is mapping else cat %}
+                                            {% set cat_lbl = cat.label if cat is mapping else cat %}
+                                            <option value="{{ cat_val }}" {% if cat_val == itm.category %}selected{% endif %}>{{ cat_lbl }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -180,7 +182,9 @@
                                     <td>
                                         <select name="category[]" class="form-select form-select-sm">
                                             {% for cat in categories %}
-                                            <option value="{{ cat }}" {% if cat == 'Tech' %}selected{% endif %}>{{ cat }}</option>
+                                            {% set cat_val = cat.name if cat is mapping else cat %}
+                                            {% set cat_lbl = cat.label if cat is mapping else cat %}
+                                            <option value="{{ cat_val }}" {% if cat_val == 'Tech' %}selected{% endif %}>{{ cat_lbl }}</option>
                                             {% endfor %}
                                         </select>
                                     </td>
@@ -201,9 +205,9 @@
                                 </tr>
                             {% endif %}
                         </tbody>
-                        <tfoot class="table-light">
+                        <tfoot class="table-light d-none d-md-table-footer-group">
                             <tr>
-                                <td colspan="4" class="text-end fw-bold py-3">TOTAL ESTIMASI BIAYA:</td>
+                                <td colspan="4" class="text-end fw-bold py-3">{{ t('TOTAL ESTIMASI BIAYA:') }}</td>
                                 <td class="text-end fw-bold font-monospace text-primary fs-5 py-3" id="grandTotalDisplay">
                                     Rp 0
                                 </td>
@@ -212,20 +216,25 @@
                         </tfoot>
                     </table>
                 </div>
+                <!-- Mobile Total Summary Bar -->
+                <div class="d-md-none p-3 bg-light border-top d-flex align-items-center justify-content-between gap-2">
+                    <span class="fw-bold text-secondary small">{{ t('TOTAL ESTIMASI BIAYA:') }}</span>
+                    <span class="fw-bold font-monospace text-primary fs-5" id="grandTotalDisplayMobile">Rp 0</span>
+                </div>
             </div>
 
             <!-- Form Action Footer -->
             <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-body p-3 p-md-4 d-flex flex-column-reverse flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-2">
                     <a href="{% if is_edit %}{{ url_for('purchase_order_detail', po_id=po.id) }}{% else %}{{ url_for('purchase_orders') }}{% endif %}" class="btn btn-light border btn-sm rounded-pill px-4 py-2 text-center">
-                        Batal
+                        {{ t('Batal') }}
                     </a>
                     <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
                         <button type="submit" name="action" value="save_draft" class="btn btn-light border btn-sm rounded-pill px-4 py-2 shadow-none">
-                            <i class="bi bi-save me-1"></i> Simpan Draft
+                            <i class="bi bi-save me-1"></i> {{ t('Simpan Draft') }}
                         </button>
                         <button type="submit" name="action" value="submit_now" class="btn btn-primary btn-sm rounded-pill px-4 py-2 shadow-sm fw-semibold">
-                            <i class="bi bi-send-check me-1"></i> Simpan &amp; Langsung Ajukan
+                            <i class="bi bi-send-check me-1"></i> {{ t('Simpan & Langsung Ajukan') }}
                         </button>
                     </div>
                 </div>
@@ -237,7 +246,9 @@
 <!-- Category options data for dynamic rows -->
 <template id="categoryOptionsTemplate">
     {% for cat in categories %}
-    <option value="{{ cat }}">{{ cat }}</option>
+    {% set cat_val = cat.name if cat is mapping else cat %}
+    {% set cat_lbl = cat.label if cat is mapping else cat %}
+    <option value="{{ cat_val }}">{{ cat_lbl }}</option>
     {% endfor %}
 </template>
 
@@ -271,6 +282,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         if (grandTotalEl) {
             grandTotalEl.textContent = formatRupiah(total);
+        }
+        var grandTotalMobileEl = document.getElementById('grandTotalDisplayMobile');
+        if (grandTotalMobileEl) {
+            grandTotalMobileEl.textContent = formatRupiah(total);
         }
     }
 
