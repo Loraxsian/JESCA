@@ -8,6 +8,7 @@ from config import BACKUP_FOLDER, db_path
 from models.user import User
 from models.asset import Site
 from models.system import SystemSetting
+from services.audit_service import log_activity
 
 
 def seed_database():
@@ -225,7 +226,7 @@ def upload_to_remote_backup(local_file_path, setting=None):
         else:
             return False, f"Protokol {protocol} tidak didukung."
     except Exception as e:
-        app.logger.error(f"Remote backup upload failed: {e}")
+        current_app.logger.error(f"Remote backup upload failed: {e}")
         log_activity('REMOTE_BACKUP_FAIL', details=f"Gagal mengunggah backup '{filename}' ke {host}: {str(e)}")
         return False, str(e)
 

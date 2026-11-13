@@ -25,7 +25,7 @@ def role_required(*roles):
             if not current_user.is_authenticated:
                 if request.is_json or request.path.startswith('/api/'):
                     return jsonify({'error': 'Unauthorized', 'message': 'Login diperlukan'}), 401
-                return redirect(url_for('login'))
+                return redirect(url_for('auth.login'))
             if current_user.role not in roles:
                 if request.is_json or request.path.startswith('/api/'):
                     return jsonify({
@@ -75,7 +75,7 @@ def sudo_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if not current_user.is_authenticated:
-            return redirect(url_for('login'))
+            return redirect(url_for('auth.login'))
         if not is_sudo_active():
             if request.is_json or request.path.startswith('/api/'):
                 return jsonify({

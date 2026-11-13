@@ -48,7 +48,7 @@ from utils.helpers import (
 from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
 from services.email_service import build_system_email_html, send_system_email
 from services.backup_service import upload_to_remote_backup
-from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, _QUICK_TUNNEL_INFO, _QUICK_TUNNEL_PROC
+from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, get_quick_tunnel_status
 
 auth_bp = Blueprint('auth', __name__)
 

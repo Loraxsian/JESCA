@@ -6,7 +6,7 @@ import hashlib
 import ipaddress
 import secrets
 from datetime import datetime, timezone, timedelta
-from flask import request
+from flask import request, current_app
 from werkzeug.utils import secure_filename
 
 from config import (
@@ -18,6 +18,8 @@ from extensions import db
 from models.asset import Asset
 from models.purchase_order import PurchaseOrder
 from models.system import SystemSetting
+
+WIB = timezone(timedelta(hours=7))
 
 
 def _app_secret():
@@ -52,7 +54,7 @@ def save_uploaded_photo(file_storage):
         ext = file_storage.filename.rsplit('.', 1)[1].lower()
         clean_name = secure_filename(file_storage.filename.rsplit('.', 1)[0])[:30]
         unique_name = f"asset_{int(datetime.utcnow().timestamp())}_{clean_name}_{uuid.uuid4().hex[:6]}.{ext}"
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], unique_name)
+        filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], unique_name)
         file_storage.save(filepath)
         return unique_name
     return None
@@ -62,11 +64,11 @@ def delete_photo_file(filename):
     """Delete uploaded photo file from static/uploads."""
     if filename:
         try:
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
             if os.path.exists(path):
                 os.remove(path)
         except Exception as e:
-            app.logger.error(f"Error removing image file: {e}")
+            current_app.logger.error(f"Error removing image file: {e}")
 
 
 def save_po_attachment(file_storage):
@@ -119,7 +121,7 @@ def delete_avatar_file(filename):
             if os.path.exists(path):
                 os.remove(path)
         except Exception as e:
-            app.logger.error(f"Error removing avatar file: {e}")
+            current_app.logger.error(f"Error removing avatar file: {e}")
 
 
 def encrypt_smtp_password(plain_pwd: str) -> str:
@@ -145,7 +147,7 @@ def decrypt_smtp_password(stored_pwd: str) -> str:
         decrypted = bytes([b ^ key[i % len(key)] for i, b in enumerate(xored)])
         return decrypted.decode('utf-8')
     except Exception as e:
-        app.logger.error(f"Decryption error: {e}")
+        current_app.logger.error(f"Decryption error: {e}")
         return ""
 
 

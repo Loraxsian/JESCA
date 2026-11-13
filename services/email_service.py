@@ -1,4 +1,5 @@
 import smtplib
+import threading
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from flask import current_app
@@ -160,7 +161,7 @@ def send_system_email(subject: str, html_body: str, recipient_list=None):
     # Launch asynchronously
     t = threading.Thread(
         target=_worker,
-        args=(app.app_context(), subject, html_body, recipient_list),
+        args=(current_app._get_current_object().app_context(), subject, html_body, recipient_list),
         daemon=True
     )
     t.start()

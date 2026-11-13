@@ -1,4 +1,5 @@
 from datetime import datetime, date, timedelta
+from flask import current_app
 from flask_login import current_user
 from extensions import db
 from models.asset import Asset
@@ -34,7 +35,7 @@ def log_activity(action, asset_code=None, asset_name=None, details=None):
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Error saving activity log: {e}")
+        current_app.logger.error(f"Error saving activity log: {e}")
 
 
 def get_maintenance_notifications():
@@ -101,5 +102,5 @@ def log_po_history(po, action, notes=None, attachment=None):
         db.session.commit()
     except Exception as e:
         db.session.rollback()
-        app.logger.error(f"Error logging PO history: {e}")
+        current_app.logger.error(f"Error logging PO history: {e}")
 

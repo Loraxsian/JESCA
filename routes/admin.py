@@ -10,6 +10,8 @@ import smtplib
 import socket
 import subprocess
 import traceback
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime, date, timedelta
 from urllib.parse import quote
 
@@ -48,7 +50,7 @@ from utils.helpers import (
 from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
 from services.email_service import build_system_email_html, send_system_email
 from services.backup_service import upload_to_remote_backup
-from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, _QUICK_TUNNEL_INFO, _QUICK_TUNNEL_PROC
+from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, get_quick_tunnel_status
 
 admin_bp = Blueprint('admin', __name__)
 
@@ -967,17 +969,7 @@ def system_settings():
 @login_required
 @role_required('Admin')
 def api_quick_tunnel_status():
-    global _QUICK_TUNNEL_PROC, _QUICK_TUNNEL_INFO
-    with _QUICK_TUNNEL_LOCK:
-        if _QUICK_TUNNEL_PROC and _QUICK_TUNNEL_PROC.poll() is not None:
-            _QUICK_TUNNEL_PROC = None
-            _QUICK_TUNNEL_INFO = {
-                'active': False,
-                'public_url': None,
-                'expires_in': None,
-                'started_at': None
-            }
-        return jsonify(_QUICK_TUNNEL_INFO)
+    return jsonify(get_quick_tunnel_status())
 
 
 @admin_bp.route('/api/system/quick-tunnel/start', methods=['POST'])

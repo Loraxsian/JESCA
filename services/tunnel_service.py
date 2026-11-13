@@ -1,4 +1,5 @@
 import re
+import shutil
 import time
 import threading
 import subprocess
@@ -104,3 +105,18 @@ def stop_quick_tunnel():
         }
         return _QUICK_TUNNEL_INFO
 
+
+
+def get_quick_tunnel_status():
+    """Return current tunnel state, resetting it if the process has exited."""
+    global _QUICK_TUNNEL_PROC, _QUICK_TUNNEL_INFO
+    with _QUICK_TUNNEL_LOCK:
+        if _QUICK_TUNNEL_PROC and _QUICK_TUNNEL_PROC.poll() is not None:
+            _QUICK_TUNNEL_PROC = None
+            _QUICK_TUNNEL_INFO = {
+                'active': False,
+                'public_url': None,
+                'expires_in': None,
+                'started_at': None
+            }
+        return dict(_QUICK_TUNNEL_INFO)
