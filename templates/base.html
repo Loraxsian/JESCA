@@ -17,7 +17,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
 
     <!-- Custom Style -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=2.6.5">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=3.0.0">
 
     <!-- Favicon JA Multi-Size -->
     <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='img/favicon.svg') }}?v=2.5.8.3">
@@ -46,7 +46,7 @@
         <aside class="sidebar bg-white border-end" id="sidebar-wrapper">
             <!-- Brand Logo -->
             <div class="sidebar-heading px-3 py-3 border-bottom d-flex align-items-center justify-content-between">
-                <a href="{{ url_for('dashboard') }}" class="d-flex align-items-center text-decoration-none gap-2.5 flex-grow-1 overflow-hidden" style="min-width: 0;">
+                <a href="{{ url_for('main.dashboard') }}" class="d-flex align-items-center text-decoration-none gap-2.5 flex-grow-1 overflow-hidden" style="min-width: 0;">
                     <img src="{{ url_for('static', filename='img/jesca_logo.png') }}?v=2.5.8.3" alt="JESCA Logo" class="brand-logo-img">
                     <span class="brand-title">JESCA</span>
                 </a>
@@ -62,20 +62,20 @@
                 <div class="menu-label" data-i18n="sidebar_main_inventory">Inventaris Utama</div>
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     <li class="nav-item">
-                        <a id="tourMenuDashboard" href="{{ url_for('dashboard') }}" class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuDashboard" href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-grid-1x2"></i>
                             <span data-i18n="sidebar_dashboard">Beranda</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a id="tourMenuAssets" href="{{ url_for('assets') }}" class="nav-link {% if request.endpoint == 'assets' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuAssets" href="{{ url_for('assets.assets') }}" class="nav-link {% if request.endpoint == 'assets.assets' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-boxes"></i>
                             <span data-i18n="sidebar_assets">Data Aset</span>
                         </a>
                     </li>
                     {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Auditor'] %}
                     <li class="nav-item">
-                        <a id="tourMenuPO" href="{{ url_for('purchase_orders') }}" class="nav-link {% if request.endpoint in ['purchase_orders', 'purchase_order_detail', 'create_purchase_order', 'edit_purchase_order'] %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuPO" href="{{ url_for('po.purchase_orders') }}" class="nav-link {% if request.endpoint in ['po.purchase_orders', 'po.purchase_order_detail', 'po.create_purchase_order', 'po.edit_purchase_order'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-cart-check"></i>
                             <span data-i18n="sidebar_po">Pengadaan Barang (PO)</span>
                             {% if current_user.role in ['Admin', 'Administrator'] and pending_po_alerts and pending_po_alerts|length > 0 %}
@@ -85,7 +85,7 @@
                     </li>
                     {% endif %}
                     <li class="nav-item">
-                        <a id="tourMenuMaintenance" href="{{ url_for('maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuMaintenance" href="{{ url_for('maintenance.maintenance') }}" class="nav-link {% if request.endpoint == 'maintenance.maintenance' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-wrench-adjustable"></i>
                             <span data-i18n="sidebar_maintenance">Pemeliharaan Aset</span>
                             {% if maintenance_alerts and maintenance_alerts|length > 0 %}
@@ -95,7 +95,7 @@
                     </li>
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
-                        <a id="tourMenuSites" href="{{ url_for('sites') }}" class="nav-link {% if request.endpoint == 'sites' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuSites" href="{{ url_for('assets.sites') }}" class="nav-link {% if request.endpoint == 'assets.sites' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-geo-alt"></i>
                             <span data-i18n="sidebar_sites">Lokasi & Site</span>
                         </a>
@@ -103,7 +103,7 @@
                     {% endif %}
                     {% if current_user.role != 'Teknisi' %}
                     <li class="nav-item">
-                        <a id="tourMenuVendors" href="{{ url_for('vendors') }}" class="nav-link {% if request.endpoint == 'vendors' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuVendors" href="{{ url_for('assets.vendors') }}" class="nav-link {% if request.endpoint == 'assets.vendors' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-building"></i>
                             <span data-i18n="sidebar_vendors">Vendor & Supplier</span>
                         </a>
@@ -117,7 +117,7 @@
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role in ['Admin', 'Administrator'] %}
                     <li class="nav-item">
-                        <a id="tourMenuHistory" href="{{ url_for('history') }}" class="nav-link {% if request.endpoint == 'history' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuHistory" href="{{ url_for('admin.history') }}" class="nav-link {% if request.endpoint == 'admin.history' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-clock-history"></i>
                             <span data-i18n="sidebar_history">Log Aktivitas</span>
                         </a>
@@ -125,7 +125,7 @@
                     {% endif %}
                     {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
                     <li class="nav-item">
-                        <a id="tourMenuAudit" href="{{ url_for('audit_report') }}" class="nav-link {% if request.endpoint == 'audit_report' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuAudit" href="{{ url_for('admin.audit_report') }}" class="nav-link {% if request.endpoint == 'admin.audit_report' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-file-earmark-text"></i>
                             <span data-i18n="sidebar_audit">Laporan Audit</span>
                         </a>
@@ -133,7 +133,7 @@
                     {% endif %}
                     {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
                     <li class="nav-item">
-                        <a href="{{ url_for('feedbacks_list') }}" class="nav-link {% if request.endpoint in ['feedbacks_list', 'feedback_detail'] %}active{% endif %} d-flex align-items-center gap-3">
+                        <a href="{{ url_for('main.feedbacks_list') }}" class="nav-link {% if request.endpoint in ['main.feedbacks_list', 'feedback_detail'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-chat-square-text"></i>
                             <span data-i18n="sidebar_feedbacks">Laporan & Masukan</span>
                             {% if feedback_alerts and feedback_alerts|length > 0 %}
@@ -156,19 +156,19 @@
                 <ul class="nav nav-pills flex-column gap-1 mb-3">
                     {% if current_user.role == 'Admin' %}
                     <li class="nav-item">
-                        <a href="{{ url_for('accounts') }}" class="nav-link {% if request.endpoint in ['accounts', 'users_redirect'] %}active{% endif %} d-flex align-items-center gap-3">
+                        <a href="{{ url_for('admin.accounts') }}" class="nav-link {% if request.endpoint in ['admin.accounts', 'admin.users_redirect'] %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-people"></i>
                             <span data-i18n="sidebar_users">Kelola Pengguna</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="{{ url_for('admin_backups') }}" class="nav-link {% if request.endpoint == 'admin_backups' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a href="{{ url_for('admin.admin_backups') }}" class="nav-link {% if request.endpoint == 'admin.admin_backups' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-database"></i>
                             <span data-i18n="sidebar_backups">Cadangan DB</span>
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a id="tourMenuSettings" href="{{ url_for('system_settings') }}" class="nav-link {% if request.endpoint == 'system_settings' %}active{% endif %} d-flex align-items-center gap-3">
+                        <a id="tourMenuSettings" href="{{ url_for('admin.system_settings') }}" class="nav-link {% if request.endpoint == 'admin.system_settings' %}active{% endif %} d-flex align-items-center gap-3">
                             <i class="bi bi-gear-wide-connected"></i>
                             <span data-i18n="sidebar_settings_link">Pengaturan Sistem</span>
                         </a>
@@ -185,23 +185,23 @@
                 <!-- Category Quick Links -->
                 <div class="menu-label" data-i18n="sidebar_categories">Kategori Aset</div>
                 <div id="tourMenuCategories" class="d-flex flex-column gap-1 mb-3">
-                    <a href="{{ url_for('assets', category='Tech') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                    <a href="{{ url_for('assets.assets', category='Tech') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-laptop text-primary"></i> <span data-i18n="cat_tech">Teknologi & IT</span></span>
                         <span class="badge bg-light text-primary border font-monospace" style="font-size: 0.72rem;">Tech</span>
                     </a>
-                    <a href="{{ url_for('assets', category='Tools') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                    <a href="{{ url_for('assets.assets', category='Tools') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-tools text-warning"></i> <span data-i18n="cat_tools">Peralatan & Mesin</span></span>
                         <span class="badge bg-light text-warning border font-monospace" style="font-size: 0.72rem;">Tools</span>
                     </a>
-                    <a href="{{ url_for('assets', category='Furniture') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                    <a href="{{ url_for('assets.assets', category='Furniture') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-lamp text-info"></i> <span data-i18n="cat_furniture">Perabot & Furnitur</span></span>
                         <span class="badge bg-light text-info border font-monospace" style="font-size: 0.72rem;">Furn</span>
                     </a>
-                    <a href="{{ url_for('assets', category='Vehicle') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                    <a href="{{ url_for('assets.assets', category='Vehicle') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-car-front text-danger"></i> <span data-i18n="cat_vehicle">Kendaraan Operasional</span></span>
                         <span class="badge bg-light text-danger border font-monospace" style="font-size: 0.72rem;">Vehicle</span>
                     </a>
-                    <a href="{{ url_for('assets', category='Office') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
+                    <a href="{{ url_for('assets.assets', category='Office') }}" class="category-pill d-flex align-items-center justify-content-between p-2 rounded-2 text-decoration-none">
                         <span class="d-flex align-items-center gap-2"><i class="bi bi-printer text-success"></i> <span data-i18n="cat_office">Perlengkapan Kantor</span></span>
                         <span class="badge bg-light text-success border font-monospace" style="font-size: 0.72rem;">Office</span>
                     </a>
@@ -224,7 +224,7 @@
                 <div class="container-fluid px-0">
                     <div class="d-flex align-items-center gap-2">
                         <!-- Mobile Super-App Brand Pill (<= 767px) -->
-                        <a href="{{ url_for('dashboard') }}" class="mobile-brand-pill d-flex d-md-none">
+                        <a href="{{ url_for('main.dashboard') }}" class="mobile-brand-pill d-flex d-md-none">
                             <span class="mobile-brand-logo-box">
                                 <img src="{{ url_for('static', filename='img/jesca_logo.png') }}?v=2.5.8.3" alt="JESCA">
                             </span>
@@ -264,7 +264,7 @@
                                         <div class="small text-dark fw-medium mb-1 text-break" style="line-height: 1.35; font-size: 0.8rem;">{{ fb.message }}</div>
                                         <div class="d-flex justify-content-between align-items-center pt-1 border-top border-light">
                                             <small class="text-muted text-truncate" style="font-size: 0.68rem; max-width: 170px;">{{ fb.sender_name }} ({{ fb.contact }})</small>
-                                            <form method="POST" action="{{ url_for('resolve_feedback', feedback_id=fb.id) }}" class="m-0" onsubmit="return confirm('Tandai laporan ini selesai?')">
+                                            <form method="POST" action="{{ url_for('main.resolve_feedback', feedback_id=fb.id) }}" class="m-0" onsubmit="return confirm('Tandai laporan ini selesai?')">
                                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                                 <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2 rounded-pill" style="font-size: 0.65rem;">
                                                     <i class="bi bi-check2 me-1"></i>Selesai
@@ -275,7 +275,7 @@
                                 </li>
                                 {% endfor %}
                                 <li class="py-1 text-center border-bottom bg-light">
-                                    <a href="{{ url_for('feedbacks_list') }}" class="small text-danger fw-semibold text-decoration-none" style="font-size: 0.72rem;">
+                                    <a href="{{ url_for('main.feedbacks_list') }}" class="small text-danger fw-semibold text-decoration-none" style="font-size: 0.72rem;">
                                         Lihat Semua Laporan Masukan ({{ feedback_alerts|length }}) &rarr;
                                     </a>
                                 </li>
@@ -288,7 +288,7 @@
                                 </li>
                                 {% for po_item in pending_po_alerts %}
                                 <li>
-                                    <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('purchase_order_detail', po_id=po_item.id) }}">
+                                    <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('po.purchase_order_detail', po_id=po_item.id) }}">
                                         <i class="bi bi-clock-history text-primary mt-1"></i>
                                         <div class="flex-grow-1">
                                             <div class="d-flex justify-content-between align-items-center">
@@ -311,7 +311,7 @@
                                 </li>
                                 {% for u_po in user_po_alerts %}
                                 <li>
-                                    <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('purchase_order_detail', po_id=u_po.id) }}">
+                                    <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('po.purchase_order_detail', po_id=u_po.id) }}">
                                         <i class="bi bi-info-circle text-info mt-1"></i>
                                         <div class="flex-grow-1">
                                             <div class="d-flex justify-content-between align-items-center">
@@ -333,7 +333,7 @@
                                 {% if maintenance_alerts and maintenance_alerts|length > 0 %}
                                     {% for item in maintenance_alerts %}
                                     <li>
-                                        <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('maintenance') }}">
+                                        <a class="dropdown-item py-2 px-3 border-bottom d-flex align-items-start gap-2" href="{{ url_for('maintenance.maintenance') }}">
                                             <div class="mt-1">
                                                 <i class="bi bi-exclamation-triangle-fill text-{{ item.badge_class }}"></i>
                                             </div>
@@ -349,7 +349,7 @@
                                     </li>
                                     {% endfor %}
                                     <li class="pt-2 text-center">
-                                        <a href="{{ url_for('maintenance') }}" class="small text-primary fw-semibold text-decoration-none">
+                                        <a href="{{ url_for('maintenance.maintenance') }}" class="small text-primary fw-semibold text-decoration-none">
                                             Buka Halaman Pemeliharaan Aset &rarr;
                                         </a>
                                     </li>
@@ -455,7 +455,7 @@
                         </button>
 
                         <!-- Quick Add Asset Button (Desktop) -->
-                        <a href="{{ url_for('assets') }}" id="navbarAddAssetBtn" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-none d-md-flex align-items-center gap-1 shadow-sm">
+                        <a href="{{ url_for('assets.assets') }}" id="navbarAddAssetBtn" class="btn btn-primary btn-sm rounded-pill px-3 py-1 d-none d-md-flex align-items-center gap-1 shadow-sm">
                             <i class="bi bi-plus-lg"></i>
                             <span class="d-none d-sm-inline" data-i18n="nav_add_asset">Tambah Aset</span>
                         </a>
@@ -496,13 +496,13 @@
                                 </li>
                                 {% if current_user.role == 'Admin' %}
                                 <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('accounts') }}">
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('admin.accounts') }}">
                                         <i class="bi bi-people text-muted"></i>
                                         <span data-i18n="nav_manage_accounts">Kelola Akun</span>
                                     </a>
                                 </li>
                                 <li>
-                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('system_settings') }}">
+                                    <a class="dropdown-item py-2 d-flex align-items-center gap-2" href="{{ url_for('admin.system_settings') }}">
                                         <i class="bi bi-gear-wide-connected text-muted"></i>
                                         <span data-i18n="nav_system_settings">Pengaturan Sistem</span>
                                     </a>
@@ -516,7 +516,7 @@
                                 </li>
                                 <li><hr class="dropdown-divider my-1"></li>
                                 <li>
-                                    <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2" href="{{ url_for('logout') }}">
+                                    <a class="dropdown-item py-2 text-danger d-flex align-items-center gap-2" href="{{ url_for('auth.logout') }}">
                                         <i class="bi bi-box-arrow-right"></i>
                                         <span data-i18n="nav_logout">Keluar (Logout)</span>
                                     </a>
@@ -560,7 +560,7 @@
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-2">
                     <div>
                         <strong>JESCA</strong> &copy; 2026 &bull; Jessica Assets Management System
-                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v2.6.5 Stabil</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill ms-1 font-monospace" style="font-size: 0.65rem;">v3.0.0 Stabil</span>
                     </div>
                     <div class="d-flex align-items-center gap-2">
                         <button onclick="window.print()" class="btn btn-light border btn-sm rounded-pill px-2" style="font-size:0.72rem;" title="Cetak halaman ini">
@@ -608,7 +608,7 @@
                                         <small class="text-muted d-none d-sm-block">Tabel spreadsheet rapi, auto-fit lebar kolom, dan pemisah ribuan Rupiah.</small>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
+                                <a href="{{ url_for('assets.export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
                                     <i class="bi bi-download me-1"></i>Unduh
                                 </a>
                             </div>
@@ -627,7 +627,7 @@
                                         <small class="text-muted d-none d-sm-block">Format landscape A4 formal, siap dicetak untuk arsip fisik dan audit.</small>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
+                                <a href="{{ url_for('assets.export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
                                     <i class="bi bi-download me-1"></i>Unduh
                                 </a>
                             </div>
@@ -646,7 +646,7 @@
                                         <small class="text-muted d-none d-sm-block">Data mentah berstandar UTF-8 dengan BOM, kompatibel dengan semua sistem.</small>
                                     </div>
                                 </div>
-                                <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
+                                <a href="{{ url_for('assets.export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 flex-shrink-0 fw-semibold">
                                     <i class="bi bi-download me-1"></i>Unduh
                                 </a>
                             </div>
@@ -675,7 +675,7 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="{{ url_for('change_password') }}">
+                <form method="POST" action="{{ url_for('auth.change_password') }}">
                     <div class="modal-body p-4">
                         <div class="mb-3">
                             <label for="oldPassword" class="form-label small fw-bold text-secondary">Password Lama</label>
@@ -717,7 +717,7 @@
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <form method="POST" action="{{ url_for('update_profile') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ url_for('auth.update_profile') }}" enctype="multipart/form-data">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <div class="modal-body p-4">
                         <!-- Current Avatar Preview -->
@@ -996,12 +996,12 @@
          MOBILE 5-TAB BOTTOM NAVIGATION BAR (<= 767px)
          ========================================== -->
     <nav class="mobile-bottom-nav d-md-none" id="mobileTourBottomNav" aria-label="Navigasi Utama Mobile">
-        <a href="{{ url_for('dashboard') }}" id="mobileNavDashboard" class="bottom-nav-item {% if request.endpoint == 'dashboard' %}active{% endif %}">
-            <i class="bi {% if request.endpoint == 'dashboard' %}bi-grid-1x2-fill{% else %}bi-grid-1x2{% endif %}"></i>
+        <a href="{{ url_for('main.dashboard') }}" id="mobileNavDashboard" class="bottom-nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'main.dashboard' %}bi-grid-1x2-fill{% else %}bi-grid-1x2{% endif %}"></i>
             <span>Beranda</span>
         </a>
-        <a href="{{ url_for('assets') }}" id="mobileNavAssets" class="bottom-nav-item {% if request.endpoint == 'assets' %}active{% endif %}">
-            <i class="bi {% if request.endpoint == 'assets' %}bi-box-seam-fill{% else %}bi-box-seam{% endif %}"></i>
+        <a href="{{ url_for('assets.assets') }}" id="mobileNavAssets" class="bottom-nav-item {% if request.endpoint == 'assets.assets' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'assets.assets' %}bi-box-seam-fill{% else %}bi-box-seam{% endif %}"></i>
             <span>Aset</span>
         </a>
         <div class="bottom-nav-qr-wrap">
@@ -1011,14 +1011,14 @@
             <span class="bottom-nav-qr-label">Scan QR</span>
         </div>
         {% if current_user.role == 'Auditor' %}
-        <a href="{{ url_for('audit_report') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'audit_report' %}active{% endif %}">
-            <i class="bi {% if request.endpoint == 'audit_report' %}bi-file-earmark-text-fill{% else %}bi-file-earmark-text{% endif %}"></i>
+        <a href="{{ url_for('admin.audit_report') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'admin.audit_report' %}active{% endif %}">
+            <i class="bi {% if request.endpoint == 'admin.audit_report' %}bi-file-earmark-text-fill{% else %}bi-file-earmark-text{% endif %}"></i>
             <span>Audit</span>
         </a>
         {% else %}
-        <a href="{{ url_for('maintenance') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'maintenance' %}active{% endif %}">
+        <a href="{{ url_for('maintenance.maintenance') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'maintenance.maintenance' %}active{% endif %}">
             <div class="position-relative">
-                <i class="bi {% if request.endpoint == 'maintenance' %}bi-wrench-adjustable-circle-fill{% else %}bi-wrench-adjustable{% endif %}"></i>
+                <i class="bi {% if request.endpoint == 'maintenance.maintenance' %}bi-wrench-adjustable-circle-fill{% else %}bi-wrench-adjustable{% endif %}"></i>
                 {% if maintenance_alerts and maintenance_alerts|length > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 2px 4px;">{{ maintenance_alerts|length }}</span>
                 {% endif %}
@@ -1051,11 +1051,11 @@
             <!-- Kategori 1: Inventaris & Operasional -->
             <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Inventaris &amp; Operasional</div>
             <div class="superapp-menu-grid mb-3" id="mobileTourSheetOps">
-                <a href="{{ url_for('dashboard') }}" id="mobileSheetDashboard" class="superapp-menu-item">
+                <a href="{{ url_for('main.dashboard') }}" id="mobileSheetDashboard" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-blue"><i class="bi bi-grid-1x2"></i></div>
                     <span class="superapp-menu-label">Beranda</span>
                 </a>
-                <a href="{{ url_for('assets') }}" id="mobileSheetAssets" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets') }}" id="mobileSheetAssets" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-teal"><i class="bi bi-boxes"></i></div>
                     <span class="superapp-menu-label">Data Aset</span>
                 </a>
@@ -1064,7 +1064,7 @@
                     <span class="superapp-menu-label">Scan QR</span>
                 </button>
                 {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Auditor'] %}
-                <a href="{{ url_for('purchase_orders') }}" id="mobileSheetPO" class="superapp-menu-item">
+                <a href="{{ url_for('po.purchase_orders') }}" id="mobileSheetPO" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-purple">
                         <i class="bi bi-cart-check"></i>
                         {% if current_user.role in ['Admin', 'Administrator'] and pending_po_alerts and pending_po_alerts|length > 0 %}
@@ -1075,7 +1075,7 @@
                 </a>
                 {% endif %}
                 {% if current_user.role in ['Admin', 'Administrator', 'Staff', 'Teknisi'] %}
-                <a href="{{ url_for('maintenance') }}" id="mobileSheetMaintenance" class="superapp-menu-item">
+                <a href="{{ url_for('maintenance.maintenance') }}" id="mobileSheetMaintenance" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-amber">
                         <i class="bi bi-wrench-adjustable"></i>
                         {% if maintenance_alerts and maintenance_alerts|length > 0 %}
@@ -1086,13 +1086,13 @@
                 </a>
                 {% endif %}
                 {% if current_user.role in ['Admin', 'Administrator'] %}
-                <a href="{{ url_for('sites') }}" id="mobileSheetSites" class="superapp-menu-item">
+                <a href="{{ url_for('assets.sites') }}" id="mobileSheetSites" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-cyan"><i class="bi bi-geo-alt"></i></div>
                     <span class="superapp-menu-label">Lokasi &amp; Site</span>
                 </a>
                 {% endif %}
                 {% if current_user.role != 'Teknisi' %}
-                <a href="{{ url_for('vendors') }}" id="mobileSheetVendors" class="superapp-menu-item">
+                <a href="{{ url_for('assets.vendors') }}" id="mobileSheetVendors" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-slate"><i class="bi bi-building"></i></div>
                     <span class="superapp-menu-label">Data Vendor</span>
                 </a>
@@ -1103,19 +1103,19 @@
             <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Riwayat, Audit &amp; Export</div>
             <div class="superapp-menu-grid mb-3" id="mobileTourSheetReports">
                 {% if current_user.role in ['Admin', 'Administrator'] %}
-                <a href="{{ url_for('history') }}" id="mobileSheetHistory" class="superapp-menu-item">
+                <a href="{{ url_for('admin.history') }}" id="mobileSheetHistory" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-cyan"><i class="bi bi-clock-history"></i></div>
                     <span class="superapp-menu-label">Log Aktivitas</span>
                 </a>
                 {% endif %}
                 {% if current_user.role in ['Admin', 'Administrator', 'Auditor'] %}
-                <a href="{{ url_for('audit_report') }}" id="mobileSheetAudit" class="superapp-menu-item">
+                <a href="{{ url_for('admin.audit_report') }}" id="mobileSheetAudit" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-indigo"><i class="bi bi-file-earmark-text"></i></div>
                     <span class="superapp-menu-label">Laporan Audit</span>
                 </a>
                 {% endif %}
                 {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
-                <a href="{{ url_for('feedbacks_list') }}" id="mobileSheetFeedbacks" class="superapp-menu-item">
+                <a href="{{ url_for('main.feedbacks_list') }}" id="mobileSheetFeedbacks" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-rose">
                         <i class="bi bi-chat-square-text"></i>
                         {% if feedback_alerts and feedback_alerts|length > 0 %}
@@ -1135,15 +1135,15 @@
             <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Akun &amp; Pengaturan Sistem</div>
             <div class="superapp-menu-grid mb-3" id="mobileTourSheetSettings">
                 {% if current_user.role == 'Admin' %}
-                <a href="{{ url_for('accounts') }}" id="mobileSheetAccounts" class="superapp-menu-item">
+                <a href="{{ url_for('admin.accounts') }}" id="mobileSheetAccounts" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-blue"><i class="bi bi-people"></i></div>
                     <span class="superapp-menu-label">Kelola Akun</span>
                 </a>
-                <a href="{{ url_for('admin_backups') }}" id="mobileSheetBackups" class="superapp-menu-item">
+                <a href="{{ url_for('admin.admin_backups') }}" id="mobileSheetBackups" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-amber"><i class="bi bi-database"></i></div>
                     <span class="superapp-menu-label">Backup &amp; DB</span>
                 </a>
-                <a href="{{ url_for('system_settings') }}" id="mobileSheetSettings" class="superapp-menu-item">
+                <a href="{{ url_for('admin.system_settings') }}" id="mobileSheetSettings" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-purple"><i class="bi bi-gear-wide-connected"></i></div>
                     <span class="superapp-menu-label">Pengaturan</span>
                 </a>
@@ -1165,15 +1165,15 @@
             <!-- Kategori 4: Pintasan Kategori Aset -->
             <div class="small fw-bold text-muted text-uppercase mb-2" style="font-size: 0.68rem; letter-spacing: 0.5px;">Pintasan Kategori Aset</div>
             <div class="chip-scroll-row mb-3" id="mobileTourSheetCategories">
-                <a href="{{ url_for('assets', category='Tech') }}" class="filter-chip"><i class="bi bi-laptop text-primary"></i> Tech</a>
-                <a href="{{ url_for('assets', category='Tools') }}" class="filter-chip"><i class="bi bi-tools text-warning"></i> Tools</a>
-                <a href="{{ url_for('assets', category='Furniture') }}" class="filter-chip"><i class="bi bi-lamp text-info"></i> Furniture</a>
-                <a href="{{ url_for('assets', category='Vehicle') }}" class="filter-chip"><i class="bi bi-car-front text-danger"></i> Vehicle</a>
-                <a href="{{ url_for('assets', category='Office') }}" class="filter-chip"><i class="bi bi-printer text-success"></i> Office</a>
+                <a href="{{ url_for('assets.assets', category='Tech') }}" class="filter-chip"><i class="bi bi-laptop text-primary"></i> Tech</a>
+                <a href="{{ url_for('assets.assets', category='Tools') }}" class="filter-chip"><i class="bi bi-tools text-warning"></i> Tools</a>
+                <a href="{{ url_for('assets.assets', category='Furniture') }}" class="filter-chip"><i class="bi bi-lamp text-info"></i> Furniture</a>
+                <a href="{{ url_for('assets.assets', category='Vehicle') }}" class="filter-chip"><i class="bi bi-car-front text-danger"></i> Vehicle</a>
+                <a href="{{ url_for('assets.assets', category='Office') }}" class="filter-chip"><i class="bi bi-printer text-success"></i> Office</a>
             </div>
 
             <!-- Tombol Keluar -->
-            <a href="{{ url_for('logout') }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-2 fw-bold">
+            <a href="{{ url_for('auth.logout') }}" class="btn btn-outline-danger btn-sm w-100 rounded-pill py-2 fw-bold">
                 <i class="bi bi-box-arrow-right me-1"></i> Keluar (Logout)
             </a>
         </div>
@@ -1216,7 +1216,7 @@
 
     {% else %}
         <!-- Unauthenticated View (Login / Scan View) -->
-        <main class="min-vh-100 d-flex flex-column justify-content-center {% if request.endpoint != 'login' %}py-4 bg-light{% endif %}">
+        <main class="min-vh-100 d-flex flex-column justify-content-center {% if request.endpoint != 'auth.login' %}py-4 bg-light{% endif %}">
             {% block auth_content %}{% endblock %}
         </main>
     {% endif %}
@@ -1225,7 +1225,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <!-- Global App JS -->
-    <script src="{{ url_for('static', filename='js/app.js') }}?v=2.6.5"></script>
+    <script src="{{ url_for('static', filename='js/app.js') }}?v=3.0.0"></script>
 
     <!-- Theme Switcher JS -->
     <script>

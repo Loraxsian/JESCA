@@ -14,13 +14,13 @@
                     Jadwal pemeliharaan preventif, penanganan unit perbaikan oleh teknisi, upload bukti servis/kuitansi, dan histori servis berkala.
                 </p>
             </div>
-            <a href="{{ url_for('assets') }}" class="btn btn-light border btn-sm px-3 py-1.5 d-md-none flex-shrink-0 fw-semibold" style="border-radius: 16px;">
+            <a href="{{ url_for('assets.assets') }}" class="btn btn-light border btn-sm px-3 py-1.5 d-md-none flex-shrink-0 fw-semibold" style="border-radius: 16px;">
                 <i class="bi bi-boxes me-1 text-primary"></i>Aset
             </a>
         </div>
     </div>
     <div class="col-md-5 text-md-end d-none d-md-block">
-        <a href="{{ url_for('assets') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+        <a href="{{ url_for('assets.assets') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
             <i class="bi bi-boxes me-1"></i> Data Aset
         </a>
     </div>
@@ -224,7 +224,7 @@
                                 </td>
                                 <td class="text-end pe-4">
                                     {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
-                                    <form method="POST" action="{{ url_for('start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
+                                    <form method="POST" action="{{ url_for('maintenance.start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                         <button type="submit" class="btn btn-warning btn-sm rounded-pill px-3 shadow-sm text-dark fw-medium">
                                             <i class="bi bi-tools me-1"></i> Mulai Servis
@@ -322,7 +322,7 @@
                             <span class="font-monospace text-dark fw-bold flex-shrink-0">{{ asset.next_maintenance_date.strftime('%d/%m/%Y') if asset.next_maintenance_date else '-' }}</span>
                         </div>
                         {% if current_user.role in ['Admin', 'Administrator', 'Teknisi'] %}
-                        <form method="POST" action="{{ url_for('start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
+                        <form method="POST" action="{{ url_for('maintenance.start_maintenance', asset_id=asset.id) }}" onsubmit="return confirm('Mulai servis untuk aset [{{ asset.asset_code }}]? Status aset akan diubah menjadi Dalam Perbaikan.')">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn btn-warning text-dark btn-sm w-100 py-2 fw-bold shadow-sm" style="border-radius: 16px;">
                                 <i class="bi bi-tools me-1"></i> Mulai Pengerjaan Servis
@@ -402,7 +402,7 @@
                                 </td>
                                 <td>
                                     {% if rec.proof_file %}
-                                        <a href="{{ url_for('download_maintenance_attachment', filename=rec.proof_file) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1" style="font-size: 0.75rem;">
+                                        <a href="{{ url_for('assets.download_maintenance_attachment', filename=rec.proof_file) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2 py-1" style="font-size: 0.75rem;">
                                             <i class="bi bi-paperclip me-1"></i> Lihat Bukti
                                         </a>
                                     {% else %}
@@ -442,7 +442,7 @@
                         <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 small text-muted" style="font-size: 0.72rem;">
                             <span><i class="bi bi-person me-1"></i><strong>{{ rec.performed_by }}</strong> &bull; {{ rec.service_date.strftime('%d/%m/%Y') if rec.service_date else '-' }}</span>
                             {% if rec.proof_file %}
-                            <a href="{{ url_for('download_maintenance_attachment', filename=rec.proof_file) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5" style="font-size: 0.7rem;">
+                            <a href="{{ url_for('assets.download_maintenance_attachment', filename=rec.proof_file) }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill px-2.5 py-0.5" style="font-size: 0.7rem;">
                                 <i class="bi bi-paperclip me-1"></i>Bukti
                             </a>
                             {% endif %}

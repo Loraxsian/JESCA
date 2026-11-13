@@ -103,12 +103,12 @@
                             {% if user.api_key %}
                             <div class="d-flex align-items-center gap-1">
                                 <code class="font-monospace text-muted small" style="font-size: 0.75rem;">{{ user.api_key[:12] }}...</code>
-                                <form method="POST" action="{{ url_for('generate_api_key', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Generate ulang API key untuk @{{ user.username }}?');">
+                                <form method="POST" action="{{ url_for('admin.generate_api_key', user_id=user.id) }}" class="d-inline" onsubmit="return confirm('Generate ulang API key untuk @{{ user.username }}?');">
                                     <button type="submit" class="btn btn-sm btn-link text-primary p-0 ms-1" title="Putar / Generate Baru"><i class="bi bi-arrow-repeat"></i></button>
                                 </form>
                             </div>
                             {% else %}
-                            <form method="POST" action="{{ url_for('generate_api_key', user_id=user.id) }}">
+                            <form method="POST" action="{{ url_for('admin.generate_api_key', user_id=user.id) }}">
                                 <button type="submit" class="btn btn-outline-secondary btn-sm rounded-pill px-2 py-0" style="font-size: 0.72rem;">
                                     <i class="bi bi-key me-1"></i>Buat Key
                                 </button>
@@ -175,7 +175,7 @@
                             </button>
                         </li>
                         <li>
-                            <form method="POST" action="{{ url_for('generate_api_key', user_id=user.id) }}" class="m-0">
+                            <form method="POST" action="{{ url_for('admin.generate_api_key', user_id=user.id) }}" class="m-0">
                                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="dropdown-item rounded-2 py-2" onclick="return confirm('Buat/perbarui Kunci API untuk {{ user.username }}?')">
                                     <i class="bi bi-shield-check text-success me-2"></i>{{ 'Perbarui Kunci API' if user.api_key else 'Buat Kunci API' }}
@@ -233,7 +233,7 @@
                 <h6 class="modal-title fw-bold"><i class="bi bi-person-plus me-2 text-primary"></i>Tambah Akun Pengguna Baru</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url_for('create_account') }}">
+            <form method="POST" action="{{ url_for('admin.create_account') }}">
                 <div class="modal-body p-4">
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Username <span class="text-danger">*</span></label>

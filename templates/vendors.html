@@ -68,7 +68,7 @@
                         <i class="bi bi-pencil me-1"></i>Edit
                     </button>
                     {% if current_user.role == 'Admin' %}
-                    <form method="POST" action="{{ url_for('delete_vendor', vendor_id=v.id) }}" onsubmit="return confirm('Hapus vendor {{ v.name }}? Data aset yang terkait akan tetap tersimpan.');">
+                    <form method="POST" action="{{ url_for('assets.delete_vendor', vendor_id=v.id) }}" onsubmit="return confirm('Hapus vendor {{ v.name }}? Data aset yang terkait akan tetap tersimpan.');">
                         <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3">
                             <i class="bi bi-trash"></i>
                         </button>
@@ -84,7 +84,7 @@
     <div class="modal fade" id="editVendorModal{{ v.id }}" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg rounded-4">
-                <form method="POST" action="{{ url_for('edit_vendor', vendor_id=v.id) }}">
+                <form method="POST" action="{{ url_for('assets.edit_vendor', vendor_id=v.id) }}">
                     <div class="modal-header border-bottom py-3 px-4">
                         <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Vendor</h6>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
@@ -146,7 +146,7 @@
 <div class="modal fade" id="addVendorModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
-            <form method="POST" action="{{ url_for('create_vendor') }}">
+            <form method="POST" action="{{ url_for('assets.create_vendor') }}">
                 <div class="modal-header border-bottom py-3 px-4">
                     <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Vendor Baru</h6>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

@@ -256,7 +256,7 @@
         <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-2 rounded-pill font-monospace" style="font-size: 0.76rem;" title="Sesi Mode Akses Khusus (Sudo) Aktif (15 Menit)">
             <i class="bi bi-shield-lock-fill me-1"></i>Sudo: Aktif
         </span>
-        <form method="POST" action="{{ url_for('lock_sudo') }}" class="d-inline m-0 p-0">
+        <form method="POST" action="{{ url_for('auth.lock_sudo') }}" class="d-inline m-0 p-0">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3 py-1 font-monospace" style="font-size: 0.75rem;" title="Kunci kembali Mode Akses Khusus (Sudo) saat meninggalkan meja/laptop">
                 <i class="bi bi-lock-fill me-1"></i>Kunci Sudo
@@ -326,7 +326,7 @@
 </ul>
 
 <!-- Master Settings Form -->
-<form method="POST" action="{{ url_for('system_settings') }}" id="masterSettingsForm">
+<form method="POST" action="{{ url_for('admin.system_settings') }}" id="masterSettingsForm">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
     <div class="tab-content" id="settingsTabContent">
@@ -1072,7 +1072,7 @@
 </form>
 
 <!-- Dedicated Hidden Form for Live SMTP Test -->
-<form method="POST" action="{{ url_for('test_smtp_connection') }}" id="smtpTestForm" class="d-none">
+<form method="POST" action="{{ url_for('admin.test_smtp_connection') }}" id="smtpTestForm" class="d-none">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="hidden" name="test_email" id="hiddenTestEmail">
 </form>

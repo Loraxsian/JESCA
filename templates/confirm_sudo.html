@@ -65,7 +65,7 @@
                 </div>
 
                 <!-- Form -->
-                <form method="POST" action="{{ url_for('confirm_sudo') }}">
+                <form method="POST" action="{{ url_for('auth.confirm_sudo') }}">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                     <input type="hidden" name="next" value="{{ next_url }}">
 
@@ -88,7 +88,7 @@
                         <button type="submit" class="btn btn-primary rounded-pill py-2.5 fw-bold shadow-sm">
                             <i class="bi bi-unlock-fill me-1"></i>Verifikasi &amp; Buka Pengaturan
                         </button>
-                        <a href="{{ url_for('dashboard') }}" class="btn btn-light border rounded-pill py-2 text-secondary small">
+                        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light border rounded-pill py-2 text-secondary small">
                             <i class="bi bi-arrow-left me-1"></i>Batal (Kembali ke Dashboard)
                         </a>
                     </div>

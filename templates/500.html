@@ -121,7 +121,7 @@
                 <div>Transaksi database telah dibatalkan secara otomatis (auto-rollback) demi menjaga keutuhan data, dan rincian error telah dicatat ke log server untuk diperiksa.</div>
             </div>
             <div class="error-actions">
-                <a href="{{ url_for('dashboard') if current_user.is_authenticated else url_for('login') }}" class="btn btn-primary rounded-pill py-2">
+                <a href="{{ url_for('main.dashboard') if current_user.is_authenticated else url_for('auth.login') }}" class="btn btn-primary rounded-pill py-2">
                     <i class="bi bi-house-door me-1"></i> Dashboard
                 </a>
                 <button onclick="window.history.back()" class="btn btn-outline-secondary rounded-pill py-2">

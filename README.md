@@ -1,4 +1,4 @@
-# JESCA (Jessica Assets) - Asset Management System (v2.6.5)
+# JESCA (Jessica Assets) - Asset Management System (v3.0.0)
 
 JESCA (Jessica Assets) adalah aplikasi web manajemen aset dan inventaris berbahasa Indonesia (**Full Bahasa Indonesia**) yang dibuat menggunakan Python Flask, SQLite (Flask-SQLAlchemy), dan Bootstrap 5.
 
@@ -139,8 +139,15 @@ Saat pertama kali login dengan password bawaan ini, sistem akan langsung meminta
 
 ```
 jesca-assets/
-├── app.py                     # File utama aplikasi (routing, database model, logika bisnis)
+├── app.py                     # Entry point ringan (App Factory & middleware global)
+├── config.py                  # Konfigurasi aplikasi, path direktori, dan konstanta sistem
+├── extensions.py              # Inisialisasi ekstensi Flask (SQLAlchemy, LoginManager)
 ├── i18n.py                    # Modul lokalisasi & kamus istilah baku Bahasa Indonesia
+├── models/                    # Model tabel database SQLAlchemy (user, asset, po, system)
+├── routes/                    # Flask Blueprints (auth, main, assets, maintenance, po, admin, api)
+├── services/                  # Layanan bisnis (audit, email SMTP, backup/seed, tunnel)
+├── utils/                     # Dekorator RBAC/Sudo, helper validasi/kode, dan filter Jinja2
+├── tests/                     # Pengujian otomatis (unittest) untuk verifikasi Blueprint & rute
 ├── requirements.txt           # Daftar pustaka Python yang digunakan
 ├── Dockerfile                 # Konfigurasi container Docker
 ├── docker-compose.yml         # Konfigurasi orkestrasi container dan volume penyimpanan
@@ -178,7 +185,15 @@ jesca-assets/
 
 ---
 
-## Riwayat Pembaruan Terbaru (v2.6.0 - v2.6.5)
+## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.0)
+
+### v3.0.0 — Arsitektur Modular Flask Blueprint (Major Release)
+- Restrukturisasi kode utama dari file monolith menjadi arsitektur modular **App Factory + Flask Blueprints**:
+  - `config.py` & `extensions.py`: pemisahan konfigurasi, path direktori, dan inisialisasi ekstensi.
+  - `models/`: pemisahan model database (`system.py`, `user.py`, `asset.py`, `purchase_order.py`).
+  - `routes/`: 7 Flask Blueprints (`auth`, `main`, `assets`, `maintenance`, `po`, `admin`, `api`).
+  - `services/` & `utils/`: pemisahan layanan bisnis (`audit_service`, `email_service`, `backup_service`, `tunnel_service`), dekorator keamanan, helper, dan filter template.
+  - `tests/test_v3_blueprints.py`: pengujian otomatis untuk memverifikasi seluruh Blueprint, rute utama, Mode Akses Khusus (Sudo), halaman 404, dan endpoint `/health`.
 
 ### v2.6.5 — Standarisasi Full Bahasa Indonesia
 - Penyeragaman seluruh antarmuka ke **Full Bahasa Indonesia** sebagai bahasa operasional utama tanpa campuran istilah Inggris yang tidak konsisten.
@@ -232,8 +247,8 @@ Untuk pengembangan sistem ke depannya (rencana rilis versi besar selanjutnya), b
    - Opsi migrasi dari SQLite ke database server seperti PostgreSQL atau MySQL jika jumlah aset sudah mencapai puluhan ribu dan pengguna aktif bersamaan semakin banyak.
    - Pemanfaatan caching (seperti Redis) untuk data analitik dashboard dan token sesi.
 
-8. Pemisahan Arsitektur Kode (Flask Blueprint):
-   - Restrukturisasi file utama app.py menjadi modul-modul terpisah (routes, models, services) menggunakan Flask Blueprints agar kode lebih rapi dan bebas konflik saat dikembangkan bersama tim developer di Git.
+8. Pemisahan Arsitektur Kode (Flask Blueprint) (Selesai pada v3.0.0):
+   - File utama app.py telah direstrukturisasi menjadi modul-modul terpisah (config, extensions, models, routes Blueprint, services, utils, dan tests) agar kode lebih rapi dan mudah dikembangkan bersama tim.
 
 ---
 

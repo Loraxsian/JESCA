@@ -33,17 +33,17 @@
                         </li>
                         <li><hr class="dropdown-divider my-1"></li>
                         <li>
-                            <a href="{{ url_for('export_assets_pdf') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
+                            <a href="{{ url_for('assets.export_assets_pdf') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
                                 <i class="bi bi-file-pdf text-danger"></i><span>Ekspor PDF</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('export_assets_excel') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
+                            <a href="{{ url_for('assets.export_assets_excel') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
                                 <i class="bi bi-file-earmark-excel text-success"></i><span>Ekspor Excel</span>
                             </a>
                         </li>
                         <li>
-                            <a href="{{ url_for('export_assets_csv') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
+                            <a href="{{ url_for('assets.export_assets_csv') }}" class="dropdown-item py-2 d-flex align-items-center gap-2">
                                 <i class="bi bi-file-earmark-spreadsheet text-secondary"></i><span>Ekspor CSV</span>
                             </a>
                         </li>
@@ -57,13 +57,13 @@
             <button type="button" class="btn btn-outline-primary btn-sm rounded-pill px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#importCsvModal">
                 <i class="bi bi-upload me-1"></i> Impor CSV
             </button>
-            <a href="{{ url_for('export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm">
+            <a href="{{ url_for('assets.export_assets_pdf') }}" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm">
                 <i class="bi bi-file-pdf me-1"></i> Ekspor PDF
             </a>
-            <a href="{{ url_for('export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm">
+            <a href="{{ url_for('assets.export_assets_excel') }}" class="btn btn-outline-success btn-sm rounded-pill px-3 shadow-sm">
                 <i class="bi bi-file-earmark-excel me-1"></i> Ekspor Excel
             </a>
-            <a href="{{ url_for('export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
+            <a href="{{ url_for('assets.export_assets_csv') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm">
                 <i class="bi bi-file-earmark-spreadsheet me-1"></i> Ekspor CSV
             </a>
             {% if current_user.role in ['Admin', 'Staff'] %}
@@ -78,7 +78,7 @@
 <!-- Desktop Search & Filter Card (>= 768px) -->
 <div class="card border-0 shadow-sm rounded-4 mb-4 d-none d-md-block">
     <div class="card-body p-3 p-md-4">
-        <form method="GET" action="{{ url_for('assets') }}" class="row g-2 g-md-3 align-items-end">
+        <form method="GET" action="{{ url_for('assets.assets') }}" class="row g-2 g-md-3 align-items-end">
             <!-- Search Keyword -->
             <div class="col-12 col-sm-6 col-xl-3">
                 <label for="search" class="form-label small fw-bold text-muted mb-1">Pencarian Aset</label>
@@ -138,7 +138,7 @@
                     <i class="bi bi-funnel-fill"></i>
                 </button>
                 {% if search_query or category_filter or status_filter or vendor_filter or site_filter or warranty_filter or maintenance_filter %}
-                    <a href="{{ url_for('assets') }}" class="btn btn-light btn-sm border text-danger rounded-pill" title="Reset">
+                    <a href="{{ url_for('assets.assets') }}" class="btn btn-light btn-sm border text-danger rounded-pill" title="Reset">
                         <i class="bi bi-arrow-counterclockwise"></i>
                     </a>
                 {% endif %}
@@ -150,7 +150,7 @@
 <!-- Mobile Search + Funnel Filter Trigger (<= 767px) -->
 {% set active_filter_count = (1 if category_filter else 0) + (1 if status_filter else 0) + (1 if vendor_filter else 0) + (1 if site_filter else 0) + (1 if warranty_filter else 0) + (1 if maintenance_filter else 0) %}
 <div class="d-md-none mb-2">
-    <form method="GET" action="{{ url_for('assets') }}" class="d-flex align-items-center gap-2">
+    <form method="GET" action="{{ url_for('assets.assets') }}" class="d-flex align-items-center gap-2">
         {% if category_filter %}<input type="hidden" name="category" value="{{ category_filter }}">{% endif %}
         {% if status_filter %}<input type="hidden" name="status" value="{{ status_filter }}">{% endif %}
         {% if vendor_filter %}<input type="hidden" name="vendor" value="{{ vendor_filter }}">{% endif %}
@@ -161,7 +161,7 @@
             <span class="input-group-text bg-transparent border-0 text-muted ps-3"><i class="bi bi-search"></i></span>
             <input type="text" class="form-control border-0 bg-transparent py-2" name="search" value="{{ search_query }}" placeholder="Cari nama, kode, lokasi..." style="font-size: 0.85rem; box-shadow: none;">
             {% if search_query %}
-            <a href="{{ url_for('assets', category=category_filter, status=status_filter, vendor=vendor_filter, site=site_filter) }}" class="btn border-0 text-muted d-flex align-items-center px-2" title="Hapus pencarian">
+            <a href="{{ url_for('assets.assets', category=category_filter, status=status_filter, vendor=vendor_filter, site=site_filter) }}" class="btn border-0 text-muted d-flex align-items-center px-2" title="Hapus pencarian">
                 <i class="bi bi-x-circle-fill"></i>
             </a>
             {% endif %}
@@ -178,28 +178,28 @@
 <!-- Mobile Horizontal Category & Status Filter Chips (<= 767px) -->
 <div class="d-md-none mb-3">
     <div class="chip-scroll-row">
-        <a href="{{ url_for('assets') }}" class="filter-chip {% if not category_filter and not status_filter and not maintenance_filter %}active{% endif %}">
+        <a href="{{ url_for('assets.assets') }}" class="filter-chip {% if not category_filter and not status_filter and not maintenance_filter %}active{% endif %}">
             <i class="bi bi-grid"></i> Semua
         </a>
-        <a href="{{ url_for('assets', category='Tech') }}" class="filter-chip {% if category_filter == 'Tech' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', category='Tech') }}" class="filter-chip {% if category_filter == 'Tech' %}active{% endif %}">
             <i class="bi bi-laptop"></i> Tech
         </a>
-        <a href="{{ url_for('assets', category='Tools') }}" class="filter-chip {% if category_filter == 'Tools' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', category='Tools') }}" class="filter-chip {% if category_filter == 'Tools' %}active{% endif %}">
             <i class="bi bi-tools"></i> Tools
         </a>
-        <a href="{{ url_for('assets', category='Furniture') }}" class="filter-chip {% if category_filter == 'Furniture' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', category='Furniture') }}" class="filter-chip {% if category_filter == 'Furniture' %}active{% endif %}">
             <i class="bi bi-lamp"></i> Furniture
         </a>
-        <a href="{{ url_for('assets', category='Vehicle') }}" class="filter-chip {% if category_filter == 'Vehicle' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', category='Vehicle') }}" class="filter-chip {% if category_filter == 'Vehicle' %}active{% endif %}">
             <i class="bi bi-car-front"></i> Vehicle
         </a>
-        <a href="{{ url_for('assets', category='Office') }}" class="filter-chip {% if category_filter == 'Office' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', category='Office') }}" class="filter-chip {% if category_filter == 'Office' %}active{% endif %}">
             <i class="bi bi-printer"></i> Office
         </a>
-        <a href="{{ url_for('assets', status='Dipinjam') }}" class="filter-chip {% if status_filter == 'Dipinjam' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', status='Dipinjam') }}" class="filter-chip {% if status_filter == 'Dipinjam' %}active{% endif %}">
             <i class="bi bi-arrow-left-right"></i> Dipinjam
         </a>
-        <a href="{{ url_for('assets', maintenance='due') }}" class="filter-chip {% if maintenance_filter == 'due' %}active{% endif %}">
+        <a href="{{ url_for('assets.assets', maintenance='due') }}" class="filter-chip {% if maintenance_filter == 'due' %}active{% endif %}">
             <i class="bi bi-wrench-adjustable"></i> Perlu Servis
         </a>
     </div>
@@ -441,7 +441,7 @@
                         </button>
                         {% endif %}
                     {% elif current_user.role == 'Teknisi' %}
-                        <a href="{{ url_for('maintenance') }}" class="btn btn-warning text-dark btn-sm w-100 fw-semibold" style="border-radius: 16px;">
+                        <a href="{{ url_for('maintenance.maintenance') }}" class="btn btn-warning text-dark btn-sm w-100 fw-semibold" style="border-radius: 16px;">
                             <i class="bi bi-wrench-adjustable me-1"></i>Buka Meja Servis
                         </a>
                     {% else %}
@@ -515,7 +515,7 @@
                 <h6 class="modal-title fw-bold"><i class="bi bi-plus-circle me-2 text-primary"></i>Tambah Aset Baru ke Inventaris</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
-            <form method="POST" action="{{ url_for('create_asset') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ url_for('assets.create_asset') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-3 p-md-4 pb-5">
                     <!-- Bagian 1: Informasi Utama (Selalu Terbuka) -->
@@ -895,14 +895,14 @@
                 <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Impor Inventaris dari CSV</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ url_for('import_assets_csv') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ url_for('assets.import_assets_csv') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">
                         Gunakan fitur ini untuk memasukkan data aset secara massal dari spreadsheet. Pastikan struktur kolom sesuai dengan template standar.
                     </p>
                     <div class="mb-3 text-center p-3 bg-light rounded-3 border">
-                        <a href="{{ url_for('import_assets_csv') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                        <a href="{{ url_for('assets.import_assets_csv') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
                             <i class="bi bi-download me-1"></i>Unduh Template CSV
                         </a>
                     </div>
@@ -1456,7 +1456,7 @@
         </button>
     </div>
     <div class="mobile-sheet-body">
-        <form method="GET" action="{{ url_for('assets') }}" class="d-flex flex-column gap-3">
+        <form method="GET" action="{{ url_for('assets.assets') }}" class="d-flex flex-column gap-3">
             {% if search_query %}<input type="hidden" name="search" value="{{ search_query }}">{% endif %}
             <div>
                 <label class="form-label small fw-bold text-secondary mb-1">Kategori Aset</label>
@@ -1495,7 +1495,7 @@
                 </select>
             </div>
             <div class="d-flex gap-2 pt-2">
-                <a href="{{ url_for('assets') }}" class="btn btn-light border flex-grow-1 py-2 fw-semibold" style="border-radius: 16px;">Reset</a>
+                <a href="{{ url_for('assets.assets') }}" class="btn btn-light border flex-grow-1 py-2 fw-semibold" style="border-radius: 16px;">Reset</a>
                 <button type="submit" class="btn btn-primary flex-grow-1 py-2 fw-bold" style="border-radius: 16px;">Terapkan Filter</button>
             </div>
         </form>

@@ -61,28 +61,28 @@
                 <div class="small text-primary fw-semibold text-truncate" style="font-size: 0.74rem;">
                     <i class="bi bi-cart-check-fill me-1"></i>{{ pending_pos|length }} PO menunggu persetujuan
                 </div>
-                <a href="{{ url_for('purchase_orders', status='SUBMITTED') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Tinjau PO</a>
+                <a href="{{ url_for('po.purchase_orders', status='SUBMITTED') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Tinjau PO</a>
                 {% else %}
                 <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
                     <i class="bi bi-shield-check text-success me-1"></i>Kontrol penuh inventaris &amp; sistem
                 </div>
-                <a href="{{ url_for('assets', _open='add') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">+ Aset</a>
+                <a href="{{ url_for('assets.assets', _open='add') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">+ Aset</a>
                 {% endif %}
             {% elif current_user.role == 'Teknisi' %}
                 <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
                     <i class="bi bi-wrench-adjustable text-warning me-1"></i>{{ maintenance_alerts|length if maintenance_alerts else 0 }} jadwal servis aktif
                 </div>
-                <a href="{{ url_for('maintenance') }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Meja Servis</a>
+                <a href="{{ url_for('maintenance.maintenance') }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Meja Servis</a>
             {% elif current_user.role == 'Auditor' %}
                 <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
                     <i class="bi bi-file-earmark-check text-primary me-1"></i>Audit nilai buku &amp; aktivitas
                 </div>
-                <a href="{{ url_for('audit_report') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Buka Audit</a>
+                <a href="{{ url_for('admin.audit_report') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Buka Audit</a>
             {% else %}
                 <div class="small text-muted text-truncate" style="font-size: 0.74rem;">
                     <i class="bi bi-arrow-left-right text-primary me-1"></i>Pinjam aset atau ajukan PO baru
                 </div>
-                <a href="{{ url_for('assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Data Aset</a>
+                <a href="{{ url_for('assets.assets') }}" class="btn btn-primary btn-sm rounded-pill px-3 py-1 fw-bold flex-shrink-0" style="font-size: 0.72rem;">Data Aset</a>
             {% endif %}
         </div>
     </div>
@@ -99,11 +99,11 @@
         <div class="superapp-menu-grid">
             {% if current_user.role in ['Admin', 'Administrator'] %}
                 <!-- ADMIN 4x2 GRID -->
-                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-blue"><i class="bi bi-boxes"></i></div>
                     <span class="superapp-menu-label">Data Aset</span>
                 </a>
-                <a href="{{ url_for('purchase_orders') }}" class="superapp-menu-item">
+                <a href="{{ url_for('po.purchase_orders') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-indigo">
                         <i class="bi bi-cart-check"></i>
                         {% if pending_po_alerts and pending_po_alerts|length > 0 %}
@@ -112,7 +112,7 @@
                     </div>
                     <span class="superapp-menu-label">Pengadaan (PO)</span>
                 </a>
-                <a href="{{ url_for('maintenance') }}" class="superapp-menu-item">
+                <a href="{{ url_for('maintenance.maintenance') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-amber">
                         <i class="bi bi-wrench-adjustable"></i>
                         {% if maintenance_alerts and maintenance_alerts|length > 0 %}
@@ -121,19 +121,19 @@
                     </div>
                     <span class="superapp-menu-label">Servis Aset</span>
                 </a>
-                <a href="{{ url_for('sites') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.sites') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-teal"><i class="bi bi-geo-alt"></i></div>
                     <span class="superapp-menu-label">Lokasi &amp; Site</span>
                 </a>
-                <a href="{{ url_for('vendors') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.vendors') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-purple"><i class="bi bi-building"></i></div>
                     <span class="superapp-menu-label">Vendor</span>
                 </a>
-                <a href="{{ url_for('history') }}" class="superapp-menu-item">
+                <a href="{{ url_for('admin.history') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-cyan"><i class="bi bi-clock-history"></i></div>
                     <span class="superapp-menu-label">Log Aktivitas</span>
                 </a>
-                <a href="{{ url_for('feedbacks_list') }}" class="superapp-menu-item">
+                <a href="{{ url_for('main.feedbacks_list') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-rose">
                         <i class="bi bi-chat-square-text"></i>
                         {% if feedback_alerts and feedback_alerts|length > 0 %}
@@ -149,7 +149,7 @@
 
             {% elif current_user.role == 'Teknisi' %}
                 <!-- TEKNISI GRID (Fokus Lapangan & Servis) -->
-                <a href="{{ url_for('maintenance') }}" class="superapp-menu-item">
+                <a href="{{ url_for('maintenance.maintenance') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-amber">
                         <i class="bi bi-wrench-adjustable"></i>
                         {% if maintenance_alerts and maintenance_alerts|length > 0 %}
@@ -162,15 +162,15 @@
                     <div class="menu-tile-52 tile-blue"><i class="bi bi-qr-code-scan"></i></div>
                     <span class="superapp-menu-label">Scan QR</span>
                 </button>
-                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-teal"><i class="bi bi-boxes"></i></div>
                     <span class="superapp-menu-label">Data Aset</span>
                 </a>
-                <a href="{{ url_for('assets', status='Dalam Perbaikan') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets', status='Dalam Perbaikan') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-rose"><i class="bi bi-tools"></i></div>
                     <span class="superapp-menu-label">Unit Perbaikan</span>
                 </a>
-                <a href="{{ url_for('feedbacks_list') }}" class="superapp-menu-item">
+                <a href="{{ url_for('main.feedbacks_list') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-purple">
                         <i class="bi bi-chat-square-text"></i>
                         {% if feedback_alerts and feedback_alerts|length > 0 %}
@@ -179,7 +179,7 @@
                     </div>
                     <span class="superapp-menu-label">Laporan Kendala</span>
                 </a>
-                <a href="{{ url_for('assets', maintenance='due') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets', maintenance='due') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-cyan"><i class="bi bi-calendar-event"></i></div>
                     <span class="superapp-menu-label">Jatuh Tempo</span>
                 </a>
@@ -194,31 +194,31 @@
 
             {% elif current_user.role == 'Auditor' %}
                 <!-- AUDITOR GRID (Fokus Audit & Verifikasi) -->
-                <a href="{{ url_for('audit_report') }}" class="superapp-menu-item">
+                <a href="{{ url_for('admin.audit_report') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-indigo"><i class="bi bi-file-earmark-text"></i></div>
                     <span class="superapp-menu-label">Laporan Audit</span>
                 </a>
-                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-blue"><i class="bi bi-boxes"></i></div>
                     <span class="superapp-menu-label">Data Aset</span>
                 </a>
-                <a href="{{ url_for('purchase_orders') }}" class="superapp-menu-item">
+                <a href="{{ url_for('po.purchase_orders') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-purple"><i class="bi bi-cart-check"></i></div>
                     <span class="superapp-menu-label">Pengadaan (PO)</span>
                 </a>
-                <a href="{{ url_for('vendors') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.vendors') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-cyan"><i class="bi bi-building"></i></div>
                     <span class="superapp-menu-label">Data Vendor</span>
                 </a>
-                <a href="{{ url_for('export_assets_excel') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.export_assets_excel') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-teal"><i class="bi bi-file-earmark-excel"></i></div>
                     <span class="superapp-menu-label">Export Excel</span>
                 </a>
-                <a href="{{ url_for('export_assets_pdf') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.export_assets_pdf') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-rose"><i class="bi bi-file-pdf"></i></div>
                     <span class="superapp-menu-label">Export PDF</span>
                 </a>
-                <a href="{{ url_for('assets', warranty='expiring') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets', warranty='expiring') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-amber"><i class="bi bi-shield-check"></i></div>
                     <span class="superapp-menu-label">Cek Garansi</span>
                 </a>
@@ -229,23 +229,23 @@
 
             {% else %}
                 <!-- STAFF GRID (Fokus Operasional & Sirkulasi) -->
-                <a href="{{ url_for('assets') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-blue"><i class="bi bi-boxes"></i></div>
                     <span class="superapp-menu-label">Data Aset</span>
                 </a>
-                <a href="{{ url_for('assets', _open='add') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets', _open='add') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-teal"><i class="bi bi-plus-circle"></i></div>
                     <span class="superapp-menu-label">Tambah Aset</span>
                 </a>
-                <a href="{{ url_for('assets', status='Dipinjam') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.assets', status='Dipinjam') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-indigo"><i class="bi bi-arrow-left-right"></i></div>
                     <span class="superapp-menu-label">Pinjam / Cek</span>
                 </a>
-                <a href="{{ url_for('purchase_orders') }}" class="superapp-menu-item">
+                <a href="{{ url_for('po.purchase_orders') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-purple"><i class="bi bi-cart-check"></i></div>
                     <span class="superapp-menu-label">Pengadaan (PO)</span>
                 </a>
-                <a href="{{ url_for('maintenance') }}" class="superapp-menu-item">
+                <a href="{{ url_for('maintenance.maintenance') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-amber">
                         <i class="bi bi-wrench-adjustable"></i>
                         {% if maintenance_alerts and maintenance_alerts|length > 0 %}
@@ -254,7 +254,7 @@
                     </div>
                     <span class="superapp-menu-label">Jadwal Servis</span>
                 </a>
-                <a href="{{ url_for('vendors') }}" class="superapp-menu-item">
+                <a href="{{ url_for('assets.vendors') }}" class="superapp-menu-item">
                     <div class="menu-tile-52 tile-cyan"><i class="bi bi-building"></i></div>
                     <span class="superapp-menu-label">Data Vendor</span>
                 </a>
@@ -272,7 +272,7 @@
 
     <!-- 2x2 Colored Summary Stat Cards (Real Metrics) -->
     <div class="stat-grid-2x2" id="mobileTourStatGrid">
-        <a href="{{ url_for('assets') }}" class="stat-card-2x2 stat-blue">
+        <a href="{{ url_for('assets.assets') }}" class="stat-card-2x2 stat-blue">
             <div class="stat-2x2-top">
                 <span class="stat-2x2-label">Total Aset</span>
                 <span class="stat-2x2-icon"><i class="bi bi-boxes"></i></span>
@@ -284,7 +284,7 @@
             </div>
         </a>
 
-        <a href="{{ url_for('assets') }}" class="stat-card-2x2 stat-teal">
+        <a href="{{ url_for('assets.assets') }}" class="stat-card-2x2 stat-teal">
             <div class="stat-2x2-top">
                 <span class="stat-2x2-label">Nilai Buku</span>
                 <span class="stat-2x2-icon"><i class="bi bi-calculator"></i></span>
@@ -296,7 +296,7 @@
             </div>
         </a>
 
-        <a href="{{ url_for('assets', status='Dipinjam') }}" class="stat-card-2x2 stat-amber">
+        <a href="{{ url_for('assets.assets', status='Dipinjam') }}" class="stat-card-2x2 stat-amber">
             <div class="stat-2x2-top">
                 <span class="stat-2x2-label">Dipinjam</span>
                 <span class="stat-2x2-icon"><i class="bi bi-arrow-left-right"></i></span>
@@ -308,7 +308,7 @@
             </div>
         </a>
 
-        <a href="{{ url_for('maintenance') }}" class="stat-card-2x2 stat-rose">
+        <a href="{{ url_for('maintenance.maintenance') }}" class="stat-card-2x2 stat-rose">
             <div class="stat-2x2-top">
                 <span class="stat-2x2-label">Perhatian</span>
                 <span class="stat-2x2-icon"><i class="bi bi-tools"></i></span>
@@ -338,11 +338,11 @@
     <div class="superapp-section-card" id="mobileTourRecentAssets">
         <div class="superapp-section-hdr">
             <h6 class="superapp-section-title"><i class="bi bi-boxes text-primary me-1"></i>Aset Terbaru</h6>
-            <a href="{{ url_for('assets') }}" class="superapp-section-link">Semua <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i></a>
+            <a href="{{ url_for('assets.assets') }}" class="superapp-section-link">Semua <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i></a>
         </div>
         <div class="d-flex flex-column gap-2">
             {% for a in recent_assets[:4] %}
-            <a href="{{ url_for('assets', search=a.asset_code) }}" class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light border text-decoration-none w-100 overflow-hidden">
+            <a href="{{ url_for('assets.assets', search=a.asset_code) }}" class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light border text-decoration-none w-100 overflow-hidden">
                 <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0 overflow-hidden">
                     <div class="rounded-3 bg-white border d-flex align-items-center justify-content-center text-primary flex-shrink-0" style="width: 36px; height: 36px;">
                         <i class="bi bi-box-seam"></i>
@@ -379,7 +379,7 @@
         <div class="superapp-section-hdr">
             <h6 class="superapp-section-title"><i class="bi bi-clock-history text-secondary me-1"></i>Aktivitas Terkini</h6>
             {% if current_user.role in ['Admin', 'Administrator'] %}
-            <a href="{{ url_for('history') }}" class="superapp-section-link">Log Lengkap <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i></a>
+            <a href="{{ url_for('admin.history') }}" class="superapp-section-link">Log Lengkap <i class="bi bi-chevron-right" style="font-size: 0.68rem;"></i></a>
             {% endif %}
         </div>
         <div class="d-flex flex-column gap-2">
@@ -444,7 +444,7 @@
                         <small class="text-primary fw-semibold">{{ pending_pos|length }} pengadaan belanja baru perlu ditinjau dan disetujui Administrator.</small>
                     </div>
                 </div>
-                <a href="{{ url_for('purchase_orders', status='SUBMITTED') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Tinjau PO</a>
+                <a href="{{ url_for('po.purchase_orders', status='SUBMITTED') }}" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Tinjau PO</a>
             </div>
         </div>
     </div>
@@ -463,7 +463,7 @@
                         <small class="text-danger fw-semibold">{{ overdue_returns|length }} aset belum dikembalikan &gt; 7 hari</small>
                     </div>
                 </div>
-                <a href="{{ url_for('assets', status='Dipinjam') }}" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Lihat</a>
+                <a href="{{ url_for('assets.assets', status='Dipinjam') }}" class="btn btn-danger btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Lihat</a>
             </div>
         </div>
     </div>
@@ -482,7 +482,7 @@
                         <small class="text-secondary">{{ maintenance_alerts|length }} perangkat mendekati/jatuh tempo</small>
                     </div>
                 </div>
-                <a href="{{ url_for('assets', maintenance='due') }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Periksa</a>
+                <a href="{{ url_for('assets.assets', maintenance='due') }}" class="btn btn-warning text-dark btn-sm rounded-pill px-3 fw-bold flex-shrink-0">Periksa</a>
             </div>
         </div>
     </div>
@@ -506,7 +506,7 @@
                         </p>
                     </div>
                 </div>
-                <a href="{{ url_for('assets') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 flex-shrink-0">Evaluasi</a>
+                <a href="{{ url_for('assets.assets') }}" class="btn btn-outline-dark btn-sm rounded-pill px-3 flex-shrink-0">Evaluasi</a>
             </div>
         </div>
     </div>
@@ -623,7 +623,7 @@
                     <i class="bi bi-boxes text-primary fs-6"></i>
                     <h6 class="fw-bold mb-0 text-dark" data-i18n="dash_recent_assets">Aset Terakhir Ditambahkan</h6>
                 </div>
-                <a href="{{ url_for('assets') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-i18n="dash_all_assets">Semua Aset</a>
+                <a href="{{ url_for('assets.assets') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3" data-i18n="dash_all_assets">Semua Aset</a>
             </div>
             <div class="table-responsive dashboard-scrollable-container flex-grow-1">
                 <table class="table table-hover align-middle mb-0">
@@ -678,7 +678,7 @@
                     <i class="bi bi-clock-history text-secondary fs-6"></i>
                     <h6 class="fw-bold mb-0 text-dark" data-i18n="dash_recent_activity">Aktivitas Terkini</h6>
                 </div>
-                <a href="{{ url_for('history') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-i18n="dash_view_logs">Lihat Log</a>
+                <a href="{{ url_for('admin.history') }}" class="btn btn-outline-secondary btn-sm rounded-pill px-3" data-i18n="dash_view_logs">Lihat Log</a>
             </div>
             <div class="card-body p-2 dashboard-scrollable-container flex-grow-1">
                 <div class="d-flex flex-column gap-2">
