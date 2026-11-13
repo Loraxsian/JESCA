@@ -1,5 +1,7 @@
 import os
 import re
+import time
+import threading
 import csv
 import io
 import json
@@ -43,7 +45,7 @@ from utils.helpers import (
     save_uploaded_photo, delete_photo_file, save_po_attachment, save_maint_attachment,
     save_avatar_file, delete_avatar_file, encrypt_smtp_password, decrypt_smtp_password,
     get_wib_now, format_wib_datetime, parse_currency, get_category_prefix,
-    generate_asset_code, generate_po_number
+    generate_asset_code, generate_po_number, get_client_ip
 )
 from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
 from services.email_service import build_system_email_html, send_system_email
@@ -310,9 +312,33 @@ def delete_feedback(feedback_id):
     return redirect(request.referrer or url_for('main.feedbacks_list'))
 
 
+_SCAN_RATE_LOCK = threading.Lock()
+_SCAN_RATE_HISTORY = {}
+_SCAN_MAX_PER_MIN = 30
+
+
 @main_bp.route('/scan/<path:asset_code>')
 def scan_asset_summary(asset_code):
-    """Public Asset Summary Page with sanitized, public-safe data only."""
+    """Public Asset Summary Page with rate limiting and optional login enforcement."""
+    client_ip = get_client_ip()
+    now_ts = time.time()
+    with _SCAN_RATE_LOCK:
+        hist = [ts for ts in _SCAN_RATE_HISTORY.get(client_ip, []) if now_ts - ts < 60]
+        if len(hist) >= _SCAN_MAX_PER_MIN:
+            _SCAN_RATE_HISTORY[client_ip] = hist
+            return jsonify({
+                'status': 'error',
+                'code': 429,
+                'message': 'Terlalu banyak permintaan scan QR dari IP ini. Silakan coba lagi dalam 1 menit.'
+            }), 429
+        hist.append(now_ts)
+        _SCAN_RATE_HISTORY[client_ip] = hist
+
+    setting = SystemSetting.get_settings()
+    if getattr(setting, 'require_login_for_scan', False) and not current_user.is_authenticated:
+        flash('Akses halaman scan QR membutuhkan login sesuai kebijakan keamanan sistem.', 'warning')
+        return redirect(url_for('auth.login', next=request.url))
+
     asset = Asset.query.filter_by(asset_code=asset_code).first()
     today = date.today()
     days_to_maint = None

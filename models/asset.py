@@ -77,9 +77,10 @@ class Asset(db.Model):
     warranty_start = db.Column(db.Date, nullable=True)
     warranty_end = db.Column(db.Date, nullable=True)
 
-    # v2: Depreciation (straight-line)
+    # v2: Depreciation (straight-line / declining balance)
     useful_life_years = db.Column(db.Integer, nullable=True)
     salvage_value = db.Column(db.Float, default=0.0)
+    depreciation_method = db.Column(db.String(30), default='straight_line')
 
     # v2: Utilization tracking
     total_checkout_days = db.Column(db.Integer, default=0)
@@ -122,12 +123,12 @@ class Asset(db.Model):
 
     @property
     def current_book_value(self):
-        """Straight-line depreciation: (cost - salvage) / useful_life_years."""
+        """Straight-line or double declining balance depreciation."""
         if not self.useful_life_years or self.useful_life_years <= 0:
             return self.purchase_price or 0.0
         if not self.purchase_date:
             return self.purchase_price or 0.0
-        
+
         # Jika tanggal perolehan hari ini atau di masa depan, belum ada penyusutan
         if self.purchase_date >= date.today():
             return self.purchase_price or 0.0
@@ -135,9 +136,15 @@ class Asset(db.Model):
         years_elapsed = (date.today() - self.purchase_date).days / 365.25
         salvage = self.salvage_value or 0.0
         cost = self.purchase_price or 0.0
-        annual_dep = (cost - salvage) / self.useful_life_years
-        book_value = cost - (annual_dep * years_elapsed)
-        
+        method = getattr(self, 'depreciation_method', None) or 'straight_line'
+
+        if method == 'declining_balance':
+            rate = min(1.0, 2.0 / self.useful_life_years)
+            book_value = cost * ((1.0 - rate) ** years_elapsed)
+        else:
+            annual_dep = (cost - salvage) / self.useful_life_years
+            book_value = cost - (annual_dep * years_elapsed)
+
         # Nilai buku tidak boleh lebih besar dari harga beli dan tidak boleh lebih kecil dari nilai residu
         return round(min(cost, max(book_value, salvage)), 2)
 
@@ -190,6 +197,7 @@ class Asset(db.Model):
             'warranty_status': self.warranty_status,
             'useful_life_years': self.useful_life_years,
             'salvage_value': self.salvage_value or 0.0,
+            'depreciation_method': getattr(self, 'depreciation_method', None) or 'straight_line',
             'current_book_value': self.current_book_value,
             'total_checkout_days': self.total_checkout_days or 0,
             'custom_fields': self.custom_fields,

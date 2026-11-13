@@ -915,6 +915,8 @@ def system_settings():
         setting.enforce_https = enforce_https_requested
         setting.ip_whitelist_enabled = (request.form.get('ip_whitelist_enabled') == '1')
         setting.allowed_ip_ranges = request.form.get('allowed_ip_ranges', '').strip()
+        setting.require_login_for_scan = (request.form.get('require_login_for_scan') == '1')
+        setting.sudo_mode_enabled = (request.form.get('sudo_mode_enabled') == '1')
 
         if mail_password_input:
             setting.mail_password = encrypt_smtp_password(mail_password_input)

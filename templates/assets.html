@@ -621,6 +621,13 @@
                                         <label class="form-label small fw-bold">Nilai Residu (IDR)</label>
                                         <input type="text" class="form-control" name="salvage_value" placeholder="0">
                                     </div>
+                                    <div class="col-12 col-md-6">
+                                        <label class="form-label small fw-bold">Metode Penyusutan</label>
+                                        <select class="form-select" name="depreciation_method">
+                                            <option value="straight_line" selected>Garis Lurus (Straight-Line)</option>
+                                            <option value="declining_balance">Saldo Menurun (Declining Balance)</option>
+                                        </select>
+                                    </div>
 
                                     <!-- Dynamic Custom Fields Section -->
                                     <div class="col-12" id="addCustomFieldsContainer">
@@ -754,6 +761,13 @@
                         <div class="col-md-3">
                             <label class="form-label small fw-bold">Nilai Residu</label>
                             <input type="text" class="form-control" name="salvage_value" id="editSalvageValue">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-bold">Metode Penyusutan</label>
+                            <select class="form-select" name="depreciation_method" id="editDepreciationMethod">
+                                <option value="straight_line">Garis Lurus (Straight-Line)</option>
+                                <option value="declining_balance">Saldo Menurun (Declining Balance)</option>
+                            </select>
                         </div>
 
                         <div class="col-md-6">
@@ -892,14 +906,14 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg rounded-4">
             <div class="modal-header border-bottom py-3 px-4">
-                <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Impor Inventaris dari CSV</h6>
+                <h6 class="modal-title fw-bold"><i class="bi bi-upload me-2 text-primary"></i>Impor Inventaris (CSV / Excel .xlsx)</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{{ url_for('assets.import_assets_csv') }}" enctype="multipart/form-data">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <div class="modal-body p-4">
                     <p class="small text-muted mb-3">
-                        Gunakan fitur ini untuk memasukkan data aset secara massal dari spreadsheet. Pastikan struktur kolom sesuai dengan template standar.
+                        Gunakan fitur ini untuk memasukkan data aset secara massal dari file CSV atau Excel (.xlsx). Pastikan nama kolom sesuai dengan template standar.
                     </p>
                     <div class="mb-3 text-center p-3 bg-light rounded-3 border">
                         <a href="{{ url_for('assets.import_assets_csv') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3">
@@ -907,8 +921,8 @@
                         </a>
                     </div>
                     <div class="mb-2">
-                        <label class="form-label small fw-bold">Pilih File CSV <span class="text-danger">*</span></label>
-                        <input type="file" class="form-control" name="csv_file" accept=".csv" required>
+                        <label class="form-label small fw-bold">Pilih File CSV atau Excel (.xlsx) <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" name="csv_file" accept=".csv,.xlsx" required>
                     </div>
                 </div>
                 <div class="modal-footer border-top px-4 py-3">
@@ -1216,6 +1230,8 @@
                 document.getElementById('editWarrantyEnd').value = a.warranty_end || '';
                 document.getElementById('editUsefulLife').value = a.useful_life_years || '';
                 document.getElementById('editSalvageValue').value = a.salvage_value || '';
+                const depSelect = document.getElementById('editDepreciationMethod');
+                if (depSelect) depSelect.value = a.depreciation_method || 'straight_line';
                 document.getElementById('editStatus').value = a.status;
                 document.getElementById('editDescription').value = a.description;
 

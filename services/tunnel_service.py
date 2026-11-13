@@ -4,20 +4,29 @@ import time
 import threading
 import subprocess
 from datetime import datetime
+from config import ENABLE_QUICK_TUNNEL, QUICK_TUNNEL_MAX_MINUTES
 
 
 _QUICK_TUNNEL_LOCK = threading.Lock()
 _QUICK_TUNNEL_PROC = None
+_QUICK_TUNNEL_TIMER = None
 _QUICK_TUNNEL_INFO = {
     'active': False,
     'public_url': None,
     'expires_in': None,
-    'started_at': None
+    'started_at': None,
+    'enabled': ENABLE_QUICK_TUNNEL
 }
 
 
 def start_quick_tunnel(port=5000):
-    global _QUICK_TUNNEL_PROC, _QUICK_TUNNEL_INFO
+    global _QUICK_TUNNEL_PROC, _QUICK_TUNNEL_TIMER, _QUICK_TUNNEL_INFO
+    if not ENABLE_QUICK_TUNNEL:
+        return {
+            'active': False,
+            'enabled': False,
+            'error': 'Fitur tunnel instan dinonaktifkan oleh konfigurasi server (ENABLE_QUICK_TUNNEL=false).'
+        }
     with _QUICK_TUNNEL_LOCK:
         if _QUICK_TUNNEL_PROC and _QUICK_TUNNEL_PROC.poll() is None:
             return _QUICK_TUNNEL_INFO
@@ -63,11 +72,17 @@ def start_quick_tunnel(port=5000):
 
             if found_url:
                 _QUICK_TUNNEL_PROC = proc
+                if _QUICK_TUNNEL_TIMER:
+                    _QUICK_TUNNEL_TIMER.cancel()
+                _QUICK_TUNNEL_TIMER = threading.Timer(QUICK_TUNNEL_MAX_MINUTES * 60, stop_quick_tunnel)
+                _QUICK_TUNNEL_TIMER.daemon = True
+                _QUICK_TUNNEL_TIMER.start()
                 _QUICK_TUNNEL_INFO = {
                     'active': True,
                     'public_url': found_url,
-                    'expires_in': expires,
-                    'started_at': datetime.utcnow().strftime('%H:%M:%S')
+                    'expires_in': f'{QUICK_TUNNEL_MAX_MINUTES} Menit (Auto-Expire)',
+                    'started_at': datetime.utcnow().strftime('%H:%M:%S'),
+                    'enabled': ENABLE_QUICK_TUNNEL
                 }
                 return _QUICK_TUNNEL_INFO
             else:
@@ -84,8 +99,11 @@ def start_quick_tunnel(port=5000):
 
 
 def stop_quick_tunnel():
-    global _QUICK_TUNNEL_PROC, _QUICK_TUNNEL_INFO
+    global _QUICK_TUNNEL_PROC, _QUICK_TUNNEL_TIMER, _QUICK_TUNNEL_INFO
     with _QUICK_TUNNEL_LOCK:
+        if _QUICK_TUNNEL_TIMER:
+            _QUICK_TUNNEL_TIMER.cancel()
+            _QUICK_TUNNEL_TIMER = None
         if _QUICK_TUNNEL_PROC:
             try:
                 _QUICK_TUNNEL_PROC.terminate()
@@ -101,7 +119,8 @@ def stop_quick_tunnel():
             'active': False,
             'public_url': None,
             'expires_in': None,
-            'started_at': None
+            'started_at': None,
+            'enabled': ENABLE_QUICK_TUNNEL
         }
         return _QUICK_TUNNEL_INFO
 
@@ -117,6 +136,9 @@ def get_quick_tunnel_status():
                 'active': False,
                 'public_url': None,
                 'expires_in': None,
-                'started_at': None
+                'started_at': None,
+                'enabled': ENABLE_QUICK_TUNNEL
             }
-        return dict(_QUICK_TUNNEL_INFO)
+        info = dict(_QUICK_TUNNEL_INFO)
+        info['enabled'] = ENABLE_QUICK_TUNNEL
+        return info

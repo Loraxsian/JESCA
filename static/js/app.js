@@ -2081,9 +2081,9 @@ window.JescaOnboarding = {
             localStorage.setItem('jesca_tour_completed', 'true');
             try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
         } else {
+            localStorage.setItem(this.getCompletionKey(), 'true');
             try { sessionStorage.setItem('jesca_tour_session_dismissed', 'true'); } catch (e) {}
-            localStorage.removeItem(this.getCompletionKey());
-            JescaToast.show('Panduan dilewati. Sesuai aturan, panduan akan otomatis muncul kembali pada sesi login berikutnya hingga selesai.', 'warning');
+            JescaToast.show('Panduan dilewati. Anda dapat membukanya kembali kapan saja melalui menu Panduan Sistem.', 'info');
         }
         var modalEl = document.getElementById(this.modalId);
         if (modalEl) {
@@ -2386,9 +2386,9 @@ window.JescaOnboarding = {
             try { sessionStorage.removeItem('jesca_tour_session_dismissed'); } catch (e) {}
             JescaToast.show('Selamat! Anda telah menyelesaikan seluruh panduan interaktif JESCA.', 'success');
         } else {
+            localStorage.setItem(this.getCompletionKey(), 'true');
             try { sessionStorage.setItem('jesca_tour_session_dismissed', 'true'); } catch (e) {}
-            localStorage.removeItem(this.getCompletionKey());
-            JescaToast.show('Panduan dilewati. Sesuai aturan, panduan akan otomatis muncul kembali di setiap sesi login hingga Anda menyelesaikannya.', 'warning');
+            JescaToast.show('Panduan dilewati. Anda dapat menjalankannya kembali kapan saja lewat menu Panduan Sistem.', 'info');
         }
     }
 };

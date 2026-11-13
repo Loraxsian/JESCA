@@ -218,6 +218,9 @@ def create_asset():
 
     vendor_id = int(vendor_id_str) if vendor_id_str.isdigit() else None
     site_id = int(site_id_str) if site_id_str.isdigit() else None
+    depreciation_method = request.form.get('depreciation_method', 'straight_line').strip()
+    if depreciation_method not in ('straight_line', 'declining_balance'):
+        depreciation_method = 'straight_line'
 
     # Custom fields for category
     custom_data = {}
@@ -274,6 +277,7 @@ def create_asset():
         warranty_end=warranty_end,
         useful_life_years=useful_life_years,
         salvage_value=salvage_value,
+        depreciation_method=depreciation_method,
         vendor_id=vendor_id,
         site_id=site_id,
         custom_fields_json=custom_fields_json
@@ -388,6 +392,9 @@ def edit_asset(asset_id):
 
     asset.vendor_id = int(vendor_id_str) if vendor_id_str.isdigit() else None
     asset.site_id = int(site_id_str) if site_id_str.isdigit() else None
+    dep_method = request.form.get('depreciation_method', 'straight_line').strip()
+    if dep_method in ('straight_line', 'declining_balance'):
+        asset.depreciation_method = dep_method
 
     # Custom fields
     custom_data = {}
@@ -818,25 +825,38 @@ def import_assets_csv():
             headers={"Content-Disposition": "attachment; filename=template_import_jesca.csv"}
         )
 
-    # POST: Process uploaded CSV file
+    # POST: Process uploaded CSV or Excel (.xlsx) file
     file = request.files.get('csv_file')
     if not file or file.filename == '':
-        flash('File CSV wajib dipilih.', 'danger')
+        flash('File CSV atau Excel (.xlsx) wajib dipilih.', 'danger')
         return redirect(url_for('assets.assets'))
 
     success_count = 0
     error_rows = []
+    fname_lower = file.filename.lower()
 
     try:
-        content = file.stream.read().decode('utf-8-sig')
-        stream = io.StringIO(content)
-        # Support either comma or semicolon delimiter
-        first_line = content.split('\n')[0]
-        delimiter = ';' if ';' in first_line else ','
-        stream.seek(0)
-        reader = csv.DictReader(stream, delimiter=delimiter)
+        rows_iter = []
+        if fname_lower.endswith('.xlsx'):
+            import openpyxl
+            wb = openpyxl.load_workbook(file.stream, data_only=True)
+            ws = wb.active
+            all_rows = list(ws.iter_rows(values_only=True))
+            if all_rows:
+                headers = [str(h).strip() if h is not None else '' for h in all_rows[0]]
+                for r in all_rows[1:]:
+                    if any(cell is not None and str(cell).strip() != '' for cell in r):
+                        row_dict = {headers[idx]: (str(r[idx]).strip() if idx < len(r) and r[idx] is not None else '') for idx in range(len(headers)) if headers[idx]}
+                        rows_iter.append(row_dict)
+        else:
+            content = file.stream.read().decode('utf-8-sig')
+            stream = io.StringIO(content)
+            first_line = content.split('\n')[0]
+            delimiter = ';' if ';' in first_line else ','
+            stream.seek(0)
+            rows_iter = list(csv.DictReader(stream, delimiter=delimiter))
 
-        for i, row in enumerate(reader, start=2):
+        for i, row in enumerate(rows_iter, start=2):
             try:
                 name = (row.get('Nama Aset') or row.get('name') or '').strip()
                 if not name:

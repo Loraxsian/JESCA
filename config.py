@@ -13,6 +13,8 @@ QRCODE_FOLDER = os.path.join(BASE_DIR, 'static', 'qrcodes')
 
 APP_VERSION = '3.0.0'
 GITHUB_REPO = 'Loraxsian/JESCA'
+ENABLE_QUICK_TUNNEL = os.environ.get('ENABLE_QUICK_TUNNEL', 'true').lower() in ('1', 'true', 'yes', 'on')
+QUICK_TUNNEL_MAX_MINUTES = int(os.environ.get('QUICK_TUNNEL_MAX_MINUTES', '30'))
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'gif'}
 ALLOWED_ATTACHMENT_EXTENSIONS = {'pdf', 'docx', 'doc', 'jpg', 'jpeg', 'png', 'xlsx', 'xls', 'txt'}

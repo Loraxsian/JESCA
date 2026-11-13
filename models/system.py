@@ -29,6 +29,9 @@ class SystemSetting(db.Model):
     remote_backup_user = db.Column(db.String(100), nullable=True)
     remote_backup_pass = db.Column(db.String(255), nullable=True)
     remote_backup_path = db.Column(db.String(255), default='/')
+    # v3.0: Security & UX flexibility
+    require_login_for_scan = db.Column(db.Boolean, default=False)
+    sudo_mode_enabled = db.Column(db.Boolean, default=True)
     updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     @classmethod

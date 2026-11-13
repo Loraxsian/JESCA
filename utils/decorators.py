@@ -3,6 +3,7 @@ from datetime import datetime
 from flask import request, redirect, url_for, flash, jsonify, session
 from flask_login import current_user
 from models.user import User
+from models.system import SystemSetting
 
 
 def admin_required(f):
@@ -68,19 +69,25 @@ def is_sudo_active():
 
 def sudo_required(f):
     """
-    Step-Up Authentication (Sudo Mode) Decorator.
-    Requires password re-verification within the last 15 minutes
-    before accessing sensitive administrative actions.
+    Step-Up Authentication (Mode Akses Khusus / Sudo).
+    Always enforces sudo for destructive actions; allows toggling Settings access via SystemSetting.sudo_mode_enabled.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
+        if request.endpoint == 'admin.system_settings':
+            try:
+                setting = SystemSetting.get_settings()
+                if not getattr(setting, 'sudo_mode_enabled', True):
+                    return f(*args, **kwargs)
+            except Exception:
+                pass
         if not is_sudo_active():
             if request.is_json or request.path.startswith('/api/'):
                 return jsonify({
                     'error': 'sudo_required',
-                    'message': 'Konfirmasi sandi administrator diperlukan (Sudo Mode).'
+                    'message': 'Konfirmasi sandi administrator diperlukan (Mode Akses Khusus / Sudo).'
                 }), 403
             return redirect(url_for('auth.confirm_sudo', next=request.url))
         return f(*args, **kwargs)

@@ -74,7 +74,8 @@ def check_and_update_schema():
                 ('last_transfer_date', 'DATE'),
                 ('last_transfer_from', 'VARCHAR(100)'),
                 ('po_id', 'INTEGER'),
-                ('po_item_id', 'INTEGER')
+                ('po_item_id', 'INTEGER'),
+                ('depreciation_method', "VARCHAR(30) DEFAULT 'straight_line'")
             ]
             for col_name, col_type in asset_additions:
                 if col_name not in cols:
@@ -124,7 +125,9 @@ def check_and_update_schema():
                 ('remote_backup_port', 'INTEGER DEFAULT 21'),
                 ('remote_backup_user', 'VARCHAR(100)'),
                 ('remote_backup_pass', 'VARCHAR(255)'),
-                ('remote_backup_path', "VARCHAR(255) DEFAULT '/'")
+                ('remote_backup_path', "VARCHAR(255) DEFAULT '/'"),
+                ('require_login_for_scan', 'BOOLEAN DEFAULT 0'),
+                ('sudo_mode_enabled', 'BOOLEAN DEFAULT 1')
             ]
             for col_name, col_type in ss_additions:
                 if col_name not in cols_ss:

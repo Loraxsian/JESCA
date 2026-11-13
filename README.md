@@ -193,7 +193,12 @@ jesca-assets/
   - `models/`: pemisahan model database (`system.py`, `user.py`, `asset.py`, `purchase_order.py`).
   - `routes/`: 7 Flask Blueprints (`auth`, `main`, `assets`, `maintenance`, `po`, `admin`, `api`).
   - `services/` & `utils/`: pemisahan layanan bisnis (`audit_service`, `email_service`, `backup_service`, `tunnel_service`), dekorator keamanan, helper, dan filter template.
-  - `tests/test_v3_blueprints.py`: pengujian otomatis untuk memverifikasi seluruh Blueprint, rute utama, Mode Akses Khusus (Sudo), halaman 404, dan endpoint `/health`.
+  - `tests/test_v3_blueprints.py` & `tests/test_v3_full_audit.py`: pengujian otomatis untuk memverifikasi seluruh Blueprint, matriks RBAC 4 peran, Mode Akses Khusus (Sudo), dan workflow end-to-end.
+- **Keamanan, UX & Akuntansi (`v3.0.0`)**:
+  - Proteksi `/scan/<kode_aset>` dengan rate-limit per IP (30 permintaan/menit) serta opsi toggle **Wajib Login untuk Scan QR Publik** di Pengaturan Sistem.
+  - Pembatasan Tunnel Instan 1-Klik dengan *auto-expire* (30 menit default) dan flag `ENABLE_QUICK_TUNNEL` untuk server produksi.
+  - **Spotlight Tour** tidak memaksa muncul ulang setelah di-skip (tetap bisa dibuka kapan saja via menu Panduan Sistem) dan opsi fleksibel **Mode Akses Khusus (Sudo)** di Pengaturan Sistem.
+  - Pilihan metode penyusutan aset (**Garis Lurus / Straight-Line** dan **Saldo Menurun / Declining Balance**) serta dukungan **Import Excel (`.xlsx`)** selain CSV.
 
 ### v2.6.5 — Standarisasi Full Bahasa Indonesia
 - Penyeragaman seluruh antarmuka ke **Full Bahasa Indonesia** sebagai bahasa operasional utama tanpa campuran istilah Inggris yang tidak konsisten.
