@@ -342,16 +342,16 @@
         </div>
         <div class="d-flex flex-column gap-2">
             {% for a in recent_assets[:4] %}
-            <a href="{{ url_for('assets', search=a.asset_code) }}" class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light border text-decoration-none">
-                <div class="d-flex align-items-center gap-2 min-w-0">
+            <a href="{{ url_for('assets', search=a.asset_code) }}" class="d-flex align-items-center justify-content-between gap-2 p-2 rounded-3 bg-light border text-decoration-none w-100 overflow-hidden">
+                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0 overflow-hidden">
                     <div class="rounded-3 bg-white border d-flex align-items-center justify-content-center text-primary flex-shrink-0" style="width: 36px; height: 36px;">
                         <i class="bi bi-box-seam"></i>
                     </div>
-                    <div class="min-w-0">
+                    <div class="flex-grow-1 min-w-0 overflow-hidden">
                         <div class="fw-bold text-dark text-truncate" style="font-size: 0.8rem;">{{ a.name }}</div>
-                        <div class="d-flex align-items-center gap-1">
+                        <div class="d-flex align-items-center gap-1 text-truncate">
                             <span class="font-monospace text-muted" style="font-size: 0.68rem;">{{ a.asset_code }}</span>
-                            <span class="text-muted" style="font-size: 0.65rem;">&bull; {{ a.category }}</span>
+                            <span class="text-muted text-truncate" style="font-size: 0.65rem;">&bull; {{ a.category }}</span>
                         </div>
                     </div>
                 </div>

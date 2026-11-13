@@ -1400,6 +1400,9 @@ footer {
         padding: 14px 12px;
         margin-bottom: 14px;
         box-shadow: var(--shadow-sm);
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .superapp-section-hdr {
@@ -1430,8 +1433,9 @@ footer {
 
     .superapp-menu-grid {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, minmax(0, 1fr));
         gap: 12px 6px;
+        width: 100%;
     }
 
     .superapp-menu-item {
@@ -1500,9 +1504,10 @@ footer {
     /* 2x2 Clean White Summary Stat Cards (Accents on Icon & Value Only) */
     .stat-grid-2x2 {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 10px;
         margin-bottom: 14px;
+        width: 100%;
     }
 
     .stat-card-2x2 {
@@ -1510,6 +1515,7 @@ footer {
         padding: 14px;
         position: relative;
         overflow: hidden;
+        min-width: 0;
         background: #ffffff;
         border: 1px solid #e2e8f0;
         color: #1e293b;
@@ -1615,7 +1621,7 @@ footer {
         border-top: 1px solid var(--border-color);
         box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(5, minmax(0, 1fr));
         align-items: center;
         z-index: 1035;
         padding: 0 4px;
@@ -1797,11 +1803,14 @@ footer {
         border-radius: 16px;
         padding: 13px;
         box-shadow: var(--shadow-sm);
+        min-width: 0;
+        max-width: 100%;
+        overflow: hidden;
     }
 
     .mobile-asset-meta-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 8px;
         background: var(--bg-input);
         border: 1px solid var(--border-color);
@@ -1809,5 +1818,18 @@ footer {
         padding: 9px 11px;
         margin: 10px 0;
         font-size: 0.75rem;
+    }
+
+    /* Global Mobile Overflow Containment & Missing Flex Utility */
+    .min-w-0 {
+        min-width: 0 !important;
+    }
+    html, body, #wrapper, #page-content-wrapper, main {
+        max-width: 100% !important;
+        overflow-x: clip !important;
+    }
+    .card, .superapp-section-card, .floating-profile-card {
+        min-width: 0;
+        max-width: 100%;
     }
 }
