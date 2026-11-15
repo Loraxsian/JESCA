@@ -210,7 +210,7 @@ def manual_backup():
     if request.method == 'GET':
         return redirect(url_for('admin.admin_backups'))
 
-    filename = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    filename = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(2)}.db"
     dst = os.path.join(BACKUP_FOLDER, filename)
     try:
         backup_sqlite_db(db_path, dst)
@@ -323,7 +323,7 @@ def restore_backup(filename):
         return redirect(url_for('admin.admin_backups'))
 
     # Safety: take snapshot before overwrite
-    safety_snap = f"pre_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+    safety_snap = f"pre_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(2)}.db"
     safety_dst = os.path.join(BACKUP_FOLDER, safety_snap)
     try:
         backup_sqlite_db(db_path, safety_dst)
@@ -425,7 +425,7 @@ def import_db_merge():
             return redirect(url_for('admin.admin_backups'))
 
         # ── Step 1: Safety snapshot BEFORE any merge ──────────────────────
-        snap_name = f"pre_merge_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
+        snap_name = f"pre_merge_{datetime.now().strftime('%Y%m%d_%H%M%S')}_{secrets.token_hex(2)}.db"
         snap_path = os.path.join(BACKUP_FOLDER, snap_name)
         try:
             backup_sqlite_db(db_path, snap_path)

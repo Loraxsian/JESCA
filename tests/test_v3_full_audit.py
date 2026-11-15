@@ -34,9 +34,14 @@ REDIRECT_OK = {
     '/change-password-required',  # only shown when force_password_change is set
     '/confirm-sudo',              # already in sudo -> forwards to /settings
     '/admin/import-report/csv',   # no import report in session -> back to Backup & DB
+    '/admin/backup',              # GET fallback: redirects to /admin/backups (no action on GET)
+    '/admin/import-db',           # GET fallback: redirects to /admin/backups (no action on GET)
+    '/admin/optimize-db',         # GET fallback: redirects to /admin/backups (no action on GET)
 }
 # logout ends session, check-update needs internet, /api/v1 uses X-API-Key (tested separately)
-SKIP_GET = {'/logout', '/api/system/check-update', '/api/v1/assets'}
+# import-db and optimize-db accept GET only to redirect away safely (no sudo check on GET)
+SKIP_GET = {'/logout', '/api/system/check-update', '/api/v1/assets',
+            '/admin/import-db', '/admin/optimize-db'}
 
 
 def _derive_access_rules():
