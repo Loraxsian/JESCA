@@ -11,7 +11,7 @@ MAINT_ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments', 'maint
 BACKUP_FOLDER = os.path.join(BASE_DIR, 'backups')
 QRCODE_FOLDER = os.path.join(BASE_DIR, 'static', 'qrcodes')
 
-APP_VERSION = '3.0.0'
+APP_VERSION = '3.0.1'
 GITHUB_REPO = 'Loraxsian/JESCA'
 ENABLE_QUICK_TUNNEL = os.environ.get('ENABLE_QUICK_TUNNEL', 'true').lower() in ('1', 'true', 'yes', 'on')
 QUICK_TUNNEL_MAX_MINUTES = int(os.environ.get('QUICK_TUNNEL_MAX_MINUTES', '30'))
@@ -74,7 +74,7 @@ class Config:
         SQLALCHEMY_ENGINE_OPTIONS = {'connect_args': {'timeout': 30}}
 
     UPLOAD_FOLDER = UPLOAD_FOLDER
-    MAX_CONTENT_LENGTH = 5 * 1024 * 1024
+    MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB max upload (supports DB backups and bulk import)
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=30)
     SESSION_REFRESH_EACH_REQUEST = True
     SESSION_COOKIE_HTTPONLY = True

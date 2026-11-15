@@ -70,25 +70,34 @@ def is_sudo_active():
 def sudo_required(f):
     """
     Step-Up Authentication (Mode Akses Khusus / Sudo).
-    Always enforces sudo for destructive actions; allows toggling Settings access via SystemSetting.sudo_mode_enabled.
+    Enforces sudo verification before destructive or administrative actions if enabled in settings.
     """
     @wraps(f)
     def decorated(*args, **kwargs):
         if not current_user.is_authenticated:
             return redirect(url_for('auth.login'))
-        if request.endpoint == 'admin.system_settings':
-            try:
-                setting = SystemSetting.get_settings()
-                if not getattr(setting, 'sudo_mode_enabled', True):
-                    return f(*args, **kwargs)
-            except Exception:
-                pass
+        try:
+            setting = SystemSetting.get_settings()
+            if not getattr(setting, 'sudo_mode_enabled', True):
+                return f(*args, **kwargs)
+        except Exception:
+            pass
+
+        # For action endpoints with GET fallback (like /admin/import-db), allow GET to pass so it safely redirects.
+        # Sudo check on GET is only enforced for the dedicated settings page (/settings).
+        if request.method == 'GET' and request.endpoint != 'admin.system_settings':
+            return f(*args, **kwargs)
+
         if not is_sudo_active():
             if request.is_json or request.path.startswith('/api/'):
                 return jsonify({
                     'error': 'sudo_required',
                     'message': 'Konfirmasi sandi administrator diperlukan (Mode Akses Khusus / Sudo).'
                 }), 403
-            return redirect(url_for('auth.confirm_sudo', next=request.url))
+            # For POST requests, redirecting back to POST endpoint will issue a GET and cause 405.
+            # Redirect to referrer instead so user returns to the form page with active sudo.
+            next_url = request.referrer or url_for('admin.admin_backups') if request.method != 'GET' else request.url
+            flash('Konfirmasi kata sandi administrator diperlukan untuk mengakses tindakan sensitif (Sudo Mode).', 'warning')
+            return redirect(url_for('auth.confirm_sudo', next=next_url))
         return f(*args, **kwargs)
     return decorated

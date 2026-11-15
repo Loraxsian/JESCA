@@ -1,4 +1,4 @@
-# JESCA (Jessica Assets) - Asset Management System (v3.0.0)
+# JESCA (Jessica Assets) - Asset Management System (v3.0.1)
 
 JESCA (Jessica Assets) adalah aplikasi web manajemen aset dan inventaris berbahasa Indonesia (**Full Bahasa Indonesia**) yang dibuat menggunakan Python Flask, SQLite (Flask-SQLAlchemy), dan Bootstrap 5.
 
@@ -185,7 +185,15 @@ jesca-assets/
 
 ---
 
-## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.0)
+## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.1)
+
+### v3.0.1 — Ketahanan Restore Database (WAL Fix) & Solusi Cloudflare Import (Patch Release)
+- **Perbaikan Restore Database WAL**: Menyelesaikan kendala data yang tidak kembali setelah restore dengan integrasi SQLite Native Backup API (`PRAGMA wal_checkpoint(TRUNCATE)`), pembersihan file `-wal` dan `-shm` usang sebelum penimpaan file, pelepasan pool koneksi SQLAlchemy (`engine.dispose()`), serta graceful reload worker Gunicorn via sinyal `SIGHUP`.
+- **Resolusi Cloudflare 405 Method Not Allowed pada Import**:
+  - Penyesuaian decorator `@sudo_required`: untuk request POST, pengalihan kata sandi diarahkan kembali ke halaman asal (referrer) bukan ke endpoint POST, mencegah browser mendowngrade request menjadi GET.
+  - Penambahan dukungan metode GET pada endpoint aksi administratif (`/admin/import-db`, `/admin/restore/...`, `/admin/optimize-db`) agar melakukan graceful redirect dan tidak memicu 405.
+  - Integrasi middleware `werkzeug.middleware.proxy_fix.ProxyFix` dan pengalihan HTTPS menggunakan kode HTTP 307/308 agar metode POST dan payload file dipertahankan.
+  - Penanganan global error 405 & 413, serta peningkatan batas unggah `MAX_CONTENT_LENGTH` dari 5 MB menjadi 50 MB untuk file database besar.
 
 ### v3.0.0 — Arsitektur Modular Flask Blueprint (Major Release)
 - Restrukturisasi kode utama dari file monolith menjadi arsitektur modular **App Factory + Flask Blueprints**:

@@ -234,6 +234,36 @@ def upload_to_remote_backup(local_file_path, setting=None):
         return False, str(e)
 
 
+def backup_sqlite_db(src_path, dst_path):
+    """
+    Perform a consistent and atomic SQLite backup using SQLite's native backup API.
+    Truncates WAL before and during backup to ensure all transactions are captured.
+    """
+    import sqlite3
+    if not os.path.exists(src_path):
+        raise FileNotFoundError(f"Source database not found: {src_path}")
+
+    # Flush WAL into main database file
+    try:
+        chk_conn = sqlite3.connect(src_path, timeout=30)
+        chk_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        chk_conn.close()
+    except Exception as e:
+        try:
+            current_app.logger.warning(f"WAL checkpoint before backup warning: {e}")
+        except Exception:
+            pass
+
+    # Use native SQLite backup API
+    src_conn = sqlite3.connect(src_path, timeout=30)
+    dst_conn = sqlite3.connect(dst_path, timeout=30)
+    try:
+        src_conn.backup(dst_conn)
+    finally:
+        dst_conn.close()
+        src_conn.close()
+
+
 def auto_backup_job(app=None):
     """Daily auto backup, keep last 30 days."""
     def _run():
@@ -241,17 +271,20 @@ def auto_backup_job(app=None):
             filename = f"auto_{datetime.now().strftime('%Y%m%d')}.db"
             dst = os.path.join(BACKUP_FOLDER, filename)
             if not os.path.exists(dst) and os.path.exists(db_path):
-                shutil.copy2(db_path, dst)
+                backup_sqlite_db(db_path, dst)
             for f in os.listdir(BACKUP_FOLDER):
                 fp = os.path.join(BACKUP_FOLDER, f)
                 if f.endswith('.db') and (datetime.now() - datetime.fromtimestamp(os.path.getctime(fp))).days > 30:
                     os.remove(fp)
             try:
-                upload_to_remote_backup(dst, filename)
+                upload_to_remote_backup(dst)
             except Exception:
                 pass
         except Exception as e:
-            current_app.logger.error(f'Auto backup failed: {e}')
+            try:
+                current_app.logger.error(f'Auto backup failed: {e}')
+            except Exception:
+                pass
 
     if app is not None:
         with app.app_context():

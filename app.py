@@ -23,6 +23,10 @@ def create_app(config_class=Config):
     application = Flask(__name__)
     application.config.from_object(config_class)
 
+    # Trust reverse proxy headers (Cloudflare, Nginx, Docker bridge)
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    application.wsgi_app = ProxyFix(application.wsgi_app, x_for=1, x_proto=1, x_host=1, x_port=1, x_prefix=1)
+
     db.init_app(application)
     login_manager.init_app(application)
 
@@ -114,9 +118,12 @@ def create_app(config_class=Config):
             is_loopback = (host_name in ('localhost', '127.0.0.1', '::1') or client_ip in ('127.0.0.1', '::1'))
             is_recovery_endpoint = (request.endpoint in ('admin.system_settings', 'auth.confirm_sudo', 'auth.lock_sudo'))
             if not is_loopback and not is_recovery_endpoint:
-                if request.headers.get('X-Forwarded-Proto', request.scheme) == 'http':
+                cf_visitor = request.headers.get('CF-Visitor', '')
+                proto = 'https' if '"scheme":"https"' in cf_visitor else request.headers.get('X-Forwarded-Proto', request.scheme).lower()
+                if proto == 'http':
                     https_url = request.url.replace('http://', 'https://', 1)
-                    return redirect(https_url, code=301)
+                    redirect_code = 307 if request.method in ('POST', 'PUT', 'DELETE', 'PATCH') else 308
+                    return redirect(https_url, code=redirect_code)
 
         if setting and setting.ip_whitelist_enabled and setting.allowed_ip_ranges:
             exempt_endpoints = {'static', 'main.health', 'main.scan_asset_summary', 'main.robots'}
@@ -181,9 +188,20 @@ def create_app(config_class=Config):
 
         return render_template('500.html', error=original_err, path=request.path), 500
 
+    @application.errorhandler(405)
+    def handle_405_error(e):
+        if request.is_json or request.path.startswith('/api/'):
+            return jsonify({
+                'status': 'error',
+                'code': 405,
+                'message': 'Metode HTTP tidak diizinkan untuk endpoint ini.'
+            }), 405
+        flash('Metode akses tidak valid atau sesi tindakan telah kedaluwarsa. Anda dialihkan ke halaman yang aman.', 'warning')
+        return redirect(request.referrer or url_for('main.dashboard'))
+
     @application.errorhandler(413)
     def handle_413_error(e):
-        flash('Ukuran berkas melebihi batas maksimum 5MB. Silakan gunakan berkas yang lebih kecil.', 'danger')
+        flash('Ukuran berkas melebihi batas maksimum 50MB. Silakan gunakan berkas yang lebih kecil.', 'danger')
         return redirect(request.referrer or url_for('main.dashboard'))
 
     with application.app_context():

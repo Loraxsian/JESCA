@@ -49,7 +49,7 @@ from utils.helpers import (
 )
 from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
 from services.email_service import build_system_email_html, send_system_email
-from services.backup_service import upload_to_remote_backup
+from services.backup_service import upload_to_remote_backup, backup_sqlite_db
 from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, get_quick_tunnel_status
 
 admin_bp = Blueprint('admin', __name__)
@@ -202,14 +202,21 @@ def admin_backups():
     )
 
 
-@admin_bp.route('/admin/backup', methods=['POST'])
+@admin_bp.route('/admin/backup', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def manual_backup():
     """Create manual snapshot backup of SQLite database with optional remote copy."""
+    if request.method == 'GET':
+        return redirect(url_for('admin.admin_backups'))
+
     filename = f"manual_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
     dst = os.path.join(BACKUP_FOLDER, filename)
-    shutil.copy2(db_path, dst)
+    try:
+        backup_sqlite_db(db_path, dst)
+    except Exception as e:
+        shutil.copy2(db_path, dst)
+        current_app.logger.warning(f"Fallback to shutil.copy2 for manual backup: {e}")
 
     remote_msg = ""
     setting = SystemSetting.get_settings()
@@ -299,11 +306,15 @@ def test_remote_backup_connection():
         return jsonify({'status': 'error', 'message': f'Uji koneksi gagal: {str(e)}'}), 400
 
 
-@admin_bp.route('/admin/restore/<filename>', methods=['POST'])
+@admin_bp.route('/admin/restore/<filename>', methods=['GET', 'POST'])
 @login_required
 @admin_required
+@sudo_required
 def restore_backup(filename):
-    """Restore SQLite database from backup file with safety snapshot."""
+    """Restore SQLite database from backup file with safety snapshot and clean WAL reset."""
+    if request.method == 'GET':
+        return redirect(url_for('admin.admin_backups'))
+
     safe_name = secure_filename(filename)
     src = os.path.join(BACKUP_FOLDER, safe_name)
 
@@ -313,17 +324,65 @@ def restore_backup(filename):
 
     # Safety: take snapshot before overwrite
     safety_snap = f"pre_restore_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
-    shutil.copy2(db_path, os.path.join(BACKUP_FOLDER, safety_snap))
+    safety_dst = os.path.join(BACKUP_FOLDER, safety_snap)
+    try:
+        backup_sqlite_db(db_path, safety_dst)
+    except Exception as e:
+        shutil.copy2(db_path, safety_dst)
+        current_app.logger.warning(f"Fallback copy for safety snapshot: {e}")
 
-    # Overwrite current db
+    # 1. Close active SQLAlchemy sessions and disconnect engine handles
+    import sqlite3 as _sqlite3
+    import signal as _signal
+    db.session.remove()
+    db.engine.dispose()
+
+    # 2. Remove stale -wal and -shm files so deleted records are not re-applied
+    wal_path = f"{db_path}-wal"
+    shm_path = f"{db_path}-shm"
+    if os.path.exists(wal_path):
+        try:
+            os.remove(wal_path)
+        except Exception as e:
+            current_app.logger.warning(f"Could not delete wal file before restore: {e}")
+    if os.path.exists(shm_path):
+        try:
+            os.remove(shm_path)
+        except Exception as e:
+            current_app.logger.warning(f"Could not delete shm file before restore: {e}")
+
+    # 3. Overwrite current db with backup file
     shutil.copy2(src, db_path)
+
+    # 4. Re-initialize WAL mode and truncate checkpoint cleanly
+    try:
+        init_conn = _sqlite3.connect(db_path, timeout=30)
+        init_conn.execute("PRAGMA journal_mode=WAL")
+        init_conn.execute("PRAGMA synchronous=NORMAL")
+        init_conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        init_conn.close()
+    except Exception as e:
+        current_app.logger.warning(f"Re-init WAL mode after restore: {e}")
+
+    # 5. Dispose engine again so future requests get fresh connections
+    db.engine.dispose()
+
+    # 6. Gracefully reload Gunicorn worker processes if running under Gunicorn
+    pid_file = "/tmp/gunicorn.pid"
+    if os.path.exists(pid_file):
+        try:
+            with open(pid_file, 'r') as pf:
+                pid = int(pf.read().strip())
+            os.kill(pid, _signal.SIGHUP)
+        except Exception:
+            pass
 
     log_activity('RESTORE', details=f"Database dipulihkan dari file: {safe_name}")
     flash(f'Database berhasil dipulihkan dari {safe_name}. Snapshot pra-restore: {safety_snap}.', 'success')
     return redirect(url_for('admin.admin_backups'))
 
 
-@admin_bp.route('/admin/import-db', methods=['POST'])
+@admin_bp.route('/admin/import-db', methods=['GET', 'POST'])
 @login_required
 @admin_required
 @sudo_required
@@ -335,6 +394,9 @@ def import_db_merge():
     - Creates a safety snapshot before any write
     - Stores reconciliation report in session for modal display
     """
+    if request.method == 'GET':
+        return redirect(url_for('admin.admin_backups'))
+
     import sqlite3 as _sqlite3
     import tempfile as _tempfile
 
@@ -365,7 +427,10 @@ def import_db_merge():
         # ── Step 1: Safety snapshot BEFORE any merge ──────────────────────
         snap_name = f"pre_merge_{datetime.now().strftime('%Y%m%d_%H%M%S')}.db"
         snap_path = os.path.join(BACKUP_FOLDER, snap_name)
-        shutil.copy2(db_path, snap_path)
+        try:
+            backup_sqlite_db(db_path, snap_path)
+        except Exception:
+            shutil.copy2(db_path, snap_path)
 
         # ── Step 2: Open source DB (read-only via sqlite3 directly) ───────
         src = _sqlite3.connect(f'file:{tmp_path}?mode=ro', uri=True)
@@ -796,12 +861,14 @@ def import_report_csv():
     )
 
 
-@admin_bp.route('/admin/optimize-db', methods=['POST'])
+@admin_bp.route('/admin/optimize-db', methods=['GET', 'POST'])
 @login_required
 @admin_required
 @sudo_required
 def optimize_database():
     """Optimize SQLite database via VACUUM, PRAGMA optimize, and Integrity Check."""
+    if request.method == 'GET':
+        return redirect(url_for('admin.admin_backups'))
     import sqlite3 as _sqlite3
 
     if not os.path.exists(db_path):
