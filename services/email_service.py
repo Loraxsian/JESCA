@@ -7,6 +7,55 @@ from models.system import SystemSetting
 from utils.helpers import format_wib_datetime, decrypt_smtp_password
 
 
+SMTP_PRESETS = {
+    'gmail.com': {'server': 'smtp.gmail.com', 'port': 587, 'encryption': 'tls', 'name': 'Google Gmail'},
+    'googlemail.com': {'server': 'smtp.gmail.com', 'port': 587, 'encryption': 'tls', 'name': 'Google Mail'},
+    'yahoo.com': {'server': 'smtp.mail.yahoo.com', 'port': 465, 'encryption': 'ssl', 'name': 'Yahoo Mail'},
+    'ymail.com': {'server': 'smtp.mail.yahoo.com', 'port': 465, 'encryption': 'ssl', 'name': 'Yahoo Mail'},
+    'outlook.com': {'server': 'smtp.office365.com', 'port': 587, 'encryption': 'tls', 'name': 'Microsoft Outlook'},
+    'hotmail.com': {'server': 'smtp.office365.com', 'port': 587, 'encryption': 'tls', 'name': 'Microsoft Hotmail'},
+    'live.com': {'server': 'smtp.office365.com', 'port': 587, 'encryption': 'tls', 'name': 'Microsoft Live'},
+    'office365.com': {'server': 'smtp.office365.com', 'port': 587, 'encryption': 'tls', 'name': 'Microsoft 365'},
+    'zoho.com': {'server': 'smtp.zoho.com', 'port': 465, 'encryption': 'ssl', 'name': 'Zoho Mail'},
+    'icloud.com': {'server': 'smtp.mail.me.com', 'port': 587, 'encryption': 'tls', 'name': 'Apple iCloud'},
+    'me.com': {'server': 'smtp.mail.me.com', 'port': 587, 'encryption': 'tls', 'name': 'Apple iCloud'},
+}
+
+
+def resolve_smtp_settings(email_address: str, server: str = None, port: int = None, encryption: str = None):
+    """
+    Auto-detect SMTP host, port, and TLS/SSL from email domain if not explicitly provided.
+    Returns (server, port, encryption_mode).
+    """
+    server = (server or '').strip()
+    try:
+        port = int(port or 0)
+    except (ValueError, TypeError):
+        port = 0
+    encryption = (encryption or '').strip().lower()
+
+    # If completely provided and custom, keep it
+    if server and port and encryption in ('tls', 'ssl'):
+        return server, port, encryption
+
+    domain = ''
+    if email_address and '@' in email_address:
+        domain = email_address.split('@')[-1].strip().lower()
+
+    preset = SMTP_PRESETS.get(domain)
+    if preset:
+        final_server = server or preset['server']
+        final_port = port if port > 0 else preset['port']
+        final_enc = encryption if encryption in ('tls', 'ssl') else preset['encryption']
+        return final_server, final_port, final_enc
+
+    # Fallback for custom or unlisted domain
+    final_server = server or (f"smtp.{domain}" if domain else "smtp.gmail.com")
+    final_port = port if port > 0 else 587
+    final_enc = encryption if encryption in ('tls', 'ssl') else 'tls'
+    return final_server, final_port, final_enc
+
+
 def build_system_email_html(header_title: str, badge_text: str, badge_type: str, intro_html: str, rows: list, note_text: str = None) -> str:
     """
     Standardized corporate transactional email template for JESCA.
@@ -108,9 +157,16 @@ def send_system_email(subject: str, html_body: str, recipient_list=None):
                 if not setting or not setting.mail_enabled:
                     return
 
-                if not setting.mail_server or not setting.mail_username:
-                    current_app.logger.warning("Email dispatch skipped: server or username not configured.")
+                if not setting.mail_username:
+                    current_app.logger.warning("Email dispatch skipped: username not configured.")
                     return
+
+                server_host, server_port, enc_mode = resolve_smtp_settings(
+                    setting.mail_username,
+                    setting.mail_server,
+                    setting.mail_port,
+                    'ssl' if setting.mail_use_ssl else ('tls' if setting.mail_use_tls else 'tls')
+                )
 
                 # Build recipient list
                 targets = []
@@ -138,12 +194,11 @@ def send_system_email(subject: str, html_body: str, recipient_list=None):
                 msg.attach(part)
 
                 # Connect via SSL or TLS
-                if setting.mail_use_ssl:
-                    server = smtplib.SMTP_SSL(setting.mail_server, setting.mail_port or 465, timeout=15)
+                if enc_mode == 'ssl':
+                    server = smtplib.SMTP_SSL(server_host, server_port or 465, timeout=15)
                 else:
-                    server = smtplib.SMTP(setting.mail_server, setting.mail_port or 587, timeout=15)
-                    if setting.mail_use_tls:
-                        server.starttls()
+                    server = smtplib.SMTP(server_host, server_port or 587, timeout=15)
+                    server.starttls()
 
                 if decrypted_pwd:
                     try:

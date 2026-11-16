@@ -370,60 +370,42 @@
                                         <span><i class="bi bi-router text-primary me-1"></i>Akses Internal Kantor (Localhost / LAN / Wi-Fi)</span>
                                         <span class="badge bg-light text-secondary border rounded-pill" style="font-size:0.68rem;">Tanpa Internet</span>
                                     </div>
-                                    <p class="text-muted small mb-2" style="font-size: 0.74rem;">
-                                        Digunakan untuk pengoperasian internal di satu laptop server atau antar-perangkat staf di kantor tanpa memerlukan koneksi internet maupun domain publik.
+                                    <p class="text-muted small mb-3" style="font-size: 0.74rem;">
+                                        Gunakan mode ini untuk pengoperasian sistem pada laptop server atau antar-perangkat staf (laptop &amp; smartphone) yang terhubung ke jaringan Wi-Fi / LAN kantor yang sama.
                                     </p>
 
-                                    <!-- Panduan Singkat Cara Cek IP Komputer Server (Collapsible on Mobile) -->
-                                    <details class="d-md-none mb-2 border rounded-3 bg-white p-2">
-                                        <summary class="fw-bold small text-primary" style="cursor: pointer; list-style: none;">
-                                            <i class="bi bi-question-circle me-1"></i>Lihat Panduan Cek IP Server (Windows / Linux)
-                                        </summary>
-                                        <div class="mt-2 pt-2 border-top small text-secondary" style="font-size: 0.72rem; line-height: 1.5;">
-                                            <div class="mb-2"><strong>Windows:</strong> Buka CMD, ketik <code>ipconfig</code>, ambil <em>IPv4 Address</em>.</div>
-                                            <div><strong>Linux / Mac:</strong> Buka Terminal, ketik <code>hostname -I</code> atau <code>ip a</code>.</div>
-                                        </div>
-                                    </details>
-                                    <div class="card border rounded-3 bg-white p-2.5 mb-2 d-none d-md-block">
-                                        <div class="fw-bold small text-dark mb-1.5 d-flex align-items-center gap-1">
-                                            <i class="bi bi-question-circle text-info"></i>
-                                            Cara Cek Alamat IP Komputer Server Ini:
-                                        </div>
-                                        <div class="row g-2">
-                                            <!-- Panduan Windows -->
-                                            <div class="col-md-6">
-                                                <div class="p-2 rounded-2 bg-light border h-100">
-                                                    <div class="fw-semibold small text-primary mb-1 d-flex align-items-center gap-1">
-                                                        <i class="bi bi-windows"></i>Windows:
+                                    <!-- Quick Action Cards (1-Click UX) -->
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-sm-6">
+                                            <div class="p-2.5 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <div class="fw-semibold small text-primary mb-1">
+                                                        <i class="bi bi-laptop me-1"></i>Komputer Ini Saja
                                                     </div>
-                                                    <ol class="mb-0 ps-3 small text-secondary" style="font-size: 0.72rem; line-height: 1.45;">
-                                                        <li>Buka <strong>CMD</strong> (Windows + R, ketik <code>cmd</code>).</li>
-                                                        <li>Ketik <code>ipconfig</code> lalu tekan Enter.</li>
-                                                        <li>Ambil <strong>IPv4 Address</strong> (contoh: <code>192.168.1.15</code>).</li>
-                                                    </ol>
+                                                    <small class="text-muted d-block mb-2" style="font-size: 0.71rem;">
+                                                        Gunakan jika sistem hanya dioperasikan pada satu laptop/PC ini.
+                                                    </small>
                                                 </div>
-                                            </div>
-                                            <!-- Panduan Linux / Mac -->
-                                            <div class="col-md-6">
-                                                <div class="p-2 rounded-2 bg-light border h-100">
-                                                    <div class="fw-semibold small text-dark mb-1 d-flex align-items-center gap-1">
-                                                        <i class="bi bi-terminal"></i>Linux / Mac:
-                                                    </div>
-                                                    <ol class="mb-0 ps-3 small text-secondary" style="font-size: 0.72rem; line-height: 1.45;">
-                                                        <li>Buka aplikasi <strong>Terminal</strong>.</li>
-                                                        <li>Ketik <code>hostname -I</code> atau <code>ip a</code>.</li>
-                                                        <li>Ambil IP jaringan lokal (contoh: <code>10.10.9.55</code>).</li>
-                                                    </ol>
-                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill w-100 py-1" style="font-size:0.75rem;" onclick="setLocalhostUrl()">
+                                                    Set Localhost (5000)
+                                                </button>
                                             </div>
                                         </div>
-                                    </div>
-
-                                    <div class="d-flex align-items-center gap-2 pt-1 flex-wrap">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" style="font-size:0.72rem;" onclick="setLocalhostUrl()">
-                                            <i class="bi bi-laptop me-1"></i>Isi Localhost (http://localhost:5000)
-                                        </button>
-                                        <small class="text-muted" style="font-size:0.7rem;">Pilih jika JESCA hanya diakses pada satu komputer ini saja.</small>
+                                        <div class="col-sm-6">
+                                            <div class="p-2.5 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between">
+                                                <div>
+                                                    <div class="fw-semibold small text-success mb-1">
+                                                        <i class="bi bi-phone me-1"></i>Bisa Dibuka HP / Wi-Fi
+                                                    </div>
+                                                    <small class="text-muted d-block mb-2" style="font-size: 0.71rem;">
+                                                        Gunakan alamat browser yang saat ini sedang aktif membuka JESCA.
+                                                    </small>
+                                                </div>
+                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill w-100 py-1" style="font-size:0.75rem;" onclick="applyCurrentOrigin()">
+                                                    <i class="bi bi-box-arrow-in-down me-1"></i>Salin Alamat Browser
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -502,20 +484,23 @@
                                 <!-- Base URL Input Field -->
                                 <div class="mb-3">
                                     <label class="form-label small fw-bold text-secondary">
-                                        Alamat URL Aktif (Base URL) <span class="text-danger">*</span>
+                                        Alamat untuk Cetak Stiker QR Code &amp; Akses Tim <span class="text-danger">*</span>
                                     </label>
                                     <div class="input-group">
                                         <span class="input-group-text bg-light border-end-0 text-muted">
                                             <i class="bi bi-link-45deg"></i>
                                         </span>
-                                        <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="https://aset.domain.com atau http://192.168.1.15:5000" required>
+                                        <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="http://192.168.1.15:5000 atau https://aset.domain.com" required>
+                                        <button type="button" class="btn btn-outline-primary" onclick="applyCurrentOrigin()" title="Salin alamat yang sedang aktif di bilah browser">
+                                            <i class="bi bi-box-arrow-in-down me-1"></i>Tempel Alamat Saat Ini
+                                        </button>
                                     </div>
                                     <div id="httpsLocalWarning" class="alert alert-warning py-2 px-3 small rounded-3 mt-2 mb-0 d-none" style="font-size: 0.73rem;">
                                         <div class="fw-bold mb-0.5"><i class="bi bi-shield-exclamation text-warning me-1"></i>Peringatan Penggunaan HTTPS:</div>
                                         Alamat IP lokal atau localhost tidak memiliki sertifikat SSL terpasang. Protokol otomatis dikembalikan ke <strong>http://</strong> agar sistem tidak terkunci.
                                     </div>
                                     <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                        Alamat ini akan tertanam di dalam setiap stiker QR Code fisik yang dicetak dan tautan email pemberitahuan tim.
+                                        Alamat ini akan tertanam di dalam setiap stiker QR Code fisik yang dicetak agar kamera smartphone staf bisa langsung membukanya.
                                     </small>
                                 </div>
 
@@ -669,65 +654,26 @@
                                 </div>
                             </div>
 
-                            <!-- Server & Port -->
-                            <div class="row g-3 mb-3">
-                                <div class="col-md-8">
-                                    <label class="form-label small fw-bold text-secondary">SMTP Host / Server <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="mail_server" value="{{ setting.mail_server or 'smtp.gmail.com' }}" placeholder="Contoh: smtp.hostinger.com, smtp.gmail.com, mail.domain.com" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-secondary">Port Koneksi <span class="text-danger">*</span></label>
-                                    <input type="number" class="form-control" name="mail_port" value="{{ setting.mail_port or 587 }}" placeholder="587 / 465" required>
-                                </div>
-                            </div>
-
-                            <!-- Encryption Method (Clean Selection Pills) -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-secondary d-block">Metode Enkripsi / Keamanan</label>
-                                <div class="row g-2">
-                                    <div class="col-6">
-                                        <label class="enc-option-card d-block w-100 {% if setting.mail_use_tls or not setting.mail_use_ssl %}active{% endif %}" for="encTLS">
-                                            <div class="form-check m-0">
-                                                <input class="form-check-input" type="radio" name="encryption" id="encTLS" value="tls" {% if setting.mail_use_tls or not setting.mail_use_ssl %}checked{% endif %} onchange="updateEncCardStyle()">
-                                                <div class="form-check-label small fw-bold text-dark ms-1">
-                                                    STARTTLS (Port 587)
-                                                </div>
-                                            </div>
-                                            <small class="text-muted d-block ms-4" style="font-size: 0.7rem;">Gmail / Outlook / Modern SMTP</small>
-                                        </label>
-                                    </div>
-                                    <div class="col-6">
-                                        <label class="enc-option-card d-block w-100 {% if setting.mail_use_ssl %}active{% endif %}" for="encSSL">
-                                            <div class="form-check m-0">
-                                                <input class="form-check-input" type="radio" name="encryption" id="encSSL" value="ssl" {% if setting.mail_use_ssl %}checked{% endif %} onchange="updateEncCardStyle()">
-                                                <div class="form-check-label small fw-bold text-dark ms-1">
-                                                    SSL (Port 465)
-                                                </div>
-                                            </div>
-                                            <small class="text-muted d-block ms-4" style="font-size: 0.7rem;">Hostinger / cPanel / Webmail Bisnis</small>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Email & Password Credentials -->
+                            <!-- Email Pengirim & Sandi Utama (Prioritas UX Sederhana) -->
                             <div class="row g-3 mb-3">
                                 <div class="col-md-6">
-                                    <label class="form-label small fw-bold text-secondary">Email Pengirim / Username <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" name="mail_username" value="{{ setting.mail_username or '' }}" placeholder="contoh: notif@domain.com">
-                                    <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Mendukung Gmail pribadi maupun <strong>Email Bisnis Kustom</strong>.</small>
+                                    <label class="form-label small fw-bold text-secondary">Email Pengirim / Akun <span class="text-danger">*</span></label>
+                                    <input type="email" class="form-control" name="mail_username" id="mailUsernameInput" value="{{ setting.mail_username or '' }}" placeholder="contoh: jessica@gmail.com" oninput="detectSmtpProvider()">
+                                    <div id="smtpDetectedBadge" class="p-2 rounded-2 border bg-light mt-2 small text-secondary" style="font-size: 0.73rem;">
+                                        <i class="bi bi-magic text-primary me-1"></i>Penyedia Terdeteksi: <strong id="detectedProviderName" class="text-dark">Google Gmail</strong> (<span id="detectedProviderDetails" class="font-monospace">smtp.gmail.com:587 STARTTLS</span>)
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <label class="form-label small fw-bold text-secondary">
-                                        Password / App Password
+                                        Password / Sandi Aplikasi (App Password)
                                         {% if has_password %}
                                             <span class="badge bg-success-subtle text-success border border-success-subtle ms-1 font-monospace" style="font-size: 0.65rem;">Tersimpan Enkripsi</span>
                                         {% endif %}
                                     </label>
                                     <input type="password" class="form-control" name="mail_password" placeholder="{% if has_password %}Kosongkan jika tidak diubah{% else %}Masukkan sandi email / token{% endif %}">
                                     <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">
-                                        &bull; Gmail: Gunakan 16-karakter App Password.<br>
-                                        &bull; Domain Bisnis: Gunakan sandi email webmail biasa.
+                                        &bull; Gmail: Gunakan 16-karakter <em>App Password</em>.<br>
+                                        &bull; Domain Kantor: Gunakan password email biasa.
                                     </small>
                                 </div>
                             </div>
@@ -743,6 +689,44 @@
                                 <textarea class="form-control font-monospace" name="mail_target_admins" rows="2" placeholder="admin1@kantor.com, it-ops@kantor.com" style="font-size: 0.82rem;">{{ setting.mail_target_admins or '' }}</textarea>
                                 <small class="text-muted d-block mt-1" style="font-size: 0.7rem;">Pisahkan beberapa alamat email dengan tanda koma (,).</small>
                             </div>
+
+                            <!-- Pengaturan Server Lanjutan (Manual / Khusus - Lipat Default) -->
+                            <details class="border rounded-3 p-3 bg-light mb-3" id="smtpAdvancedDetails">
+                                <summary class="small fw-bold text-secondary" style="cursor: pointer; list-style: none;">
+                                    <div class="d-flex align-items-center justify-content-between">
+                                        <span><i class="bi bi-sliders me-1.5 text-primary"></i>Pengaturan Server Lanjutan (Host, Port, Enkripsi)</span>
+                                        <span class="badge bg-white text-muted border" style="font-size:0.68rem;">Opsional</span>
+                                    </div>
+                                </summary>
+                                <div class="mt-3 pt-2 border-top">
+                                    <small class="text-muted d-block mb-2" style="font-size: 0.72rem;">
+                                        Kolom di bawah ini otomatis terisi sesuai penyedia email Anda. Hanya ubah secara manual jika kantor Anda menggunakan server SMTP lokal khusus.
+                                    </small>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-8">
+                                            <label class="form-label small fw-semibold text-secondary">SMTP Host / Server</label>
+                                            <input type="text" class="form-control form-control-sm font-monospace" name="mail_server" id="mailServerInput" value="{{ setting.mail_server or 'smtp.gmail.com' }}" placeholder="smtp.gmail.com">
+                                        </div>
+                                        <div class="col-4">
+                                            <label class="form-label small fw-semibold text-secondary">Port</label>
+                                            <input type="number" class="form-control form-control-sm font-monospace" name="mail_port" id="mailPortInput" value="{{ setting.mail_port or 587 }}" placeholder="587">
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label small fw-semibold text-secondary d-block mb-1">Metode Enkripsi</label>
+                                        <div class="d-flex gap-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="encryption" id="encTLS" value="tls" {% if setting.mail_use_tls or not setting.mail_use_ssl %}checked{% endif %}>
+                                                <label class="form-check-label small" for="encTLS">STARTTLS (Port 587)</label>
+                                            </div>
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="encryption" id="encSSL" value="ssl" {% if setting.mail_use_ssl %}checked{% endif %}>
+                                                <label class="form-check-label small" for="encSSL">SSL / SMTPS (Port 465)</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
                         </div>
                     </div>
                 </div>
@@ -1131,9 +1115,92 @@ function setLocalhostUrl() {
     var urlInput = document.getElementById('appBaseUrlInput');
     if (urlInput) {
         urlInput.value = 'http://localhost:5000';
-        JescaToast.show('Base URL diatur ke http://localhost:5000', 'info');
+        JescaToast.show('Alamat QR Code diatur ke http://localhost:5000', 'info');
     }
 }
+
+function applyCurrentOrigin() {
+    var urlInput = document.getElementById('appBaseUrlInput');
+    if (urlInput) {
+        var origin = window.location.origin;
+        urlInput.value = origin;
+        JescaToast.show('Alamat QR Code disetel ke: ' + origin, 'success');
+    }
+}
+
+// ==========================================
+// SMTP Provider Auto-Detection (Smart UX)
+// ==========================================
+var SMTP_DOMAINS = {
+    'gmail.com': { server: 'smtp.gmail.com', port: 587, enc: 'tls', name: 'Google Gmail' },
+    'googlemail.com': { server: 'smtp.gmail.com', port: 587, enc: 'tls', name: 'Google Mail' },
+    'yahoo.com': { server: 'smtp.mail.yahoo.com', port: 465, enc: 'ssl', name: 'Yahoo Mail' },
+    'ymail.com': { server: 'smtp.mail.yahoo.com', port: 465, enc: 'ssl', name: 'Yahoo Mail' },
+    'outlook.com': { server: 'smtp.office365.com', port: 587, enc: 'tls', name: 'Microsoft Outlook' },
+    'hotmail.com': { server: 'smtp.office365.com', port: 587, enc: 'tls', name: 'Microsoft Hotmail' },
+    'live.com': { server: 'smtp.office365.com', port: 587, enc: 'tls', name: 'Microsoft Live' },
+    'office365.com': { server: 'smtp.office365.com', port: 587, enc: 'tls', name: 'Microsoft 365' },
+    'zoho.com': { server: 'smtp.zoho.com', port: 465, enc: 'ssl', name: 'Zoho Mail' },
+    'icloud.com': { server: 'smtp.mail.me.com', port: 587, enc: 'tls', name: 'Apple iCloud' },
+    'me.com': { server: 'smtp.mail.me.com', port: 587, enc: 'tls', name: 'Apple iCloud' }
+};
+
+function detectSmtpProvider() {
+    var emailInput = document.getElementById('mailUsernameInput');
+    var badge = document.getElementById('smtpDetectedBadge');
+    var nameEl = document.getElementById('detectedProviderName');
+    var detailEl = document.getElementById('detectedProviderDetails');
+    var serverInput = document.getElementById('mailServerInput');
+    var portInput = document.getElementById('mailPortInput');
+    var tlsRadio = document.getElementById('encTLS');
+    var sslRadio = document.getElementById('encSSL');
+
+    if (!emailInput) return;
+    var val = emailInput.value.trim().toLowerCase();
+    var atIdx = val.indexOf('@');
+    if (atIdx === -1 || atIdx === val.length - 1) {
+        if (badge) badge.style.display = 'none';
+        return;
+    }
+
+    var domain = val.slice(atIdx + 1);
+    var preset = SMTP_DOMAINS[domain];
+
+    if (preset) {
+        if (badge) badge.style.display = 'block';
+        if (nameEl) nameEl.textContent = preset.name;
+        if (detailEl) detailEl.textContent = preset.server + ':' + preset.port + ' ' + (preset.enc === 'ssl' ? 'SSL' : 'STARTTLS');
+
+        if (serverInput) serverInput.value = preset.server;
+        if (portInput) portInput.value = preset.port;
+        if (preset.enc === 'ssl') {
+            if (sslRadio) sslRadio.checked = true;
+        } else {
+            if (tlsRadio) tlsRadio.checked = true;
+        }
+    } else if (domain.includes('.')) {
+        if (badge) badge.style.display = 'block';
+        var customHost = 'smtp.' + domain;
+        if (nameEl) nameEl.textContent = 'Domain Kustom (' + domain + ')';
+        if (detailEl) detailEl.textContent = customHost + ':587 STARTTLS';
+
+        if (serverInput && (!serverInput.value || serverInput.value === 'smtp.gmail.com')) {
+            serverInput.value = customHost;
+        }
+    } else {
+        if (badge) badge.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    detectSmtpProvider();
+    var urlInput = document.getElementById('appBaseUrlInput');
+    if (urlInput && (!urlInput.value || urlInput.value === 'http://localhost:5000')) {
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            urlInput.value = window.location.origin;
+        }
+    }
+});
 
 // ==========================================
 // Quick Tunnel System Integration

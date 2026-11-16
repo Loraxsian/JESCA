@@ -48,7 +48,7 @@ from utils.helpers import (
     generate_asset_code, generate_po_number, get_client_ip, is_ip_allowed
 )
 from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
-from services.email_service import build_system_email_html, send_system_email
+from services.email_service import build_system_email_html, send_system_email, resolve_smtp_settings
 from services.backup_service import upload_to_remote_backup, backup_sqlite_db
 from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, get_quick_tunnel_status
 
@@ -936,18 +936,26 @@ def system_settings():
     if request.method == 'POST':
         mail_enabled = request.form.get('mail_enabled') == '1'
         mail_server = request.form.get('mail_server', '').strip()
-        mail_port = int(request.form.get('mail_port', 587) or 587)
-        encryption = request.form.get('encryption', 'tls')
+        mail_port_raw = request.form.get('mail_port', '').strip()
+        encryption = request.form.get('encryption', '').strip().lower()
         mail_username = request.form.get('mail_username', '').strip()
         mail_password_input = request.form.get('mail_password', '').strip()
         mail_sender_name = request.form.get('mail_sender_name', 'JESCA Notification').strip()
         mail_target_admins = request.form.get('mail_target_admins', '').strip()
 
+        # Otomatis deteksi server, port, dan enkripsi jika dikosongkan atau sesuai preset
+        resolved_server, resolved_port, resolved_enc = resolve_smtp_settings(
+            mail_username,
+            mail_server,
+            mail_port_raw,
+            encryption
+        )
+
         setting.mail_enabled = mail_enabled
-        setting.mail_server = mail_server or 'smtp.gmail.com'
-        setting.mail_port = mail_port
-        setting.mail_use_tls = (encryption == 'tls')
-        setting.mail_use_ssl = (encryption == 'ssl')
+        setting.mail_server = resolved_server
+        setting.mail_port = resolved_port
+        setting.mail_use_tls = (resolved_enc == 'tls')
+        setting.mail_use_ssl = (resolved_enc == 'ssl')
         setting.mail_username = mail_username
         setting.mail_sender_name = mail_sender_name or 'JESCA Notification'
         setting.mail_target_admins = mail_target_admins
@@ -959,7 +967,9 @@ def system_settings():
         # Validasi Cerdas Base URL & Enforce HTTPS
         is_local_target = False
         if app_base_url:
-            clean_url = app_base_url if '://' in app_base_url else f"http://{app_base_url}"
+            if not app_base_url.startswith(('http://', 'https://')):
+                app_base_url = f"http://{app_base_url}"
+            clean_url = app_base_url
             try:
                 from urllib.parse import urlparse
                 host_only = (urlparse(clean_url).hostname or '').lower()
@@ -1075,9 +1085,16 @@ def test_smtp_connection():
         return redirect(url_for('admin.system_settings'))
 
     setting = SystemSetting.get_settings()
-    if not setting.mail_server or not setting.mail_username:
-        flash('Server SMTP dan Username pengirim belum dikonfigurasi.', 'danger')
+    if not setting.mail_username:
+        flash('Username/email pengirim belum dikonfigurasi.', 'danger')
         return redirect(url_for('admin.system_settings'))
+
+    resolved_server, resolved_port, resolved_enc = resolve_smtp_settings(
+        setting.mail_username,
+        setting.mail_server,
+        setting.mail_port,
+        'ssl' if setting.mail_use_ssl else ('tls' if setting.mail_use_tls else 'tls')
+    )
 
     decrypted_pwd = decrypt_smtp_password(setting.mail_password)
 
@@ -1091,9 +1108,9 @@ def test_smtp_connection():
         msg['To'] = test_target
 
         wib_time_str = format_wib_datetime()
-        enc_label = "SSL / SMTPS" if setting.mail_use_ssl else ("STARTTLS" if setting.mail_use_tls else "None")
+        enc_label = "SSL / SMTPS" if resolved_enc == 'ssl' else "STARTTLS"
         rows = [
-            ("Server Host", f"<span style='font-family: monospace; font-weight: 600;'>{setting.mail_server}</span> <span style='font-size: 11px; padding: 2px 6px; background: #e0f2fe; color: #0369a1; border-radius: 4px; font-family: monospace;'>Port {setting.mail_port}</span>"),
+            ("Server Host", f"<span style='font-family: monospace; font-weight: 600;'>{resolved_server}</span> <span style='font-size: 11px; padding: 2px 6px; background: #e0f2fe; color: #0369a1; border-radius: 4px; font-family: monospace;'>Port {resolved_port}</span>"),
             ("Protokol Keamanan", f"<span style='font-size: 11px; padding: 2px 8px; background: #dcfce7; color: #15803d; border-radius: 4px; font-weight: 600;'>{enc_label}</span>"),
             ("Akun Pengirim", f"<span style='font-family: monospace;'>{setting.mail_username}</span>"),
             ("Waktu Pengujian", f"<strong>{wib_time_str}</strong>"),
@@ -1111,12 +1128,11 @@ def test_smtp_connection():
         )
         msg.attach(MIMEText(html, 'html', 'utf-8'))
 
-        if setting.mail_use_ssl:
-            server = smtplib.SMTP_SSL(setting.mail_server, setting.mail_port or 465, timeout=12)
+        if resolved_enc == 'ssl':
+            server = smtplib.SMTP_SSL(resolved_server, resolved_port or 465, timeout=12)
         else:
-            server = smtplib.SMTP(setting.mail_server, setting.mail_port or 587, timeout=12)
-            if setting.mail_use_tls:
-                server.starttls()
+            server = smtplib.SMTP(resolved_server, resolved_port or 587, timeout=12)
+            server.starttls()
 
         if decrypted_pwd:
             try:
