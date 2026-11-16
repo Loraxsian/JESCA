@@ -366,23 +366,43 @@
 
                                 <!-- Konten Mode 1: Komputer & Jaringan Lokal -->
                                 <div id="net-mode-content-local" class="net-mode-content mb-3 p-3 rounded-3 border bg-light">
-                                    <div class="small fw-bold text-dark mb-1 d-flex align-items-center justify-content-between">
-                                        <span><i class="bi bi-router text-primary me-1"></i>Akses Internal Kantor (Localhost / LAN / Wi-Fi)</span>
-                                        <span class="badge bg-light text-secondary border rounded-pill" style="font-size:0.68rem;">Tanpa Internet</span>
+                                    <div class="d-flex align-items-center justify-content-between mb-2">
+                                        <div class="small fw-bold text-dark d-flex align-items-center gap-2">
+                                            <i class="bi bi-router text-primary fs-6"></i>
+                                            Akses Jaringan Lokal &amp; Internal Kantor
+                                        </div>
+                                        <span class="badge bg-secondary-subtle text-secondary border rounded-pill font-monospace" style="font-size:0.68rem;">Tanpa Internet</span>
                                     </div>
-                                    <p class="text-muted small mb-2" style="font-size: 0.74rem;">
-                                        Digunakan untuk pengoperasian sistem pada satu komputer server atau antar-perangkat staf di kantor tanpa memerlukan domain publik.
+                                    <p class="text-muted small mb-3" style="font-size: 0.74rem;">
+                                        Digunakan untuk pengoperasian sistem pada laptop server atau antar-perangkat staf di kantor tanpa memerlukan domain publik maupun internet.
                                     </p>
 
-                                    <div class="d-flex align-items-center gap-2 pt-1 mb-2 flex-wrap">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" style="font-size:0.72rem;" onclick="setLocalhostUrl()">
-                                            <i class="bi bi-laptop me-1"></i>Isi Localhost (http://localhost:5000)
-                                        </button>
-                                        <small class="text-muted" style="font-size:0.7rem;">Pilih jika JESCA hanya diakses pada satu komputer ini saja.</small>
+                                    <!-- Panduan Akses Bersama (Kartu Bersih) -->
+                                    <div class="p-3 rounded-3 bg-white border shadow-sm mb-3">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <div class="bg-primary-subtle text-primary rounded-circle p-1 d-flex align-items-center justify-content-center" style="width: 24px; height: 24px;">
+                                                <i class="bi bi-info-circle-fill" style="font-size: 0.75rem;"></i>
+                                            </div>
+                                            <span class="fw-bold small text-dark">Ketentuan Akses Bersama (Wi-Fi / LAN)</span>
+                                        </div>
+                                        <p class="text-secondary small mb-2" style="font-size: 0.73rem; line-height: 1.5;">
+                                            Agar dapat diakses oleh staf lain atau kamera smartphone, seluruh perangkat harus berada di <strong>jaringan Wi-Fi/LAN yang sama</strong>. Masukkan alamat IP komputer server Anda pada kolom isian di bawah:
+                                        </p>
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-2 bg-light border font-monospace small">
+                                            <span class="text-muted" style="font-size: 0.72rem;">Format Alamat:</span>
+                                            <span class="text-primary fw-bold" style="font-size: 0.78rem;">http://<span class="text-danger">ipanda</span>:5000</span>
+                                        </div>
+                                        <small class="text-muted d-block text-end mt-1" style="font-size: 0.68rem;">
+                                            Contoh: <code>http://192.168.1.15:5000</code> atau <code>http://10.10.1.20:5000</code>
+                                        </small>
                                     </div>
 
-                                    <div class="p-2.5 rounded-2 bg-white border small text-secondary" style="font-size: 0.73rem; line-height: 1.45;">
-                                        <i class="bi bi-info-circle text-primary me-1"></i><strong>Catatan Akses Jaringan Lokal:</strong> Untuk bisa diakses orang lain secara lokal (laptop staf / scan kamera HP), Anda harus berada di jaringan yang sama dan masukkan alamat dengan format contoh: <code>http://ipanda:5000</code> (misal: <code>http://192.168.1.15:5000</code>).
+                                    <!-- Opsi Cepat Localhost -->
+                                    <div class="d-flex align-items-center justify-content-between pt-1">
+                                        <span class="text-muted small" style="font-size: 0.72rem;">Hanya dioperasikan di satu laptop ini saja?</span>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-3 py-1" style="font-size: 0.72rem;" onclick="setLocalhostUrl()">
+                                            <i class="bi bi-laptop me-1"></i>Isi Localhost (http://localhost:5000)
+                                        </button>
                                     </div>
                                 </div>
 
