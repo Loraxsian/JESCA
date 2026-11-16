@@ -1198,63 +1198,66 @@ def api_check_update():
     published_at = ''
 
     try:
-        # Step 1: Try /releases/latest first
+        # Kumpulkan kandidat versi dari GitHub Releases dan Git Tags
+        candidates = []
+
+        # 1. Cek GitHub Releases
         try:
-            data = fetch_github_endpoint('releases/latest')
-            latest_tag = data.get('tag_name', '').lstrip('v')
-            release_name = data.get('name', f"JESCA v{latest_tag}")
-            release_body = data.get('body', '')
-            release_url = data.get('html_url', release_url)
-            published_at = data.get('published_at', '')
-        except urllib.error.HTTPError as http_err:
-            if http_err.code == 404:
-                # Step 2: Fallback to list of all releases (e.g. if latest is pre-release)
-                try:
-                    releases = fetch_github_endpoint('releases')
-                    if releases and isinstance(releases, list):
-                        rel = releases[0]
-                        latest_tag = rel.get('tag_name', '').lstrip('v')
-                        release_name = rel.get('name', f"JESCA v{latest_tag}")
-                        release_body = rel.get('body', '')
-                        release_url = rel.get('html_url', release_url)
-                        published_at = rel.get('published_at', '')
-                except urllib.error.HTTPError:
-                    pass
+            rel_data = fetch_github_endpoint('releases/latest')
+            if rel_data and rel_data.get('tag_name'):
+                candidates.append({
+                    'tag': rel_data.get('tag_name', '').lstrip('v'),
+                    'name': rel_data.get('name', f"JESCA v{rel_data.get('tag_name', '')}"),
+                    'body': rel_data.get('body', ''),
+                    'url': rel_data.get('html_url', release_url),
+                    'published_at': rel_data.get('published_at', '')
+                })
+        except urllib.error.HTTPError:
+            pass
 
-            if not latest_tag:
-                # Step 3: Fallback to /tags (pushed git tags like v2.3.0)
-                try:
-                    tags = fetch_github_endpoint('tags')
-                    if tags and isinstance(tags, list):
-                        # Sort by semver descending
-                        sorted_tags = sorted(
-                            tags,
-                            key=lambda t: semver_tuple(t.get('name', '')),
-                            reverse=True
-                        )
-                        top_tag = sorted_tags[0]
-                        tag_name = top_tag.get('name', '')
-                        latest_tag = tag_name.lstrip('v')
-                        release_name = f"JESCA Rilis Tag {tag_name}"
-                        release_body = f"Pembaruan versi {tag_name} tersedia di repositori GitHub."
-                        release_url = f"https://github.com/{GITHUB_REPO}/tree/{tag_name}"
-                except urllib.error.HTTPError as tag_err:
-                    if tag_err.code == 403:
-                        return jsonify({
-                            'status': 'error',
-                            'message': 'Batas pengecekan GitHub API tercapai (Rate Limit). Silakan coba lagi beberapa saat.',
-                            'update_available': False
-                        }), 429
-                    raise tag_err
+        # 2. Cek GitHub Tags (untuk tag rilis yang belum dibuatkan halaman Release)
+        try:
+            tags_data = fetch_github_endpoint('tags')
+            if tags_data and isinstance(tags_data, list):
+                for t in tags_data[:15]:
+                    t_name = t.get('name', '')
+                    clean_t = t_name.lstrip('v')
+                    candidates.append({
+                        'tag': clean_t,
+                        'name': f"JESCA v{clean_t}",
+                        'body': f"Rilis tag {t_name} tersedia di repositori GitHub.",
+                        'url': f"https://github.com/{GITHUB_REPO}/releases/tag/{t_name}",
+                        'published_at': ''
+                    })
+        except urllib.error.HTTPError as tag_err:
+            if tag_err.code == 429 or tag_err.code == 403:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Batas pengecekan GitHub API tercapai (Rate Limit). Silakan coba lagi beberapa saat.',
+                    'update_available': False
+                }), 429
 
-        if not latest_tag:
-            # If no tags or releases found on GitHub, current version is up to date
+        # Ambil versi tertinggi dari kandidat GitHub
+        if candidates:
+            candidates.sort(key=lambda c: semver_tuple(c['tag']), reverse=True)
+            top = candidates[0]
+            latest_tag = top['tag']
+            release_name = top['name']
+            release_body = top['body']
+            release_url = top['url']
+            published_at = top['published_at']
+
+        # Jika versi di GitHub lebih kecil dari versi aplikasi yang sedang berjalan,
+        # maka versi terbaru minimal adalah versi aplikasi saat ini (mencegah paradox 3.0.1 -> 3.0.0)
+        current_tuple = semver_tuple(APP_VERSION)
+        latest_tuple = semver_tuple(latest_tag) if latest_tag else (0, 0, 0, 0)
+
+        if latest_tuple < current_tuple or not latest_tag:
             latest_tag = APP_VERSION
             release_name = f"JESCA v{APP_VERSION} (Rilis Stabil)"
-            release_body = "Sistem telah menggunakan versi codebase saat ini."
+            release_body = "Sistem telah menggunakan versi codebase terbaru."
+            latest_tuple = current_tuple
 
-        current_tuple = semver_tuple(APP_VERSION)
-        latest_tuple = semver_tuple(latest_tag)
         update_available = latest_tuple > current_tuple
 
         return jsonify({
