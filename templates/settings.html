@@ -370,42 +370,19 @@
                                         <span><i class="bi bi-router text-primary me-1"></i>Akses Internal Kantor (Localhost / LAN / Wi-Fi)</span>
                                         <span class="badge bg-light text-secondary border rounded-pill" style="font-size:0.68rem;">Tanpa Internet</span>
                                     </div>
-                                    <p class="text-muted small mb-3" style="font-size: 0.74rem;">
-                                        Gunakan mode ini untuk pengoperasian sistem pada laptop server atau antar-perangkat staf (laptop &amp; smartphone) yang terhubung ke jaringan Wi-Fi / LAN kantor yang sama.
+                                    <p class="text-muted small mb-2" style="font-size: 0.74rem;">
+                                        Digunakan untuk pengoperasian sistem pada satu komputer server atau antar-perangkat staf di kantor tanpa memerlukan domain publik.
                                     </p>
 
-                                    <!-- Quick Action Cards (1-Click UX) -->
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-sm-6">
-                                            <div class="p-2.5 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between">
-                                                <div>
-                                                    <div class="fw-semibold small text-primary mb-1">
-                                                        <i class="bi bi-laptop me-1"></i>Komputer Ini Saja
-                                                    </div>
-                                                    <small class="text-muted d-block mb-2" style="font-size: 0.71rem;">
-                                                        Gunakan jika sistem hanya dioperasikan pada satu laptop/PC ini.
-                                                    </small>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill w-100 py-1" style="font-size:0.75rem;" onclick="setLocalhostUrl()">
-                                                    Set Localhost (5000)
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <div class="p-2.5 rounded-3 bg-white border h-100 d-flex flex-column justify-content-between">
-                                                <div>
-                                                    <div class="fw-semibold small text-success mb-1">
-                                                        <i class="bi bi-phone me-1"></i>Bisa Dibuka HP / Wi-Fi
-                                                    </div>
-                                                    <small class="text-muted d-block mb-2" style="font-size: 0.71rem;">
-                                                        Gunakan alamat browser yang saat ini sedang aktif membuka JESCA.
-                                                    </small>
-                                                </div>
-                                                <button type="button" class="btn btn-sm btn-outline-success rounded-pill w-100 py-1" style="font-size:0.75rem;" onclick="applyCurrentOrigin()">
-                                                    <i class="bi bi-box-arrow-in-down me-1"></i>Salin Alamat Browser
-                                                </button>
-                                            </div>
-                                        </div>
+                                    <div class="d-flex align-items-center gap-2 pt-1 mb-2 flex-wrap">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill px-2.5 py-0.5" style="font-size:0.72rem;" onclick="setLocalhostUrl()">
+                                            <i class="bi bi-laptop me-1"></i>Isi Localhost (http://localhost:5000)
+                                        </button>
+                                        <small class="text-muted" style="font-size:0.7rem;">Pilih jika JESCA hanya diakses pada satu komputer ini saja.</small>
+                                    </div>
+
+                                    <div class="p-2.5 rounded-2 bg-white border small text-secondary" style="font-size: 0.73rem; line-height: 1.45;">
+                                        <i class="bi bi-info-circle text-primary me-1"></i><strong>Catatan Akses Jaringan Lokal:</strong> Untuk bisa diakses orang lain secara lokal (laptop staf / scan kamera HP), Anda harus berada di jaringan yang sama dan masukkan alamat dengan format contoh: <code>http://ipanda:5000</code> (misal: <code>http://192.168.1.15:5000</code>).
                                     </div>
                                 </div>
 
@@ -491,9 +468,6 @@
                                             <i class="bi bi-link-45deg"></i>
                                         </span>
                                         <input type="url" class="form-control font-monospace" name="app_base_url" id="appBaseUrlInput" value="{{ setting.app_base_url or 'http://localhost:5000' }}" placeholder="http://192.168.1.15:5000 atau https://aset.domain.com" required>
-                                        <button type="button" class="btn btn-outline-primary" onclick="applyCurrentOrigin()" title="Salin alamat yang sedang aktif di bilah browser">
-                                            <i class="bi bi-box-arrow-in-down me-1"></i>Tempel Alamat Saat Ini
-                                        </button>
                                     </div>
                                     <div id="httpsLocalWarning" class="alert alert-warning py-2 px-3 small rounded-3 mt-2 mb-0 d-none" style="font-size: 0.73rem;">
                                         <div class="fw-bold mb-0.5"><i class="bi bi-shield-exclamation text-warning me-1"></i>Peringatan Penggunaan HTTPS:</div>
@@ -1119,15 +1093,6 @@ function setLocalhostUrl() {
     }
 }
 
-function applyCurrentOrigin() {
-    var urlInput = document.getElementById('appBaseUrlInput');
-    if (urlInput) {
-        var origin = window.location.origin;
-        urlInput.value = origin;
-        JescaToast.show('Alamat QR Code disetel ke: ' + origin, 'success');
-    }
-}
-
 // ==========================================
 // SMTP Provider Auto-Detection (Smart UX)
 // ==========================================
@@ -1194,12 +1159,6 @@ function detectSmtpProvider() {
 
 document.addEventListener('DOMContentLoaded', function() {
     detectSmtpProvider();
-    var urlInput = document.getElementById('appBaseUrlInput');
-    if (urlInput && (!urlInput.value || urlInput.value === 'http://localhost:5000')) {
-        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-            urlInput.value = window.location.origin;
-        }
-    }
 });
 
 // ==========================================
