@@ -1,4 +1,4 @@
-# JESCA (Jessica Assets) - Asset Management System (v3.0.1)
+# JESCA (Jessica Assets) - Asset Management System (v3.0.3)
 
 JESCA (Jessica Assets) adalah aplikasi web manajemen aset dan inventaris berbahasa Indonesia (**Full Bahasa Indonesia**) yang dibuat menggunakan Python Flask, SQLite (Flask-SQLAlchemy), dan Bootstrap 5.
 
@@ -24,6 +24,8 @@ Aplikasi ini dirancang untuk mempermudah pencatatan aset kantor, pelacakan pemin
   2. Mulai Servis oleh Teknisi (status barang otomatis berubah jadi "Dalam Perbaikan").
   3. Selesaikan Servis & Bukti (teknisi mengisi tindakan yang diambil, biaya suku cadang/jasa, tanggal pengerjaan, upload berkas bukti nota/invoice, dan jadwal servis periode berikutnya otomatis dihitung ulang).
 - Pemisahan hak akses: Staf biasa tidak bisa langsung menandai servis selesai. Staf disediakan tombol "Lapor Kendala Aset" untuk mengirimkan keluhan kerusakan ke antrean teknisi.
+- Antrean Laporan Servis Offline-Safe (`IndexedDB`): Jika teknisi berada di area *blank spot* (tanpa sinyal), laporan penyelesaian servis beserta foto bukti (terkompresi otomatis di browser) disimpan ke antrean lokal `maintenance_queue` dan disinkronkan otomatis ke server (`/api/maintenance/sync`) saat koneksi kembali.
+- Workspace Teknisi Mobile: Akun `Teknisi` otomatis diarahkan ke `/maintenance` setelah login (setelah lolos cek ganti password awal) dengan tab *bottom nav* khusus `Riwayat` servis.
 - Alert lonceng dan banner dashboard otomatis bersih begitu barang mulai diservis maupun setelah servis diselesaikan.
 
 ### 3. Alur Pengadaan Barang (PO)
@@ -185,7 +187,15 @@ jesca-assets/
 
 ---
 
-## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.1)
+## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.3)
+
+### v3.0.3 — Penyederhanaan Backup Layer & Pembaruan Dokumentasi
+- **Penyederhanaan Layer Backup**: Menghapus integrasi Remote Backup (FTP/SFTP) dari layer aplikasi (`/admin/backups`) agar pencadangan off-site ditangani di layer infrastruktur/VPS, sementara aplikasi berfokus pada snapshot SQLite WAL lokal harian (retensi 30 hari), Restore, Optimasi DB, dan Smart DB Merge.
+- **Verifikasi End-to-End**: Seluruh 21 unit & workflow test (`test_v3_blueprints`, `test_v3_full_audit`, `test_v3_comprehensive_audit`) terverifikasi lulus.
+
+### v3.0.2 — Antrean Servis Offline-Safe (IndexedDB) & Workspace Teknisi Mobile
+- **Antrean Laporan Servis Offline-Safe**: Penambahan object store `maintenance_queue` pada `JescaOfflineDB` (`dbVersion: 2`), kompresi foto bukti kamera via HTML5 Canvas (`<= 1280px` JPEG), serta endpoint `POST /api/maintenance/sync` dengan proteksi sesi `401` agar antrean lokal tidak terhapus saat sesi kedaluwarsa.
+- **Workspace Teknisi Versi HP**: Pengalihan pasca-login role `Teknisi` langsung ke `/maintenance` (dengan tetap memprioritaskan `force_password_change`) serta penyesuaian tab *bottom navigation bar* HP dari `Aset` menjadi `Riwayat` (`/maintenance?tab=riwayat`).
 
 ### v3.0.1 — Ketahanan Restore Database (WAL Fix) & Solusi Cloudflare Import (Patch Release)
 - **Perbaikan Restore Database WAL**: Menyelesaikan kendala data yang tidak kembali setelah restore dengan integrasi SQLite Native Backup API (`PRAGMA wal_checkpoint(TRUNCATE)`), pembersihan file `-wal` dan `-shm` usang sebelum penimpaan file, pelepasan pool koneksi SQLAlchemy (`engine.dispose()`), serta graceful reload worker Gunicorn via sinyal `SIGHUP`.

@@ -49,7 +49,7 @@ from utils.helpers import (
 )
 from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
 from services.email_service import build_system_email_html, send_system_email, resolve_smtp_settings
-from services.backup_service import upload_to_remote_backup, backup_sqlite_db
+from services.backup_service import backup_sqlite_db
 from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, get_quick_tunnel_status
 
 admin_bp = Blueprint('admin', __name__)
@@ -218,92 +218,9 @@ def manual_backup():
         shutil.copy2(db_path, dst)
         current_app.logger.warning(f"Fallback to shutil.copy2 for manual backup: {e}")
 
-    remote_msg = ""
-    setting = SystemSetting.get_settings()
-    if setting.remote_backup_enabled and setting.remote_backup_host:
-        ok, r_info = upload_to_remote_backup(dst, setting)
-        remote_msg = f" Salinan remote: {r_info}."
-
-    log_activity('BACKUP', details=f"Manual backup database dibuat: {filename}.{remote_msg}")
-    flash(f'Backup database berhasil dibuat: {filename}.{remote_msg}', 'success')
+    log_activity('BACKUP', details=f"Manual backup database dibuat: {filename}.")
+    flash(f'Backup database berhasil dibuat: {filename}.', 'success')
     return redirect(url_for('admin.admin_backups'))
-
-
-@admin_bp.route('/admin/backup-remote/config', methods=['POST'])
-@login_required
-@admin_required
-@sudo_required
-def save_remote_backup_config():
-    """Save remote backup configuration (FTP/SFTP) from Backup & Restore page."""
-    setting = SystemSetting.get_settings()
-    setting.remote_backup_enabled = (request.form.get('remote_backup_enabled') == '1')
-    setting.remote_backup_protocol = request.form.get('remote_backup_protocol', 'ftp').strip().lower()
-    setting.remote_backup_host = request.form.get('remote_backup_host', '').strip()
-
-    port_str = request.form.get('remote_backup_port', '').strip()
-    default_port = 22 if setting.remote_backup_protocol == 'sftp' else 21
-    setting.remote_backup_port = int(port_str) if port_str.isdigit() else default_port
-
-    setting.remote_backup_user = request.form.get('remote_backup_user', '').strip()
-    new_pass = request.form.get('remote_backup_pass', '').strip()
-    if new_pass:
-        setting.remote_backup_pass = new_pass
-
-    path_val = request.form.get('remote_backup_path', '').strip() or '/'
-    setting.remote_backup_path = path_val
-
-    db.session.commit()
-    log_activity(
-        'CONFIG_REMOTE_BACKUP',
-        details=f"Pengaturan remote backup diperbarui: {setting.remote_backup_protocol.upper()} ke {setting.remote_backup_host} (Aktif: {setting.remote_backup_enabled})"
-    )
-    flash('Pengaturan remote backup berhasil disimpan.', 'success')
-    return redirect(url_for('admin.admin_backups'))
-
-
-@admin_bp.route('/admin/backup-remote/test', methods=['POST'])
-@login_required
-@admin_required
-@sudo_required
-def test_remote_backup_connection():
-    """AJAX test connection to FTP/SFTP remote backup destination."""
-    protocol = request.form.get('protocol', 'ftp').strip().lower()
-    host = request.form.get('host', '').strip()
-    port_str = request.form.get('port', '').strip()
-    default_port = 22 if protocol == 'sftp' else 21
-    port = int(port_str) if port_str.isdigit() else default_port
-    user = request.form.get('user', '').strip()
-    password = request.form.get('password', '').strip()
-
-    if not password:
-        setting = SystemSetting.get_settings()
-        password = setting.remote_backup_pass or ''
-
-    if not host:
-        return jsonify({'status': 'error', 'message': 'Host / IP server tujuan wajib diisi.'}), 400
-
-    try:
-        if protocol == 'ftp':
-            import ftplib
-            ftp = ftplib.FTP()
-            ftp.connect(host, port, timeout=10)
-            ftp.login(user, password)
-            welcome = ftp.getwelcome()
-            ftp.quit()
-            return jsonify({'status': 'ok', 'message': f'Koneksi FTP berhasil terhubung ke {host}:{port}! Server: {welcome[:50]}'})
-        elif protocol == 'sftp':
-            try:
-                import paramiko
-            except ImportError:
-                return jsonify({'status': 'error', 'message': "Modul SFTP (paramiko) belum terpasang. Gunakan protokol FTP."}), 400
-            transport = paramiko.Transport((host, port))
-            transport.connect(username=user, password=password)
-            transport.close()
-            return jsonify({'status': 'ok', 'message': f'Koneksi SFTP berhasil terhubung ke {host}:{port}!'})
-        else:
-            return jsonify({'status': 'error', 'message': f'Protokol {protocol} tidak didukung.'}), 400
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': f'Uji koneksi gagal: {str(e)}'}), 400
 
 
 @admin_bp.route('/admin/restore/<filename>', methods=['GET', 'POST'])

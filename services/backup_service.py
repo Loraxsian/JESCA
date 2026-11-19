@@ -168,72 +168,6 @@ def check_and_update_schema():
         current_app.logger.warning(f"Schema update notice: {e}")
 
 
-def upload_to_remote_backup(local_file_path, setting=None):
-    """Uploads backup snapshot file to remote FTP/SFTP server in background."""
-    if setting is None:
-        setting = SystemSetting.get_settings()
-    if not setting or not setting.remote_backup_enabled or not setting.remote_backup_host:
-        return False, "Remote backup tidak aktif."
-
-    protocol = (setting.remote_backup_protocol or 'ftp').lower()
-    host = setting.remote_backup_host.strip()
-    port = int(setting.remote_backup_port or (22 if protocol == 'sftp' else 21))
-    user = (setting.remote_backup_user or '').strip()
-    passwd = setting.remote_backup_pass or ''
-    remote_path = (setting.remote_backup_path or '/').strip()
-    filename = os.path.basename(local_file_path)
-
-    try:
-        if protocol == 'ftp':
-            import ftplib
-            ftp = ftplib.FTP()
-            ftp.connect(host, port, timeout=20)
-            ftp.login(user, passwd)
-            if remote_path and remote_path != '/':
-                for part in remote_path.strip('/').split('/'):
-                    if not part:
-                        continue
-                    try:
-                        ftp.cwd(part)
-                    except Exception:
-                        try:
-                            ftp.mkd(part)
-                            ftp.cwd(part)
-                        except Exception:
-                            pass
-            with open(local_file_path, 'rb') as f:
-                ftp.storbinary(f"STOR {filename}", f)
-            ftp.quit()
-            log_activity('REMOTE_BACKUP', details=f"Salinan backup '{filename}' berhasil diunggah ke FTP {host}:{port}{remote_path}")
-            return True, f"Berhasil diunggah ke FTP {host}:{port}"
-
-        elif protocol == 'sftp':
-            try:
-                import paramiko
-            except ImportError:
-                return False, "Library paramiko belum terpasang untuk SFTP."
-            transport = paramiko.Transport((host, port))
-            transport.connect(username=user, password=passwd)
-            sftp = paramiko.SFTPClient.from_transport(transport)
-            if remote_path and remote_path != '/':
-                try:
-                    sftp.chdir(remote_path)
-                except Exception:
-                    sftp.mkdir(remote_path)
-                    sftp.chdir(remote_path)
-            sftp.put(local_file_path, filename)
-            sftp.close()
-            transport.close()
-            log_activity('REMOTE_BACKUP', details=f"Salinan backup '{filename}' berhasil diunggah ke SFTP {host}:{port}{remote_path}")
-            return True, f"Berhasil diunggah ke SFTP {host}:{port}"
-        else:
-            return False, f"Protokol {protocol} tidak didukung."
-    except Exception as e:
-        current_app.logger.error(f"Remote backup upload failed: {e}")
-        log_activity('REMOTE_BACKUP_FAIL', details=f"Gagal mengunggah backup '{filename}' ke {host}: {str(e)}")
-        return False, str(e)
-
-
 def backup_sqlite_db(src_path, dst_path):
     """
     Perform a consistent and atomic SQLite backup using SQLite's native backup API.
@@ -276,10 +210,6 @@ def auto_backup_job(app=None):
                 fp = os.path.join(BACKUP_FOLDER, f)
                 if f.endswith('.db') and (datetime.now() - datetime.fromtimestamp(os.path.getctime(fp))).days > 30:
                     os.remove(fp)
-            try:
-                upload_to_remote_backup(dst)
-            except Exception:
-                pass
         except Exception as e:
             try:
                 current_app.logger.error(f'Auto backup failed: {e}')
