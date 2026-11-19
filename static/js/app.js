@@ -1119,7 +1119,7 @@ window.BulkSelect = {
 window.JescaOfflineDB = {
     db: null,
     dbName: 'jesca_offline_db',
-    dbVersion: 1,
+    dbVersion: 2,
 
     init: function() {
         return new Promise(function(resolve) {
@@ -1139,6 +1139,9 @@ window.JescaOfflineDB = {
                 }
                 if (!db.objectStoreNames.contains('opname_queue')) {
                     db.createObjectStore('opname_queue', { keyPath: 'id', autoIncrement: true });
+                }
+                if (!db.objectStoreNames.contains('maintenance_queue')) {
+                    db.createObjectStore('maintenance_queue', { keyPath: 'id', autoIncrement: true });
                 }
             };
             request.onsuccess = function(e) {
@@ -1319,6 +1322,183 @@ window.JescaOfflineDB = {
                 }
             });
         }
+        JescaOfflineDB.updateMaintenanceBadges();
+    },
+
+    compressProofImage: function(file, maxWidth, quality) {
+        if (!file) return Promise.resolve(null);
+        maxWidth = maxWidth || 1280;
+        quality = quality || 0.8;
+
+        if (file.type && file.type.indexOf('image/') === 0) {
+            return new Promise(function(resolve) {
+                var reader = new FileReader();
+                reader.onload = function(ev) {
+                    var img = new Image();
+                    img.onload = function() {
+                        var width = img.width;
+                        var height = img.height;
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+                        var canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        var ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+                        var compressedUrl = canvas.toDataURL('image/jpeg', quality);
+                        var baseName = (file.name || 'proof').replace(/\.[^.]+$/, '');
+                        resolve({ dataUrl: compressedUrl, filename: baseName + '.jpg' });
+                    };
+                    img.onerror = function() {
+                        resolve(null);
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.onerror = function() { resolve(null); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            return Promise.reject(new Error('Ukuran berkas melebihi batas maksimal 5 MB.'));
+        }
+        return new Promise(function(resolve, reject) {
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                resolve({ dataUrl: ev.target.result, filename: file.name || 'proof.pdf' });
+            };
+            reader.onerror = function() { reject(new Error('Gagal membaca berkas lampiran.')); };
+            reader.readAsDataURL(file);
+        });
+    },
+
+    queueMaintenance: function(record) {
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return false;
+            return new Promise(function(resolve, reject) {
+                try {
+                    var tx = db.transaction('maintenance_queue', 'readwrite');
+                    var store = tx.objectStore('maintenance_queue');
+                    record.is_offline = true;
+                    record.queued_at = record.queued_at || new Date().toISOString();
+                    var req = store.add(record);
+                    req.onsuccess = function() {
+                        JescaOfflineDB.updateMaintenanceBadges();
+                        resolve(true);
+                    };
+                    req.onerror = function(err) { reject(err); };
+                } catch (e) {
+                    reject(e);
+                }
+            });
+        });
+    },
+
+    getMaintenanceQueueCount: function() {
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return 0;
+            return new Promise(function(resolve) {
+                try {
+                    var tx = db.transaction('maintenance_queue', 'readonly');
+                    var store = tx.objectStore('maintenance_queue');
+                    var req = store.count();
+                    req.onsuccess = function() { resolve(req.result || 0); };
+                    req.onerror = function() { resolve(0); };
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        });
+    },
+
+    syncMaintenanceQueue: function() {
+        if (!navigator.onLine) return Promise.resolve(0);
+        return JescaOfflineDB.init().then(function(db) {
+            if (!db) return 0;
+            return new Promise(function(resolve) {
+                try {
+                    var tx = db.transaction('maintenance_queue', 'readonly');
+                    var store = tx.objectStore('maintenance_queue');
+                    var req = store.getAll();
+                    req.onsuccess = function() {
+                        var items = req.result || [];
+                        if (!items || items.length === 0) {
+                            resolve(0);
+                            return;
+                        }
+                        var csrfMeta = document.querySelector('meta[name="csrf-token"]');
+                        var headers = { 'Content-Type': 'application/json' };
+                        if (csrfMeta) {
+                            headers['X-CSRFToken'] = csrfMeta.getAttribute('content');
+                        }
+                        fetch('/api/maintenance/sync', {
+                            method: 'POST',
+                            headers: headers,
+                            credentials: 'same-origin',
+                            body: JSON.stringify({ items: items })
+                        })
+                        .then(function(res) {
+                            if (res.status === 401 || (res.redirected && res.url && res.url.indexOf('/login') !== -1)) {
+                                JescaToast.show('Sesi login telah berakhir. Silakan login ulang untuk mengirim ' + items.length + ' laporan servis yang tertunda.', 'warning');
+                                return null;
+                            }
+                            if (!res.ok) throw new Error('HTTP ' + res.status);
+                            var contentType = res.headers.get('content-type') || '';
+                            if (contentType.indexOf('application/json') === -1) {
+                                JescaToast.show('Sesi perlu diperbarui. Login ulang agar antrean servis dapat dikirim.', 'warning');
+                                return null;
+                            }
+                            return res.json();
+                        })
+                        .then(function(resp) {
+                            if (!resp || resp.status !== 'success') {
+                                resolve(0);
+                                return;
+                            }
+                            var syncedIds = resp.synced_ids || [];
+                            if (syncedIds.length > 0) {
+                                var delTx = db.transaction('maintenance_queue', 'readwrite');
+                                var delStore = delTx.objectStore('maintenance_queue');
+                                syncedIds.forEach(function(id) {
+                                    if (id !== undefined && id !== null) delStore.delete(id);
+                                });
+                                delTx.oncomplete = function() {
+                                    JescaToast.show('Sinkronisasi selesai: ' + syncedIds.length + ' laporan servis offline berhasil disimpan ke server.', 'success');
+                                    JescaOfflineDB.updateMaintenanceBadges();
+                                    window.dispatchEvent(new CustomEvent('jesca:maintenance-synced', { detail: { count: syncedIds.length } }));
+                                    resolve(syncedIds.length);
+                                };
+                            } else {
+                                resolve(0);
+                            }
+                        })
+                        .catch(function(err) {
+                            console.error('Maintenance sync error:', err);
+                            resolve(0);
+                        });
+                    };
+                    req.onerror = function() { resolve(0); };
+                } catch (e) {
+                    resolve(0);
+                }
+            });
+        });
+    },
+
+    updateMaintenanceBadges: function() {
+        var banner = document.getElementById('maint-queue-banner');
+        var countEl = document.getElementById('maint-queue-count');
+        if (!banner || !countEl) return;
+        JescaOfflineDB.getMaintenanceQueueCount().then(function(count) {
+            if (count > 0) {
+                countEl.textContent = count;
+                banner.classList.remove('d-none');
+            } else {
+                banner.classList.add('d-none');
+            }
+        });
     }
 };
 
@@ -1326,6 +1506,7 @@ window.addEventListener('online', function() {
     JescaOfflineDB.updateBadges();
     JescaToast.show('Koneksi internet kembali aktif. Menyinkronkan data di latar belakang...', 'info');
     JescaOfflineDB.syncQueue();
+    JescaOfflineDB.syncMaintenanceQueue();
     JescaOfflineDB.cacheAssets();
 });
 
@@ -2435,6 +2616,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('sidebar-wrapper')) {
         JescaOfflineDB.cacheAssets();
         JescaOfflineDB.syncQueue();
+        JescaOfflineDB.syncMaintenanceQueue();
+        JescaOfflineDB.updateMaintenanceBadges();
         JescaOnboarding.init();
     }
 

@@ -120,6 +120,37 @@ def start_maintenance(asset_id):
     return redirect(url_for('maintenance.maintenance'))
 
 
+def record_maintenance_completion(asset, service_type, action_taken, cost, service_date, interval, proof_filename=None, is_offline=False):
+    """Persist a MaintenanceRecord, update asset maintenance schedule, and log activity."""
+    rec = MaintenanceRecord(
+        asset_id=asset.id,
+        service_type=service_type,
+        action_taken=action_taken,
+        cost=cost,
+        proof_file=proof_filename,
+        performed_by=current_user.username,
+        service_date=service_date,
+        next_service_date=service_date + timedelta(days=interval)
+    )
+    db.session.add(rec)
+
+    asset.status = 'Aktif'
+    asset.last_maintenance_date = service_date
+    asset.maintenance_interval_days = interval
+    asset.next_maintenance_date = service_date + timedelta(days=interval)
+
+    db.session.commit()
+
+    sync_tag = ' [Offline Sync]' if is_offline else ''
+    log_activity(
+        'MAINTENANCE_SELESAI',
+        asset_code=asset.asset_code,
+        asset_name=asset.name,
+        details=f"Pemeliharaan [{service_type}]{sync_tag} selesai dikerjakan oleh {current_user.username}. Biaya: Rp {cost:,.0f}. Jadwal berikutnya: {asset.next_maintenance_date.strftime('%d/%m/%Y')}."
+    )
+    return rec
+
+
 @maintenance_bp.route('/assets/<int:asset_id>/maintenance/complete', methods=['POST'])
 @maintenance_bp.route('/assets/<int:asset_id>/complete-maintenance', methods=['POST'])
 @login_required
@@ -147,42 +178,25 @@ def complete_maintenance(asset_id):
     except Exception:
         interval = asset.maintenance_interval_days or 90
 
-    # Handle proof file upload
     proof_file = request.files.get('proof_file')
     proof_filename = save_maint_attachment(proof_file) if proof_file else None
 
-    # Create permanent MaintenanceRecord
-    rec = MaintenanceRecord(
-        asset_id=asset.id,
-        service_type=service_type,
-        action_taken=action_taken,
-        cost=cost,
-        proof_file=proof_filename,
-        performed_by=current_user.username,
-        service_date=service_date,
-        next_service_date=service_date + timedelta(days=interval)
-    )
-    db.session.add(rec)
-
-    # Update asset state
-    asset.status = 'Aktif'
-    asset.last_maintenance_date = service_date
-    asset.maintenance_interval_days = interval
-    asset.next_maintenance_date = service_date + timedelta(days=interval)
     try:
-        db.session.commit()
+        record_maintenance_completion(
+            asset=asset,
+            service_type=service_type,
+            action_taken=action_taken,
+            cost=cost,
+            service_date=service_date,
+            interval=interval,
+            proof_filename=proof_filename,
+            is_offline=False
+        )
     except Exception as e:
         db.session.rollback()
         current_app.logger.error(f"Gagal menyelesaikan servis aset ID {asset_id}: {e}")
         flash('Terjadi kendala saat menyimpan data servis ke database. Silakan coba kembali.', 'danger')
         return redirect(url_for('maintenance.maintenance'))
-
-    log_activity(
-        'MAINTENANCE_SELESAI',
-        asset_code=asset.asset_code,
-        asset_name=asset.name,
-        details=f"Pemeliharaan [{service_type}] selesai dikerjakan oleh {current_user.username}. Biaya: Rp {cost:,.0f}. Jadwal berikutnya: {asset.next_maintenance_date.strftime('%d/%m/%Y')}."
-    )
 
     flash(f'Pemeliharaan untuk [{asset.asset_code}] berhasil disimpan & jadwal servis berikutnya diperbarui ({asset.next_maintenance_date.strftime("%d/%m/%Y")})!', 'success')
     return redirect(request.referrer or url_for('maintenance.maintenance'))

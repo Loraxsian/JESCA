@@ -157,5 +157,119 @@ class ComprehensiveSystemVerification(unittest.TestCase):
         if os.path.exists(test_backup_path):
             os.remove(test_backup_path)
 
+    def test_06_offline_maintenance_sync_api(self):
+        """Verifikasi endpoint /api/maintenance/sync (auth 401, RBAC, dan simpan lampiran base64)"""
+        import base64
+        from config import MAINT_ATTACHMENT_FOLDER
+
+        # 1. Unauthenticated harus return 401 JSON (bukan 200)
+        res_unauth = self.client.post('/api/maintenance/sync', json={'items': [{'asset_id': 1}]})
+        self.assertEqual(res_unauth.status_code, 401)
+
+        # 2. Login Admin & buat aset uji Dalam Perbaikan
+        self.login_admin()
+        asset = Asset(
+            asset_code='TECH-OFF-001',
+            name='Server Rack Offline Test',
+            category='Tech',
+            location='Basement',
+            purchase_date=date.today(),
+            purchase_price=10000000,
+            status='Dalam Perbaikan',
+            needs_maintenance=True,
+            maintenance_interval_days=60
+        )
+        db.session.add(asset)
+        db.session.commit()
+
+        # 1x1 JPEG base64 minimal valid
+        tiny_jpg = base64.b64encode(b'\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xd9').decode()
+        data_url = f'data:image/jpeg;base64,{tiny_jpg}'
+
+        res_sync = self.client.post('/api/maintenance/sync', json={
+            'items': [{
+                'id': 99,
+                'asset_id': asset.id,
+                'asset_code': asset.asset_code,
+                'service_date': str(date.today()),
+                'service_type': 'Perbaikan Kerusakan',
+                'action_taken': 'Ganti kipas PSU di basement',
+                'cost': '250000',
+                'interval_days': '45',
+                'proof_data_url': data_url,
+                'proof_filename': 'kamera_hp.jpg',
+                'is_offline': True
+            }]
+        })
+        self.assertEqual(res_sync.status_code, 200)
+        body = res_sync.get_json()
+        self.assertEqual(body['status'], 'success')
+        self.assertEqual(body['synced_count'], 1)
+        self.assertEqual(body['synced_ids'], [99])
+
+        db.session.refresh(asset)
+        self.assertEqual(asset.status, 'Aktif')
+        self.assertEqual(asset.maintenance_interval_days, 45)
+
+        rec = MaintenanceRecord.query.filter_by(asset_id=asset.id).first()
+        self.assertIsNotNone(rec)
+        self.assertIsNotNone(rec.proof_file)
+        proof_path = os.path.join(MAINT_ATTACHMENT_FOLDER, rec.proof_file)
+        self.assertTrue(os.path.exists(proof_path))
+
+        # Cleanup
+        if os.path.exists(proof_path):
+            os.remove(proof_path)
+        db.session.delete(rec)
+        db.session.delete(asset)
+        db.session.commit()
+
+    def test_07_teknisi_mobile_workspace_redirect_and_tab(self):
+        """Verifikasi redirect login Teknisi (force_password_change prioritas) & custom tab Riwayat"""
+        # 1. Buat akun Teknisi dengan force_password_change=True
+        tech_force = User(
+            username='tech_qa_force',
+            full_name='Teknisi Force PW',
+            role='Teknisi',
+            force_password_change=True
+        )
+        tech_force.set_password('TechPass123')
+        db.session.add(tech_force)
+
+        tech_ready = User(
+            username='tech_qa_ready',
+            full_name='Teknisi Siap',
+            role='Teknisi',
+            force_password_change=False
+        )
+        tech_ready.set_password('TechPass123')
+        db.session.add(tech_ready)
+        db.session.commit()
+
+        try:
+            # Cek prioritas force_password_change
+            res_force = self.client.post('/login', data={'username': 'tech_qa_force', 'password': 'TechPass123'}, follow_redirects=False)
+            self.assertEqual(res_force.status_code, 302)
+            self.assertIn('/change-password-required', res_force.location)
+            self.client.get('/logout')
+
+            # Cek redirect normal Teknisi ke /maintenance
+            res_ready = self.client.post('/login', data={'username': 'tech_qa_ready', 'password': 'TechPass123'}, follow_redirects=False)
+            self.assertEqual(res_ready.status_code, 302)
+            self.assertIn('/maintenance', res_ready.location)
+
+            # Cek bottom nav khusus Teknisi & tab ?tab=riwayat
+            res_page = self.client.get('/maintenance?tab=riwayat')
+            self.assertEqual(res_page.status_code, 200)
+            html = res_page.get_data(as_text=True)
+            self.assertIn('id="mobileNavHistory"', html)
+            self.assertNotIn('id="mobileNavAssets"', html)
+            self.assertIn('id="history-maint"', html)
+        finally:
+            self.client.get('/logout')
+            db.session.delete(tech_force)
+            db.session.delete(tech_ready)
+            db.session.commit()
+
 if __name__ == '__main__':
     unittest.main()

@@ -19,7 +19,7 @@ class TestJescaV3FullFeatures(unittest.TestCase):
         return c
 
     def test_01_version_blueprints_and_public_routes(self):
-        self.assertEqual(jesca_app.APP_VERSION, '3.0.1')
+        self.assertEqual(jesca_app.APP_VERSION, '3.0.2')
         expected_bps = {'auth', 'main', 'assets', 'maintenance', 'po', 'admin', 'api'}
         self.assertTrue(expected_bps.issubset(set(self.app.blueprints.keys())))
 

@@ -99,6 +99,48 @@ def save_maint_attachment(file_storage):
     return None
 
 
+def save_maint_attachment_base64(data_url, original_name='offline_proof.jpg'):
+    """Decode base64 data URL from offline IndexedDB queue and save to MAINT_ATTACHMENT_FOLDER."""
+    if not data_url or not isinstance(data_url, str):
+        return None
+    if not data_url.startswith('data:') or ';base64,' not in data_url:
+        return None
+
+    header, b64_data = data_url.split(';base64,', 1)
+    mime = header[5:].lower().strip()
+    mime_ext_map = {
+        'image/jpeg': 'jpg',
+        'image/jpg': 'jpg',
+        'image/png': 'png',
+        'application/pdf': 'pdf',
+        'application/msword': 'doc',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
+    }
+
+    safe_orig = secure_filename(original_name or 'offline_proof.jpg')
+    orig_ext = safe_orig.rsplit('.', 1)[1].lower() if '.' in safe_orig else ''
+    ext = mime_ext_map.get(mime) or orig_ext
+    if ext not in ALLOWED_ATTACHMENT_EXTENSIONS:
+        return None
+
+    try:
+        raw_bytes = base64.b64decode(b64_data, validate=True)
+    except Exception:
+        return None
+
+    if not raw_bytes or len(raw_bytes) > 5 * 1024 * 1024:
+        return None
+
+    base_name = safe_orig.rsplit('.', 1)[0][:30] if '.' in safe_orig else safe_orig[:30]
+    base_name = base_name or 'offline_proof'
+    unique_name = f"maint_{int(datetime.utcnow().timestamp())}_{base_name}_{uuid.uuid4().hex[:6]}.{ext}"
+    os.makedirs(MAINT_ATTACHMENT_FOLDER, exist_ok=True)
+    filepath = os.path.join(MAINT_ATTACHMENT_FOLDER, unique_name)
+    with open(filepath, 'wb') as f:
+        f.write(raw_bytes)
+    return unique_name
+
+
 def save_avatar_file(file_storage):
     """Securely save user profile image and return filename."""
     if not file_storage or not file_storage.filename:

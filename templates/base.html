@@ -1000,10 +1000,18 @@
             <i class="bi {% if request.endpoint == 'main.dashboard' %}bi-grid-1x2-fill{% else %}bi-grid-1x2{% endif %}"></i>
             <span>Beranda</span>
         </a>
+        {% if current_user.role == 'Teknisi' %}
+        {% set is_maint_history = (request.endpoint == 'maintenance.maintenance' and request.args.get('tab') == 'riwayat') %}
+        <a href="{{ url_for('maintenance.maintenance', tab='riwayat') }}" id="mobileNavHistory" class="bottom-nav-item {% if is_maint_history %}active{% endif %}">
+            <i class="bi {% if is_maint_history %}bi-clock-fill{% else %}bi-clock-history{% endif %}"></i>
+            <span>Riwayat</span>
+        </a>
+        {% else %}
         <a href="{{ url_for('assets.assets') }}" id="mobileNavAssets" class="bottom-nav-item {% if request.endpoint == 'assets.assets' %}active{% endif %}">
             <i class="bi {% if request.endpoint == 'assets.assets' %}bi-box-seam-fill{% else %}bi-box-seam{% endif %}"></i>
             <span>Aset</span>
         </a>
+        {% endif %}
         <div class="bottom-nav-qr-wrap">
             <button type="button" class="bottom-nav-qr-fab" id="mobileTourQrFab" onclick="JescaQRScanner.open()" title="Scan QR Code Aset">
                 <i class="bi bi-qr-code-scan"></i>
@@ -1016,9 +1024,10 @@
             <span>Audit</span>
         </a>
         {% else %}
-        <a href="{{ url_for('maintenance.maintenance') }}" id="mobileNavService" class="bottom-nav-item {% if request.endpoint == 'maintenance.maintenance' %}active{% endif %}">
+        {% set is_maint_active = (request.endpoint == 'maintenance.maintenance' and request.args.get('tab') != 'riwayat') %}
+        <a href="{{ url_for('maintenance.maintenance') }}" id="mobileNavService" class="bottom-nav-item {% if is_maint_active %}active{% endif %}">
             <div class="position-relative">
-                <i class="bi {% if request.endpoint == 'maintenance.maintenance' %}bi-wrench-adjustable-circle-fill{% else %}bi-wrench-adjustable{% endif %}"></i>
+                <i class="bi {% if is_maint_active %}bi-wrench-adjustable-circle-fill{% else %}bi-wrench-adjustable{% endif %}"></i>
                 {% if maintenance_alerts and maintenance_alerts|length > 0 %}
                 <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.55rem; padding: 2px 4px;">{{ maintenance_alerts|length }}</span>
                 {% endif %}

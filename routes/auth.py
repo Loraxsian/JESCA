@@ -56,6 +56,8 @@ auth_bp = Blueprint('auth', __name__)
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
+        if current_user.role == 'Teknisi':
+            return redirect(url_for('maintenance.maintenance'))
         return redirect(url_for('main.dashboard'))
 
     if request.method == 'POST':
@@ -91,7 +93,8 @@ def login():
 
             flash(f'Selamat datang kembali, {user.full_name}!', 'success')
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('main.dashboard'))
+            default_target = url_for('maintenance.maintenance') if user.role == 'Teknisi' else url_for('main.dashboard')
+            return redirect(next_page or default_target)
         else:
             if user:
                 user.failed_login_count = (user.failed_login_count or 0) + 1

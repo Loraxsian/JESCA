@@ -26,6 +26,17 @@
     </div>
 </div>
 
+<!-- Offline Maintenance Queue Banner -->
+<div id="maint-queue-banner" class="alert alert-warning border-0 shadow-sm rounded-4 d-none d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-3">
+    <div class="d-flex align-items-center gap-2 small">
+        <i class="bi bi-cloud-arrow-up-fill fs-5 text-warning"></i>
+        <span>Ada <strong id="maint-queue-count">0</strong> laporan servis offline yang menunggu sinyal/sinkronisasi.</span>
+    </div>
+    <button type="button" class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold text-dark flex-shrink-0" onclick="JescaOfflineDB.syncMaintenanceQueue()">
+        <i class="bi bi-arrow-repeat me-1"></i>Sinkronkan Sekarang
+    </button>
+</div>
+
 <!-- Mobile 2x2 Clean White Stat Cards (<= 767px) -->
 <div class="stat-grid-2x2 d-md-none">
     <div class="stat-card-2x2 stat-amber">
@@ -123,14 +134,15 @@
 </div>
 
 <!-- Tabs Navigation -->
+{% set show_history_tab = (request.args.get('tab') == 'riwayat') %}
 <ul class="nav nav-pills gap-2 mb-3 flex-nowrap" id="maintTab" role="tablist" style="overflow-x: auto; scrollbar-width: none;">
     <li class="nav-item flex-grow-1 flex-md-grow-0" role="presentation">
-        <button class="nav-link active w-100 px-3 px-md-4 btn-sm text-nowrap" style="border-radius: 16px;" id="active-tab" data-bs-toggle="pill" data-bs-target="#active-maint" type="button" role="tab">
+        <button class="nav-link {% if not show_history_tab %}active{% endif %} w-100 px-3 px-md-4 btn-sm text-nowrap" style="border-radius: 16px;" id="active-tab" data-bs-toggle="pill" data-bs-target="#active-maint" type="button" role="tab">
             <i class="bi bi-clock-history me-1"></i> <span class="d-none d-md-inline">Aset Perlu Servis &amp; Perbaikan</span><span class="d-md-none">Antrean Servis</span> ({{ due_assets|length + in_repair_assets|length }})
         </button>
     </li>
     <li class="nav-item flex-grow-1 flex-md-grow-0" role="presentation">
-        <button class="nav-link w-100 px-3 px-md-4 btn-sm text-nowrap" style="border-radius: 16px;" id="history-tab" data-bs-toggle="pill" data-bs-target="#history-maint" type="button" role="tab">
+        <button class="nav-link {% if show_history_tab %}active{% endif %} w-100 px-3 px-md-4 btn-sm text-nowrap" style="border-radius: 16px;" id="history-tab" data-bs-toggle="pill" data-bs-target="#history-maint" type="button" role="tab">
             <i class="bi bi-journal-check me-1"></i> <span class="d-none d-md-inline">Riwayat &amp; Bukti Servis</span><span class="d-md-none">Riwayat Servis</span> ({{ records|length }})
         </button>
     </li>
@@ -138,7 +150,7 @@
 
 <div class="tab-content" id="maintTabContent">
     <!-- TAB 1: Antrean Pemeliharaan & Sedang Dikerjakan -->
-    <div class="tab-pane fade show active" id="active-maint" role="tabpanel">
+    <div class="tab-pane fade {% if not show_history_tab %}show active{% endif %}" id="active-maint" role="tabpanel">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
             <div class="card-body p-0">
                 <div class="table-responsive d-none d-md-block">
@@ -356,7 +368,7 @@
     </div>
 
     <!-- TAB 2: Riwayat Servis & Bukti Dokumen -->
-    <div class="tab-pane fade" id="history-maint" role="tabpanel">
+    <div class="tab-pane fade {% if show_history_tab %}show active{% endif %}" id="history-maint" role="tabpanel">
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
             <div class="card-body p-0">
                 <div class="table-responsive d-none d-md-block">
@@ -614,11 +626,17 @@ function appendQuickChip(btn, text) {
 }
 
 function openCompleteMaintenanceModal(assetId, assetCode, assetName, intervalDays) {
+    const form = document.getElementById('completeMaintenanceForm');
     document.getElementById('modalTargetAssetTitle').textContent = `[${assetCode}] ${assetName}`;
-    document.getElementById('completeMaintenanceForm').action = `/assets/${assetId}/maintenance/complete`;
+    form.action = `/assets/${assetId}/maintenance/complete`;
+    form.dataset.assetId = assetId;
+    form.dataset.assetCode = assetCode;
+    form.dataset.assetName = assetName;
     document.getElementById('modalIntervalDays').value = intervalDays || 90;
     const textarea = document.getElementById('maintActionTakenInput');
     if (textarea) textarea.value = '';
+    const proofInput = form.querySelector('input[name="proof_file"]');
+    if (proofInput) proofInput.value = '';
     document.querySelectorAll('.quick-chip-btn').forEach(b => b.classList.remove('active'));
     
     // Set default date today
@@ -630,5 +648,87 @@ function openCompleteMaintenanceModal(assetId, assetCode, assetName, intervalDay
     
     bootstrap.Modal.getOrCreateInstance(document.getElementById('completeMaintenanceModal')).show();
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const maintForm = document.getElementById('completeMaintenanceForm');
+    if (maintForm) {
+        maintForm.addEventListener('submit', async function(e) {
+            if (!window.JescaOfflineDB) return;
+            e.preventDefault();
+
+            const submitBtn = maintForm.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            const modalEl = document.getElementById('completeMaintenanceModal');
+            const proofInput = maintForm.querySelector('input[name="proof_file"]');
+            const file = proofInput && proofInput.files ? proofInput.files[0] : null;
+
+            let compressedProof = null;
+            if (file) {
+                try {
+                    compressedProof = await JescaOfflineDB.compressProofImage(file, 1280, 0.8);
+                } catch (err) {
+                    if (window.JescaToast) JescaToast.show(err.message || 'Gagal memproses lampiran.', 'danger');
+                    if (submitBtn) submitBtn.disabled = false;
+                    return;
+                }
+            }
+
+            const offlineRecord = {
+                asset_id: maintForm.dataset.assetId,
+                asset_code: maintForm.dataset.assetCode || '',
+                asset_name: maintForm.dataset.assetName || '',
+                service_date: maintForm.querySelector('[name="service_date"]').value,
+                service_type: maintForm.querySelector('[name="service_type"]').value,
+                action_taken: maintForm.querySelector('[name="action_taken"]').value,
+                cost: maintForm.querySelector('[name="cost"]').value,
+                interval_days: maintForm.querySelector('[name="interval_days"]').value,
+                proof_data_url: compressedProof ? compressedProof.dataUrl : null,
+                proof_filename: compressedProof ? compressedProof.filename : null
+            };
+
+            const queueOffline = async (msg, type) => {
+                await JescaOfflineDB.queueMaintenance(offlineRecord);
+                bootstrap.Modal.getOrCreateInstance(modalEl).hide();
+                if (window.JescaToast) JescaToast.show(msg, type || 'warning');
+                if (submitBtn) submitBtn.disabled = false;
+            };
+
+            if (!navigator.onLine) {
+                await queueOffline('Perangkat offline. Laporan servis disimpan ke antrean lokal dan akan dikirim otomatis saat sinyal kembali.', 'warning');
+                return;
+            }
+
+            try {
+                const formData = new FormData(maintForm);
+                const res = await fetch(maintForm.action, {
+                    method: 'POST',
+                    body: formData,
+                    credentials: 'same-origin'
+                });
+
+                if (res.status === 401 || (res.redirected && res.url && res.url.indexOf('/login') !== -1)) {
+                    await queueOffline('Sesi login berakhir. Laporan servis diamankan ke antrean lokal — silakan login ulang untuk menyinkronkan.', 'warning');
+                    return;
+                }
+
+                if (res.ok) {
+                    window.location.href = res.url || window.location.href;
+                    return;
+                }
+
+                await queueOffline('Server tidak merespons normal (HTTP ' + res.status + '). Laporan servis diamankan ke antrean lokal.', 'warning');
+            } catch (networkErr) {
+                await queueOffline('Koneksi terputus (blank spot). Laporan servis disimpan ke antrean lokal dan akan dikirim otomatis saat online.', 'warning');
+            }
+        });
+    }
+
+    window.addEventListener('jesca:maintenance-synced', function(ev) {
+        if (ev && ev.detail && ev.detail.count > 0) {
+            setTimeout(function() { window.location.reload(); }, 1200);
+        }
+    });
+});
 </script>
 {% endblock %}

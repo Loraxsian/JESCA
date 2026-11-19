@@ -41,7 +41,7 @@ from utils.decorators import admin_required, role_required, api_key_required, is
 from utils.helpers import (
     validate_password, allowed_file, allowed_attachment,
     save_uploaded_photo, delete_photo_file, save_po_attachment, save_maint_attachment,
-    save_avatar_file, delete_avatar_file, encrypt_smtp_password, decrypt_smtp_password,
+    save_maint_attachment_base64, save_avatar_file, delete_avatar_file, encrypt_smtp_password, decrypt_smtp_password,
     get_wib_now, format_wib_datetime, parse_currency, get_category_prefix,
     generate_asset_code, generate_po_number
 )
@@ -264,6 +264,91 @@ def api_stock_opname_sync():
         db.session.rollback()
         current_app.logger.error(f"Error syncing stock opname: {e}")
         return jsonify({'status': 'error', 'message': f'Gagal menyimpan ke database: {e}'}), 500
+
+
+@api_bp.route('/api/maintenance/sync', methods=['POST'])
+@role_required('Admin', 'Administrator', 'Teknisi')
+def api_maintenance_sync():
+    """Receives offline-queued maintenance completion reports from IndexedDB."""
+    from routes.maintenance import record_maintenance_completion
+
+    payload = request.get_json(silent=True) or {}
+    items = payload.get('items', [])
+    if not items and ('asset_id' in payload or 'asset_code' in payload):
+        items = [payload]
+
+    if not items:
+        return jsonify({'status': 'error', 'message': 'Tidak ada data laporan servis yang dikirim.'}), 400
+
+    synced_ids = []
+    errors = []
+
+    for item in items:
+        queue_id = item.get('id')
+        asset_id = item.get('asset_id')
+        asset_code = str(item.get('asset_code', '')).strip()
+
+        asset = None
+        if asset_id is not None:
+            try:
+                asset = db.session.get(Asset, int(asset_id))
+            except (TypeError, ValueError):
+                asset = None
+        if not asset and asset_code:
+            asset = Asset.query.filter_by(asset_code=asset_code).first()
+
+        if not asset:
+            errors.append({'id': queue_id, 'reason': f'Aset ({asset_code or asset_id}) tidak ditemukan.'})
+            continue
+        if asset.status == 'Afkir':
+            errors.append({'id': queue_id, 'reason': f'Aset [{asset.asset_code}] berstatus Afkir.'})
+            continue
+
+        service_type = str(item.get('service_type', 'Rutin / Pembersihan')).strip() or 'Rutin / Pembersihan'
+        action_taken = str(item.get('action_taken', '')).strip() or 'Pemeliharaan rutin selesai dilakukan.'
+        cost = parse_currency(str(item.get('cost', '0')))
+
+        s_date_str = str(item.get('service_date', '')).strip()
+        try:
+            service_date = datetime.strptime(s_date_str, '%Y-%m-%d').date() if s_date_str else date.today()
+        except Exception:
+            service_date = date.today()
+
+        try:
+            interval = int(item.get('interval_days') or asset.maintenance_interval_days or 90)
+            if interval < 1:
+                interval = 90
+        except Exception:
+            interval = asset.maintenance_interval_days or 90
+
+        proof_filename = save_maint_attachment_base64(
+            item.get('proof_data_url'),
+            item.get('proof_filename', 'offline_proof.jpg')
+        )
+
+        try:
+            record_maintenance_completion(
+                asset=asset,
+                service_type=service_type,
+                action_taken=action_taken,
+                cost=cost,
+                service_date=service_date,
+                interval=interval,
+                proof_filename=proof_filename,
+                is_offline=bool(item.get('is_offline', True))
+            )
+            synced_ids.append(queue_id)
+        except Exception as e:
+            db.session.rollback()
+            current_app.logger.error(f"Error syncing maintenance report for asset {asset.id}: {e}")
+            errors.append({'id': queue_id, 'reason': f'Gagal menyimpan [{asset.asset_code}]: {e}'})
+
+    return jsonify({
+        'status': 'success',
+        'synced_count': len(synced_ids),
+        'synced_ids': synced_ids,
+        'errors': errors
+    })
 
 
 @api_bp.route('/api/v1/assets', methods=['GET'])
