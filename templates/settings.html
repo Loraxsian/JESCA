@@ -245,10 +245,6 @@
         <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill font-monospace" style="font-size: 0.76rem;">
             <i class="bi bi-patch-check-fill me-1"></i>Rilis v{{ app_version }} (Stabil)
         </span>
-        <span class="badge {% if setting.ip_whitelist_enabled %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %} px-3 py-2 rounded-pill font-monospace" style="font-size: 0.76rem;">
-            <i class="bi {% if setting.ip_whitelist_enabled %}bi-shield-check{% else %}bi-shield{% endif %} me-1"></i>
-            IP Whitelist: {% if setting.ip_whitelist_enabled %}AKTIF{% else %}NONAKTIF{% endif %}
-        </span>
         <span class="badge {% if setting.mail_enabled %}bg-success-subtle text-success border border-success-subtle{% else %}bg-secondary-subtle text-secondary border{% endif %} px-3 py-2 rounded-pill font-monospace" style="font-size: 0.76rem;">
             <i class="bi {% if setting.mail_enabled %}bi-broadcast{% else %}bi-slash-circle{% endif %} me-1"></i>
             SMTP: {% if setting.mail_enabled %}AKTIF{% else %}NONAKTIF{% endif %}
@@ -523,7 +519,7 @@
                     </div>
                 </div>
 
-                <!-- Card 2: Pembatasan Jaringan & IP Whitelist (VPN) -->
+                <!-- Card 2: Keamanan Akses & Otorisasi -->
                 <div class="col-lg-6">
                     <div class="card border-0 shadow-sm rounded-4 h-100">
                         <div class="card-header bg-transparent border-bottom py-3 px-4 d-flex align-items-center justify-content-between">
@@ -532,25 +528,12 @@
                                     <i class="bi bi-shield-lock-fill fs-5"></i>
                                 </div>
                                 <div>
-                                    <h6 class="fw-bold mb-0 text-dark">Proteksi Akses Jaringan (IP Whitelist)</h6>
-                                    <small class="text-muted">Kunci akses sistem hanya dari VPN atau IP kantor</small>
+                                    <h6 class="fw-bold mb-0 text-dark">Keamanan Akses &amp; Otorisasi</h6>
+                                    <small class="text-muted">Atur proteksi scan QR publik dan konfirmasi sandi Sudo</small>
                                 </div>
                             </div>
                         </div>
                         <div class="card-body p-4">
-                            <!-- Master Switch IP Whitelist -->
-                            <div class="p-3 rounded-3 mb-3 border d-flex align-items-center justify-content-between" style="background: {% if setting.ip_whitelist_enabled %}rgba(220, 38, 38, 0.05){% else %}#f8fafc{% endif %};">
-                                <div>
-                                    <div class="fw-bold text-dark small mb-0">Aktifkan Pembatasan IP / VPN</div>
-                                    <small class="text-muted d-block" style="font-size: 0.72rem;">
-                                        Hanya IP / Subnet terdaftar yang dapat membuka dashboard &amp; data aset.
-                                    </small>
-                                </div>
-                                <div class="form-check form-switch ms-3">
-                                    <input class="form-check-input" type="checkbox" name="ip_whitelist_enabled" value="1" id="ipWhitelistSwitch" {% if setting.ip_whitelist_enabled %}checked{% endif %} style="width: 2.6rem; height: 1.35rem;">
-                                </div>
-                            </div>
-
                             <!-- Scan QR Login Guard Switch -->
                             <div class="p-3 rounded-3 mb-3 border d-flex align-items-center justify-content-between" style="background: #f8fafc;">
                                 <div>
@@ -575,29 +558,6 @@
                                 <div class="form-check form-switch ms-3">
                                     <input class="form-check-input" type="checkbox" name="sudo_mode_enabled" value="1" id="sudoModeSwitch" {% if setting.sudo_mode_enabled is not defined or setting.sudo_mode_enabled %}checked{% endif %} style="width: 2.6rem; height: 1.35rem;">
                                 </div>
-                            </div>
-
-                            <!-- Real-time Detected IP Box -->
-                            <div class="alert alert-info py-2 px-3 small border-0 rounded-3 mb-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-broadcast-pin text-primary fs-5"></i>
-                                    <span>IP Terdeteksi: <strong class="font-monospace text-dark">{{ runtime.client_ip }}</strong></span>
-                                </div>
-                                <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2 rounded-pill small" onclick="addCurrentIp('{{ runtime.client_ip }}')">
-                                    <i class="bi bi-plus-circle me-1"></i>+ Tambahkan IP Saya
-                                </button>
-                            </div>
-
-                            <!-- IP Ranges Textarea -->
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold text-secondary">
-                                    Daftar IP / Subnet CIDR yang Diizinkan
-                                </label>
-                                <textarea class="form-control font-monospace" name="allowed_ip_ranges" id="allowedIpInput" rows="3" placeholder="Contoh: 192.168.1.0/24, 10.8.0.0/24, 103.160.95.2" style="font-size: 0.82rem;">{{ setting.allowed_ip_ranges or '' }}</textarea>
-                                <small class="text-muted d-block mt-1" style="font-size: 0.72rem;">
-                                    &bull; Pisahkan setiap IP atau Subnet CIDR dengan tanda koma (,).<br>
-                                    &bull; Loopback (<code>127.0.0.1</code> &amp; <code>::1</code>) dan scan publik otomatis dikecualikan agar tidak terblokir.
-                                </small>
                             </div>
                         </div>
                     </div>
@@ -1423,26 +1383,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
-
-// ==========================================
-// IP Whitelist Helper
-// ==========================================
-function addCurrentIp(ip) {
-    if (!ip) return;
-    var el = document.getElementById('allowedIpInput');
-    if (!el) return;
-    var currentVal = el.value.trim();
-    if (currentVal.indexOf(ip) !== -1) {
-        JescaToast.show('IP ' + ip + ' sudah ada di dalam daftar.', 'info');
-        return;
-    }
-    if (currentVal) {
-        el.value = currentVal + ', ' + ip;
-    } else {
-        el.value = ip;
-    }
-    JescaToast.show('IP ' + ip + ' berhasil ditambahkan ke daftar allowed.', 'success');
-}
 
 // ==========================================
 // Encryption Selection Visual Helper

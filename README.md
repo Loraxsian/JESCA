@@ -1,4 +1,4 @@
-# JESCA (Jessica Assets) - Asset Management System (v3.0.3)
+# JESCA (Jessica Assets) - Asset Management System (v3.0.4)
 
 JESCA (Jessica Assets) adalah aplikasi web manajemen aset dan inventaris berbahasa Indonesia (**Full Bahasa Indonesia**) yang dibuat menggunakan Python Flask, SQLite (Flask-SQLAlchemy), dan Bootstrap 5.
 
@@ -29,8 +29,8 @@ Aplikasi ini dirancang untuk mempermudah pencatatan aset kantor, pelacakan pemin
 - Alert lonceng dan banner dashboard otomatis bersih begitu barang mulai diservis maupun setelah servis diselesaikan.
 
 ### 3. Alur Pengadaan Barang (PO)
-- Siklus pengajuan bertahap: Draft -> Diajukan (Submitted) -> Disetujui Admin (Approved) -> Dipesan ke Vendor (Ordered) -> Barang Diterima (Received) -> Dikonversi Menjadi Aset Resmi (Converted).
-- Wajib melampirkan berkas bukti fisik (invoice DP saat status pemesanan, dan Surat Jalan / BAST saat barang sampai) sebelum unit bisa masuk ke daftar aset.
+- Siklus pengajuan bertahap: Draft -> Diajukan (Submitted) -> Disetujui Admin (Approved) -> Dipesan ke Vendor (Ordered) -> Barang Diterima (Received) -> Dikonversi Menjadi Aset Resmi (Closed).
+- Wajib melampirkan berkas bukti penerimaan fisik (Surat Jalan / BAST / Foto Barang) saat barang sampai sebelum unit dapat dikonversi menjadi aset resmi (lampiran bukti pemesanan/invoice DP saat status Ordered bersifat opsional).
 - Riwayat persetujuan tercatat lengkap pada timeline audit Pengadaan Barang (PO).
 - Form pembuatan/edit PO mendukung tampilan stacked yang rapi di perangkat mobile maupun tabel penuh di desktop.
 
@@ -57,7 +57,6 @@ Sistem membagi pengguna ke dalam 4 peran yang memiliki batas wewenang masing-mas
 - Penyederhanaan Akses Jaringan (Base URL): Pengguna dapat memilih 3 mode koneksi dengan 1 klik (Komputer Sendiri / Localhost, Jaringan Lokal Kabel LAN / Wi-Fi dilengkapi panduan perintah cek IP komputer server, atau Domain Sendiri / VPS Cloud). Alamat Base URL yang dipilih otomatis tertanam pada cetakan stiker label QR Code fisik dan tautan email notifikasi tim.
 - Uji Coba Akses Luar Otomatis (Tunnel Instan 1-Klik): Sistem dapat membuatkan tautan internet sementara yang aman (HTTPS) secara otomatis langsung dari dalam aplikasi tanpa perlu membeli domain atau membuka terminal. Dilengkapi keterangan lengkap fungsi tautan, batas waktu aktif (expired), dan tombol salin/terapkan ke Base URL.
 - Dynamic SMTP: Pengaturan server email (Gmail, cPanel, Outlook, dsb.) bisa diubah langsung dari halaman web tanpa perlu restart aplikasi. Dilengkapi standarisasi format email resmi perusahaan dengan zona waktu WIB (Waktu Indonesia Barat).
-- IP Whitelist & VPN Access: Pembatasan akses web hanya untuk jaringan kantor atau VPN internal tertentu.
 - Mode Jurnal WAL & Busy Timeout: Menggunakan SQLite Write-Ahead Logging (WAL) dan timeout antrean 30 detik untuk mencegah error database terkunci saat banyak aksi dijalankan bersamaan, serta panel diagnostik Lingkungan Server & Waktu Proses.
 - Halaman Error Ramah & Auto-Rollback: Jika terjadi gangguan tak terduga, sistem tidak menampilkan layar putih error server, melainkan halaman kustom JESCA dengan tombol kembali yang aman dan otomatis membatalkan transaksi database (rollback) agar data tidak rusak.
 - Proteksi brute-force login dan penggantian password default otomatis pada login pertama.
@@ -180,14 +179,20 @@ jesca-assets/
     ├── purchase_order_form.html   # Form buat/edit Pengadaan Barang (PO)
     ├── purchase_order_detail.html # Detail transaksi PO dan upload bukti terima
     ├── feedbacks.html         # Pengelolaan laporan bug dan masukan pengguna
-    ├── settings.html          # Pengaturan sistem, SMTP, IP Whitelist, dan diagnostik
+    ├── settings.html          # Pengaturan sistem, SMTP, keamanan akses, dan diagnostik
     ├── accounts.html          # Pengelolaan akun pengguna dan role
     └── ...
 ```
 
 ---
 
-## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.3)
+## Riwayat Pembaruan Terbaru (v2.6.0 - v3.0.4)
+
+### v3.0.4 — Pembersihan Layer Keamanan, File Lock Backup & Optimasi Kode
+- **Penghapusan IP Whitelist Layer Aplikasi**: Memindahkan tanggung jawab pembatasan IP ke layer infrastruktur (Cloudflare / Firewall / Reverse Proxy) sambil mempertahankan toggle **Wajib Login untuk Scan QR Publik** dan **Mode Akses Khusus (Sudo)** di `/settings`.
+- **File Lock Scheduler Backup**: Menambahkan non-blocking POSIX file lock (`fcntl.flock`) pada `auto_backup_job` agar hanya 1 dari 4 worker Gunicorn yang menjalankan backup harian pukul 02:00 WIB tanpa saling berebut file.
+- **Ekstraksi Aset Statis Halaman Login**: Memisahkan CSS (`static/css/login.css`) dan JS (`static/js/login.js`) dari `templates/login.html` (menyusut dari 1.715 menjadi 500 baris) agar dapat di-cache browser dan lebih mudah dirawat.
+- **Pembersihan Import Mati**: Menghapus 539 simbol import tidak terpakai di seluruh 7 blueprint `routes/*.py` (terverifikasi AST + 21/21 unit test).
 
 ### v3.0.3 — Penyederhanaan Backup Layer & Pembaruan Dokumentasi
 - **Penyederhanaan Layer Backup**: Menghapus integrasi Remote Backup (FTP/SFTP) dari layer aplikasi (`/admin/backups`) agar pencadangan off-site ditangani di layer infrastruktur/VPS, sementara aplikasi berfokus pada snapshot SQLite WAL lokal harian (retensi 30 hari), Restore, Optimasi DB, dan Smart DB Merge.

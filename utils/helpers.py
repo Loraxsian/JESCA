@@ -316,30 +316,3 @@ def get_client_ip():
         return request.headers.get('X-Real-IP').strip()
     return request.remote_addr or '127.0.0.1'
 
-
-def is_ip_allowed(client_ip_str: str, allowed_rules_str: str) -> bool:
-    """Check if client IP matches allowed list (single IPs or CIDR subnets)."""
-    if not allowed_rules_str:
-        return True
-    try:
-        client_ip = ipaddress.ip_address(client_ip_str)
-    except ValueError:
-        return False
-
-    for rule in allowed_rules_str.split(','):
-        rule = rule.strip()
-        if not rule:
-            continue
-        try:
-            if '/' in rule:
-                network = ipaddress.ip_network(rule, strict=False)
-                if client_ip in network:
-                    return True
-            else:
-                target_ip = ipaddress.ip_address(rule)
-                if client_ip == target_ip:
-                    return True
-        except ValueError:
-            continue
-    return False
-

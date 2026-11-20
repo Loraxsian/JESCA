@@ -199,9 +199,21 @@ def backup_sqlite_db(src_path, dst_path):
 
 
 def auto_backup_job(app=None):
-    """Daily auto backup, keep last 30 days."""
+    """Daily auto backup, keep last 30 days. Uses a POSIX file lock so only 1 Gunicorn worker executes."""
     def _run():
+        lock_file = None
         try:
+            try:
+                import fcntl
+                lock_file = open('/tmp/jesca_auto_backup.lock', 'w')
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError:
+                # Another Gunicorn worker already holds the lock for this scheduled run
+                return
+            except ImportError:
+                # Non-POSIX fallback (e.g. Windows dev)
+                pass
+
             filename = f"auto_{datetime.now().strftime('%Y%m%d')}.db"
             dst = os.path.join(BACKUP_FOLDER, filename)
             if not os.path.exists(dst) and os.path.exists(db_path):
@@ -215,6 +227,17 @@ def auto_backup_job(app=None):
                 current_app.logger.error(f'Auto backup failed: {e}')
             except Exception:
                 pass
+        finally:
+            if lock_file is not None:
+                try:
+                    import fcntl
+                    fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                except Exception:
+                    pass
+                try:
+                    lock_file.close()
+                except Exception:
+                    pass
 
     if app is not None:
         with app.app_context():

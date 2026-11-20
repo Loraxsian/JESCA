@@ -2,53 +2,38 @@ import os
 import re
 import csv
 import io
-import json
-import uuid
 import shutil
 import secrets
 import smtplib
-import socket
 import subprocess
-import traceback
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime, date, timedelta
-from urllib.parse import quote
-
+from datetime import datetime, date
 from flask import (
-    Blueprint, render_template, request, redirect, url_for,
-    flash, jsonify, Response, send_from_directory, session, current_app
+    Blueprint, render_template, request, redirect,
+    url_for, flash, jsonify, Response,
+    session, current_app
 )
-from flask_login import login_user, login_required, logout_user, current_user
+from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
-
 from config import (
-    APP_VERSION, GITHUB_REPO, BASE_DIR, DATA_DIR, UPLOAD_FOLDER, AVATAR_FOLDER,
-    ATTACHMENT_FOLDER, PO_ATTACHMENT_FOLDER, MAINT_ATTACHMENT_FOLDER,
-    BACKUP_FOLDER, QRCODE_FOLDER, ALLOWED_EXTENSIONS, ALLOWED_ATTACHMENT_EXTENSIONS,
-    CATEGORY_CUSTOM_FIELDS, CATEGORY_PREFIX_MAP, DEFAULT_CATEGORIES,
-    STATUS_CHOICES, ROLE_CHOICES, db_path
+    APP_VERSION, GITHUB_REPO, BACKUP_FOLDER, ROLE_CHOICES,
+    db_path
 )
-from extensions import (
-    db, HAVE_QRCODE, qrcode, HAVE_REPORTLAB, rl_colors, A4, landscape,
-    SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, getSampleStyleSheet
-)
-from i18n import get_current_lang, translate as i18n_translate, SUPPORTED_LANGUAGES
+from extensions import db
 from models import (
-    SystemSetting, Site, Vendor, User, Asset, ActivityLog, AssetAttachment,
-    AssetTransfer, PurchaseOrder, POItem, PurchaseOrderHistory,
-    MaintenanceRecord, AssetCirculationLog, SystemFeedback, StockOpnameRecord
+    SystemSetting, Site, Vendor, User,
+    Asset, ActivityLog, PurchaseOrder, POItem,
+    PurchaseOrderHistory, MaintenanceRecord, AssetCirculationLog
 )
-from utils.decorators import admin_required, role_required, api_key_required, is_sudo_active, sudo_required
+from utils.decorators import admin_required, role_required, sudo_required
 from utils.helpers import (
-    validate_password, allowed_file, allowed_attachment,
-    save_uploaded_photo, delete_photo_file, save_po_attachment, save_maint_attachment,
-    save_avatar_file, delete_avatar_file, encrypt_smtp_password, decrypt_smtp_password,
-    get_wib_now, format_wib_datetime, parse_currency, get_category_prefix,
-    generate_asset_code, generate_po_number, get_client_ip, is_ip_allowed
+    validate_password, save_avatar_file, delete_avatar_file, encrypt_smtp_password,
+    decrypt_smtp_password, format_wib_datetime, generate_asset_code, generate_po_number,
+    get_client_ip
 )
-from services.audit_service import log_activity, log_po_history, get_overdue_returns, get_maintenance_notifications
-from services.email_service import build_system_email_html, send_system_email, resolve_smtp_settings
+from services.audit_service import log_activity
+from services.email_service import build_system_email_html, resolve_smtp_settings
 from services.backup_service import backup_sqlite_db
 from services.tunnel_service import start_quick_tunnel, stop_quick_tunnel, get_quick_tunnel_status
 
@@ -907,8 +892,6 @@ def system_settings():
         if app_base_url:
             setting.app_base_url = app_base_url.rstrip('/')
         setting.enforce_https = enforce_https_requested
-        setting.ip_whitelist_enabled = (request.form.get('ip_whitelist_enabled') == '1')
-        setting.allowed_ip_ranges = request.form.get('allowed_ip_ranges', '').strip()
         setting.require_login_for_scan = (request.form.get('require_login_for_scan') == '1')
         setting.sudo_mode_enabled = (request.form.get('sudo_mode_enabled') == '1')
 
@@ -916,7 +899,7 @@ def system_settings():
             setting.mail_password = encrypt_smtp_password(mail_password_input)
 
         db.session.commit()
-        log_activity('EDIT_SETTINGS', details=f"Pengaturan sistem diperbarui oleh {current_user.username}. SMTP: {'Aktif' if mail_enabled else 'Nonaktif'}, Whitelist: {'Aktif' if setting.ip_whitelist_enabled else 'Nonaktif'}.")
+        log_activity('EDIT_SETTINGS', details=f"Pengaturan sistem diperbarui oleh {current_user.username}. SMTP: {'Aktif' if mail_enabled else 'Nonaktif'}, Sudo: {'Aktif' if setting.sudo_mode_enabled else 'Nonaktif'}.")
         flash('Pengaturan sistem, jaringan, dan SMTP berhasil disimpan!', 'success')
         return redirect(url_for('admin.system_settings'))
 

@@ -11,7 +11,7 @@ MAINT_ATTACHMENT_FOLDER = os.path.join(BASE_DIR, 'static', 'attachments', 'maint
 BACKUP_FOLDER = os.path.join(BASE_DIR, 'backups')
 QRCODE_FOLDER = os.path.join(BASE_DIR, 'static', 'qrcodes')
 
-APP_VERSION = '3.0.3'
+APP_VERSION = '3.0.4'
 GITHUB_REPO = 'Loraxsian/JESCA'
 ENABLE_QUICK_TUNNEL = os.environ.get('ENABLE_QUICK_TUNNEL', 'true').lower() in ('1', 'true', 'yes', 'on')
 QUICK_TUNNEL_MAX_MINUTES = int(os.environ.get('QUICK_TUNNEL_MAX_MINUTES', '30'))

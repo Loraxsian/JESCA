@@ -14,7 +14,7 @@ from services.audit_service import get_maintenance_notifications, get_overdue_re
 from services.backup_service import auto_backup_job, check_and_update_schema, seed_database
 from utils.decorators import is_sudo_active
 from utils.filters import register_filters
-from utils.helpers import get_client_ip, is_ip_allowed
+from utils.helpers import get_client_ip
 
 
 def create_app(config_class=Config):
@@ -124,14 +124,6 @@ def create_app(config_class=Config):
                     https_url = request.url.replace('http://', 'https://', 1)
                     redirect_code = 307 if request.method in ('POST', 'PUT', 'DELETE', 'PATCH') else 308
                     return redirect(https_url, code=redirect_code)
-
-        if setting and setting.ip_whitelist_enabled and setting.allowed_ip_ranges:
-            exempt_endpoints = {'static', 'main.health', 'main.scan_asset_summary', 'main.robots'}
-            if request.endpoint and request.endpoint not in exempt_endpoints:
-                client_ip = get_client_ip()
-                if client_ip not in ['127.0.0.1', '::1']:
-                    if not is_ip_allowed(client_ip, setting.allowed_ip_ranges):
-                        return render_template('403_network.html', client_ip=client_ip), 403
 
     @application.after_request
     def add_security_headers(response):
